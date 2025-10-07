@@ -13,11 +13,18 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar requirements
-COPY backend/requirements.txt .
+# Configurar cache de pip para persistir entre builds
+ENV PIP_CACHE_DIR=/opt/pip-cache
+RUN mkdir -p $PIP_CACHE_DIR
 
-RUN pip install torch==2.1.0 torchvision==0.23.0 --extra-index-url https://download.pytorch.org/whl/cpu
-RUN pip install --no-cache-dir -r requirements.txt
+# Instalar torch PRIMERO (capa separada para mejor caching)
+RUN --mount=type=cache,target=/opt/pip-cache \
+    pip install torch==2.1.0 torchvision==0.23.0 --extra-index-url https://download.pytorch.org/whl/cpu
+
+# Copiar requirements y instalar otras dependencias
+COPY backend/requirements.txt .
+RUN --mount=type=cache,target=/opt/pip-cache \
+    pip install -r requirements.txt
 
 # Copiar código del backend
 COPY backend/ .
@@ -32,6 +39,7 @@ ENV PYTHONUNBUFFERED=1
 ENV TRANSFORMERS_CACHE=/app/.cache
 ENV HOST=0.0.0.0
 ENV PORT=80
+ENV MODEL_NAME=all-MiniLM-L6-v2
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:80/ || exit 1
