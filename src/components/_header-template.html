@@ -1,0 +1,236 @@
+<!-- Header Component - Recuiva Standard -->
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <a href="../index.html" class="flex items-center gap-2">
+      <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="text-2xl font-black text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  
+  <!-- Desktop Navigation -->
+  <nav class="hidden md:flex items-center gap-8">
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../index.html">Dashboard</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../app/materiales.html">Materiales</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../app/analytics.html">Análisis</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../institucional/active-recall.html">Metodología</a>
+  </nav>
+
+  <!-- Desktop Actions -->
+  <div class="hidden md:flex items-center gap-4">
+    <!-- Notifications -->
+    <button onclick="showNotificationModal()" class="relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none transition-all">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="absolute -top-1 -right-1 bg-[var(--primary-color)] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+    </button>
+    
+    <!-- Profile Dropdown -->
+    <div class="relative">
+      <button id="profile-btn" onclick="toggleProfileDropdown()" class="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus:outline-none transition-all">
+        <img alt="User profile" class="h-10 w-10 rounded-full object-cover border-2 border-[var(--accent-color)]" 
+             src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"/>
+        <span class="material-symbols-outlined text-gray-500">expand_more</span>
+      </button>
+      
+      <div id="profile-dropdown" class="profile-dropdown absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 opacity-0 invisible transition-all duration-200">
+        <a href="../app/mi-perfil.html" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+          <span class="material-symbols-outlined mr-3">person</span>
+          Mi Perfil
+        </a>
+        <a href="../app/repasos.html" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+          <span class="material-symbols-outlined mr-3">schedule</span>
+          Repasos
+        </a>
+        <hr class="my-2 border-gray-200">
+        <button onclick="showLogoutModal()" class="flex w-full items-center px-4 py-2 text-red-600 hover:bg-red-50 transition-colors">
+          <span class="material-symbols-outlined mr-3">logout</span>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Button -->
+  <button class="md:hidden p-2 rounded-full hover:bg-gray-100 transition-all" id="mobile-menu-btn" onclick="toggleMobileMenu()">
+    <span class="material-symbols-outlined text-2xl text-[var(--text-primary)]">menu</span>
+  </button>
+</div>
+
+<!-- Mobile Menu -->
+<div id="mobile-menu" class="md:hidden fixed top-[73px] left-0 w-full h-[calc(100vh-73px)] bg-[var(--base-white)] shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out z-40">
+  <div class="flex flex-col h-full">
+    
+    <!-- User Profile Section -->
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center gap-3">
+        <img alt="User profile" class="h-12 w-12 rounded-full object-cover border-2 border-[var(--accent-color)]" 
+             src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"/>
+        <div>
+          <div class="font-semibold text-[var(--text-primary)]">Usuario Recuiva</div>
+          <div class="text-sm text-[var(--text-secondary)]">usuario@ejemplo.com</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="flex-1 p-6 space-y-4">
+      <a href="../index.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+        <span class="material-symbols-outlined text-[var(--primary-color)]">dashboard</span>
+        <span class="font-medium text-[var(--text-primary)]">Dashboard</span>
+      </a>
+      
+      <a href="../app/materiales.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+        <span class="material-symbols-outlined text-[var(--primary-color)]">folder</span>
+        <span class="font-medium text-[var(--text-primary)]">Materiales</span>
+      </a>
+      
+      <a href="../app/sesion-practica.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+        <span class="material-symbols-outlined text-[var(--primary-color)]">psychology</span>
+        <span class="font-medium text-[var(--text-primary)]">Sesión de Práctica</span>
+      </a>
+      
+      <a href="../app/analytics.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+        <span class="material-symbols-outlined text-[var(--primary-color)]">analytics</span>
+        <span class="font-medium text-[var(--text-primary)]">Análisis</span>
+      </a>
+      
+      <a href="../app/repasos.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+        <span class="material-symbols-outlined text-[var(--primary-color)]">schedule</span>
+        <span class="font-medium text-[var(--text-primary)]">Repasos</span>
+      </a>
+      
+      <a href="../app/evolucion.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+        <span class="material-symbols-outlined text-[var(--primary-color)]">trending_up</span>
+        <span class="font-medium text-[var(--text-primary)]">Evolución</span>
+      </a>
+      
+      <hr class="my-4 border-gray-200">
+      
+      <a href="../institucional/active-recall.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+        <span class="material-symbols-outlined text-[var(--primary-color)]">school</span>
+        <span class="font-medium text-[var(--text-primary)]">Active Recall</span>
+      </a>
+      
+      <a href="../app/mi-perfil.html" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+        <span class="material-symbols-outlined text-[var(--primary-color)]">person</span>
+        <span class="font-medium text-[var(--text-primary)]">Mi Perfil</span>
+      </a>
+    </nav>
+
+    <!-- Logout Button -->
+    <div class="p-6 border-t border-gray-200">
+      <button onclick="showLogoutModal()" class="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-red-50 transition-colors text-red-600">
+        <span class="material-symbols-outlined">logout</span>
+        <span class="font-medium">Cerrar sesión</span>
+      </button>
+    </div>
+  </div>
+</div>
+</header>
+
+<!-- CSS adicional para el header -->
+<style>
+.profile-dropdown.show {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+#mobile-menu.show {
+  transform: translateX(0) !important;
+}
+
+/* Animación del botón hamburger */
+#mobile-menu-btn.active span {
+  transform: rotate(180deg);
+}
+</style>
+
+<!-- JavaScript para funcionalidad del header -->
+<script>
+// Toggle mobile menu
+function toggleMobileMenu() {
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  
+  mobileMenu.classList.toggle('show');
+  menuBtn.classList.toggle('active');
+}
+
+// Toggle profile dropdown
+function toggleProfileDropdown() {
+  const dropdown = document.getElementById('profile-dropdown');
+  dropdown.classList.toggle('show');
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  const profileBtn = document.getElementById('profile-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  
+  if (profileBtn && !profileBtn.contains(e.target)) {
+    profileDropdown.classList.remove('show');
+  }
+  
+  if (mobileMenuBtn && !mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+    mobileMenu.classList.remove('show');
+    mobileMenuBtn.classList.remove('active');
+  }
+});
+
+// Modal functions
+function showNotificationModal() {
+  showModal('notifications', 'Notificaciones', 'Esta funcionalidad requiere conexión con el backend. Por ahora puedes explorar las notificaciones simuladas en el perfil.');
+}
+
+function showLogoutModal() {
+  if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+    // Simulate logout
+    localStorage.removeItem('recuiva_user');
+    window.location.href = '../auth/iniciar-sesion.html';
+  }
+}
+
+function showModal(icon, title, message) {
+  // Create modal if it doesn't exist
+  let modal = document.getElementById('header-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'header-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-0 invisible transition-all duration-300';
+    modal.innerHTML = `
+      <div class="bg-white rounded-xl p-6 max-w-md mx-4 transform scale-95 transition-transform duration-300">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-2xl text-orange-600" id="modal-icon">info</span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2" id="modal-title">Título</h3>
+          <p class="text-gray-600 mb-6" id="modal-message">Mensaje</p>
+          <button onclick="closeModal()" class="px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90 transition-all">
+            Entendido
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  
+  // Update modal content
+  document.getElementById('modal-icon').textContent = icon;
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-message').textContent = message;
+  
+  // Show modal
+  modal.classList.remove('opacity-0', 'invisible');
+  modal.querySelector('.bg-white').classList.remove('scale-95');
+}
+
+function closeModal() {
+  const modal = document.getElementById('header-modal');
+  if (modal) {
+    modal.classList.add('opacity-0', 'invisible');
+    modal.querySelector('.bg-white').classList.add('scale-95');
+  }
+}
+</script>

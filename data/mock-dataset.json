@@ -1,0 +1,182 @@
+{
+  "metadata": {
+    "name": "Recuiva Dataset - Ground Truth",
+    "version": "1.0.0",
+    "description": "Dataset de evaluación para validación semántica de preguntas generadas automáticamente",
+    "created": "2025-09-23T10:00:00.000Z",
+    "scope": "Sprint 1 - Parcial (DO-003)",
+    "domain": "Educación Médica - Endodoncia",
+    "language": "es-ES",
+    "total_samples": 2,
+    "evaluation_metrics": ["precision", "recall", "f1_score", "semantic_similarity"]
+  },
+  
+  "evaluation_criteria": {
+    "question_quality": {
+      "clarity": "La pregunta debe ser clara y sin ambigüedades",
+      "relevance": "Debe estar directamente relacionada con el contenido fuente",
+      "difficulty": "Nivel apropiado para estudiantes de odontología",
+      "completeness": "La respuesta debe ser completa y precisa"
+    },
+    "semantic_validation": {
+      "content_preservation": "Mantener el significado del texto original",
+      "factual_accuracy": "Información médicamente correcta",
+      "context_coherence": "Coherencia con el contexto educativo"
+    },
+    "scoring_scale": {
+      "1": "Muy malo - Incorrecta o irrelevante",
+      "2": "Malo - Parcialmente correcta pero con errores",
+      "3": "Bueno - Correcta con mejoras menores",
+      "4": "Excelente - Perfectamente generada"
+    }
+  },
+
+  "samples": [
+    {
+      "id": "sample_001",
+      "source_content": "La pulpa dental es un tejido conectivo ubicado en la cavidad pulpar del diente. Está compuesta principalmente por odontoblastos, fibroblastos, células dendríticas y vasos sanguíneos. Su función principal es la formación de dentina y la respuesta inmunitaria ante agresiones externas. La pulpa tiene capacidad regenerativa limitada y es altamente sensible a cambios térmicos y químicos.",
+      "generated_questions": [
+        {
+          "question": "¿Qué es la pulpa dental?",
+          "answer": "Tejido conectivo ubicado en la cavidad pulpar del diente",
+          "auto_generated": true,
+          "algorithm": "text_chunking_v1"
+        },
+        {
+          "question": "¿Cuáles son los componentes celulares principales de la pulpa dental?",
+          "answer": "Odontoblastos, fibroblastos, células dendríticas y vasos sanguíneos",
+          "auto_generated": true,
+          "algorithm": "text_chunking_v1"
+        }
+      ],
+      "ground_truth_questions": [
+        {
+          "question": "¿Qué es la pulpa dental y cuál es su ubicación anatómica?",
+          "answer": "La pulpa dental es un tejido conectivo altamente vascularizado e inervado ubicado en la cavidad pulpar del diente, que incluye tanto la cámara pulpar como los conductos radiculares.",
+          "expert_validated": true,
+          "difficulty_level": 2,
+          "bloom_taxonomy": "comprensión"
+        },
+        {
+          "question": "Describa la composición celular de la pulpa dental y la función de cada tipo celular.",
+          "answer": "La pulpa dental está compuesta por: 1) Odontoblastos: forman dentina y actúan como células sensoriales, 2) Fibroblastos: producen matriz extracelular, 3) Células dendríticas: función inmunitaria y presentación de antígenos, 4) Vasos sanguíneos: nutrición y drenaje, 5) Nervios: transmisión de señales dolorosas y regulación vascular.",
+          "expert_validated": true,
+          "difficulty_level": 3,
+          "bloom_taxonomy": "análisis"
+        }
+      ],
+      "evaluation": {
+        "semantic_similarity_score": 0.78,
+        "content_coverage": 0.65,
+        "question_quality": {
+          "generated_q1": {
+            "clarity": 4,
+            "relevance": 4,
+            "completeness": 2,
+            "overall": 3.3
+          },
+          "generated_q2": {
+            "clarity": 3,
+            "relevance": 4,
+            "completeness": 3,
+            "overall": 3.3
+          }
+        },
+        "recommendations": [
+          "Mejorar la completitud de las respuestas generadas",
+          "Incluir aspectos funcionales además de estructurales",
+          "Considerar diferentes niveles de dificultad"
+        ]
+      }
+    },
+    
+    {
+      "id": "sample_002", 
+      "source_content": "El tratamiento endodóntico consiste en la eliminación del tejido pulpar infectado o necrótico, seguido de la limpieza, conformación y desinfección del sistema de conductos radiculares. Posteriormente se realiza la obturación tridimensional del espacio endodóntico con materiales biocompatibles como la gutapercha y cemento sellador. El objetivo es eliminar la infección y prevenir la reinfección del sistema de conductos.",
+      "generated_questions": [
+        {
+          "question": "¿En qué consiste el tratamiento endodóntico?",
+          "answer": "Eliminación del tejido pulpar infectado o necrótico, seguido de limpieza y desinfección",
+          "auto_generated": true,
+          "algorithm": "text_chunking_v1"
+        },
+        {
+          "question": "¿Qué materiales se usan en la obturación endodóntica?",
+          "answer": "Gutapercha y cemento sellador",
+          "auto_generated": true,
+          "algorithm": "text_chunking_v1"
+        }
+      ],
+      "ground_truth_questions": [
+        {
+          "question": "Explique las fases del tratamiento endodóntico y el objetivo de cada una.",
+          "answer": "El tratamiento endodóntico consta de tres fases principales: 1) Fase de acceso y eliminación: remoción del tejido pulpar infectado/necrótico, 2) Fase de preparación: limpieza, conformación y desinfección del sistema de conductos para eliminar bacterias y detritus, 3) Fase de obturación: sellado tridimensional con gutapercha y cemento para prevenir reinfección y filtración.",
+          "expert_validated": true,
+          "difficulty_level": 3,
+          "bloom_taxonomy": "comprensión"
+        },
+        {
+          "question": "¿Por qué se utiliza gutapercha como material de obturación principal en endodoncia?",
+          "answer": "La gutapercha se utiliza porque es biocompatible, inerte, radiopaca, termoformable, fácil de remover si es necesario, y proporciona un sellado efectivo cuando se combina con cemento sellador.",
+          "expert_validated": true,
+          "difficulty_level": 4,
+          "bloom_taxonomy": "análisis"
+        }
+      ],
+      "evaluation": {
+        "semantic_similarity_score": 0.82,
+        "content_coverage": 0.70,
+        "question_quality": {
+          "generated_q1": {
+            "clarity": 4,
+            "relevance": 4,
+            "completeness": 3,
+            "overall": 3.7
+          },
+          "generated_q2": {
+            "clarity": 4,
+            "relevance": 4,
+            "completeness": 3,
+            "overall": 3.7
+          }
+        },
+        "recommendations": [
+          "Expandir las respuestas para incluir el 'por qué' además del 'qué'",
+          "Incluir información sobre indicaciones y contraindicaciones",
+          "Considerar preguntas de aplicación clínica"
+        ]
+      }
+    }
+  ],
+
+  "summary_statistics": {
+    "average_semantic_similarity": 0.80,
+    "average_content_coverage": 0.675,
+    "average_question_quality": 3.5,
+    "common_improvement_areas": [
+      "Completitud de respuestas",
+      "Profundidad conceptual", 
+      "Variedad en niveles de dificultad",
+      "Inclusión de aspectos prácticos/clínicos"
+    ]
+  },
+
+  "next_steps_sprint_2": {
+    "expand_dataset": "Incluir 50+ muestras de diferentes dominios médicos",
+    "implement_metrics": "Automatizar cálculo de métricas de evaluación",
+    "validation_pipeline": "Crear flujo de validación con expertos",
+    "integration": "Integrar dataset con sistema de embeddings y FAISS",
+    "monitoring": "Implementar monitoreo continuo de calidad de preguntas"
+  },
+
+  "technical_notes": {
+    "current_limitations": [
+      "Dataset limitado a 2 muestras (Sprint 1)",
+      "Validación manual por falta de expertos automáticos",
+      "Métricas calculadas manualmente",
+      "Sin integración con sistema de embeddings"
+    ],
+    "sprint_1_scope": "Estructura y metodología establecida para Sprint 2",
+    "file_format": "JSON para fácil integración con APIs mock y futuro backend"
+  }
+}
