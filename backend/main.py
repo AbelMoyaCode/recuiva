@@ -491,6 +491,3 @@ if __name__ == "__main__":
         reload=args.debug,
         log_level="info"
     )
-scp c:\Users\Abel\Desktop\recuiva\backend\main.py root@147.182.226.170:/var/www/recuiva/backend/
-scp c:\Users\Abel\Desktop\recuiva\backend\embeddings_module.py root@147.182.226.170:/var/www/recuiva/backend/
-scp c:\Users\Abel\Desktop\recuiva\backend\chunking.py root@147.182.226.170:/var/www/recuiva/backend/
