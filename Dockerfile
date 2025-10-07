@@ -25,18 +25,16 @@ COPY backend/ .
 # Crear directorios necesarios
 RUN mkdir -p /app/data/embeddings /app/data/materials
 
-# Exponer puerto
-EXPOSE 8000
+EXPOSE 80
 
 # Variables de entorno
 ENV PYTHONUNBUFFERED=1
 ENV TRANSFORMERS_CACHE=/app/.cache
 ENV HOST=0.0.0.0
-ENV PORT=8000
+ENV PORT=80
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:8000/ || exit 1
+  CMD curl -f http://localhost:80/ || exit 1
 
 # Comando por defecto - Iniciar FastAPI
 CMD ["python", "main.py"]
