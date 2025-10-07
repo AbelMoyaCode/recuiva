@@ -11,8 +11,10 @@ RUN apt-get update && apt-get install -y \
 # Copiar requirements
 COPY backend/requirements.txt .
 
-# Instalar TODAS las dependencias de una vez (sin cache mount)
-RUN pip install --no-cache-dir torch==2.1.0 torchvision==0.23.0 --extra-index-url https://download.pytorch.org/whl/cpu
+# Instalar torch CPU FORZANDO el índice correcto (SOLO CPU, sin CUDA)
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.1.0 torchvision==0.16.0
+
+# Instalar resto de dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar código
