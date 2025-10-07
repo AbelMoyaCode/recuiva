@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
 # Copiar requirements
 COPY backend/requirements.txt .
 
-# Instalar dependencias Python
+RUN pip install torch==2.1.0 torchvision==0.23.0 --extra-index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar código del backend
