@@ -1,13 +1,27 @@
 version: '3.8'
 
 services:
+  # Traefik - Reverse Proxy
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - recuiva-network
+
   # Frontend - Nginx serving static files
   frontend:
     image: nginx:alpine
     container_name: recuiva-frontend
-    ports:
-      - "80:80"
-      - "443:443"
     volumes:
       - ./public:/usr/share/nginx/html:ro
       - ./src:/usr/share/nginx/html/src:ro
@@ -16,6 +30,10 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
     restart: unless-stopped
     networks:
       - recuiva-network
@@ -26,8 +44,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: recuiva-backend
-    ports:
-      - "8000:8000"
     volumes:
       - ./backend:/app:ro
       - ./data:/app/data
@@ -36,14 +52,18 @@ services:
       - PYTHONUNBUFFERED=1
       - TRANSFORMERS_CACHE=/app/.cache
       - HOST=0.0.0.0
-      - PORT=8000
+      - PORT=8001
       - MODEL_NAME=all-MiniLM-L6-v2
       - EMBEDDINGS_DIR=/app/data/embeddings
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=8001"
     restart: unless-stopped
     networks:
       - recuiva-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
       interval: 30s
       timeout: 10s
       retries: 3
