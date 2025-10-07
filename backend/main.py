@@ -18,6 +18,7 @@ from pathlib import Path
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import argparse
 
 # Importar módulos locales
 try:
@@ -463,23 +464,33 @@ def load_existing_materials():
 # ==================== MAIN ====================
 
 if __name__ == "__main__":
-    HOST = os.getenv("HOST", "0.0.0.0")
-    PORT = int(os.getenv("PORT", "8000"))
-    DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+    # Parsear argumentos de línea de comando
+    parser = argparse.ArgumentParser(description="Recuiva Backend API")
+    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", "8000")),
+                      help="Puerto para ejecutar el servidor")
+    parser.add_argument("--host", type=str, default=os.getenv("HOST", "0.0.0.0"),
+                      help="Host para ejecutar el servidor")
+    parser.add_argument("--debug", type=bool, default=os.getenv("DEBUG", "True").lower() == "true",
+                      help="Modo debug")
+    
+    args = parser.parse_args()
     
     print("\n" + "="*50)
     print("🚀 Iniciando Recuiva Backend API")
     print("="*50)
-    print(f"📍 Host: {HOST}")
-    print(f"🔌 Port: {PORT}")
-    print(f"🐛 Debug: {DEBUG}")
-    print(f"📚 Documentación: http://{HOST}:{PORT}/docs")
+    print(f"📍 Host: {args.host}")
+    print(f"🔌 Port: {args.port}")
+    print(f"🐛 Debug: {args.debug}")
+    print(f"📚 Documentación: http://{args.host}:{args.port}/docs")
     print("="*50 + "\n")
     
     uvicorn.run(
         "main:app",
-        host=HOST,
-        port=PORT,
-        reload=DEBUG,
+        host=args.host,
+        port=args.port,
+        reload=args.debug,
         log_level="info"
     )
+scp c:\Users\Abel\Desktop\recuiva\backend\main.py root@147.182.226.170:/var/www/recuiva/backend/
+scp c:\Users\Abel\Desktop\recuiva\backend\embeddings_module.py root@147.182.226.170:/var/www/recuiva/backend/
+scp c:\Users\Abel\Desktop\recuiva\backend\chunking.py root@147.182.226.170:/var/www/recuiva/backend/
