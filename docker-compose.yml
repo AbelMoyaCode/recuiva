@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   # Backend - FastAPI con embeddings semánticos
@@ -6,8 +6,8 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8001:8000"
+    expose:
+      - "8000"
     environment:
       - HOST=0.0.0.0
       - PORT=8000
@@ -37,8 +37,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - backend
     environment:
