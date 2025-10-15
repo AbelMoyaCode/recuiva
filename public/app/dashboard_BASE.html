@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin/>
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <title>Recuiva - Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      
+      .metric-card {
+        background: linear-gradient(135deg, var(--base-white) 0%, var(--base-gray) 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+      }
+      
+      .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+      }
+      
+      .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        line-height: 1;
+      }
+      
+      .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-top: 0.5rem;
+      }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <img src="../assets/img/Icon-Recuiva.ico" alt="Recuiva Logo" class="h-10 w-10"/>
+                    <h1 class="text-2xl font-bold" style="color: var(--primary-color);">Recuiva</h1>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="dashboard.html" class="text-orange-600 font-semibold border-b-2 border-orange-600 pb-1">
+                        Dashboard
+                    </a>
+                    <a href="subir-material.html" class="text-gray-600 hover:text-orange-600 transition-colors font-medium">
+                        Subir Material
+                    </a>
+                    <a href="sesion-practica.html" class="text-gray-600 hover:text-orange-600 transition-colors font-medium">
+                        Sesión Práctica
+                    </a>
+                    <a href="historial.html" class="text-gray-600 hover:text-orange-600 transition-colors font-medium">
+                        Historial
+                    </a>
+                </nav>
+                
+                <!-- User Profile -->
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold border-2 border-orange-700">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Título -->
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="material-symbols-outlined text-4xl" style="color: var(--primary-color);">dashboard</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Panel de Control - Active Recall</h2>
+            </div>
+            <p class="text-gray-600 text-sm md:text-base">Visualiza tu progreso y estadísticas de aprendizaje</p>
+        </div>
+
+        <!-- Métricas Principales -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- MATERIALES - Azul -->
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 hover-lift">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <p class="text-xs md:text-sm font-medium text-blue-600 uppercase tracking-wide mb-1">MATERIALES</p>
+                        <p class="text-xs text-blue-500">PDFs subidos</p>
+                    </div>
+                    <div class="bg-blue-100 p-2 rounded-lg">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-4xl md:text-5xl font-bold text-blue-600" id="total-materials">0</p>
+            </div>
+
+            <!-- PREGUNTAS - Verde -->
+            <div class="bg-green-50 border border-green-200 rounded-2xl p-6 hover-lift">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <p class="text-xs md:text-sm font-medium text-green-600 uppercase tracking-wide mb-1">PREGUNTAS</p>
+                        <p class="text-xs text-green-500">Creadas</p>
+                    </div>
+                    <div class="bg-green-100 p-2 rounded-lg">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-4xl md:text-5xl font-bold text-green-600" id="total-questions">0</p>
+            </div>
+
+            <!-- SCORE PROMEDIO - Morado -->
+            <div class="bg-purple-50 border border-purple-200 rounded-2xl p-6 hover-lift">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <p class="text-xs md:text-sm font-medium text-purple-600 uppercase tracking-wide mb-1">SCORE PROMEDIO</p>
+                        <p class="text-xs text-purple-500">estable</p>
+                    </div>
+                    <div class="bg-purple-100 p-2 rounded-lg">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-4xl md:text-5xl font-bold text-purple-600" id="avg-score">0%</p>
+            </div>
+
+            <!-- RACHA ACTUAL - Naranja -->
+            <div class="bg-orange-50 border border-orange-200 rounded-2xl p-6 hover-lift">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <p class="text-xs md:text-sm font-medium text-orange-600 uppercase tracking-wide mb-1">RACHA ACTUAL</p>
+                        <p class="text-xs text-orange-500">días consecutivos</p>
+                    </div>
+                    <div class="bg-orange-100 p-2 rounded-lg">
+                        <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-4xl md:text-5xl font-bold text-orange-600" id="current-streak">0</p>
+            </div>
+        </div>
+
+        <!-- Gráfica de Evolución -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Evolución del Score</h3>
+            <div class="relative" style="height: 300px;">
+                <canvas id="score-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Grid de Contenido -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Materiales Recientes -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Materiales Recientes</h3>
+                    <a href="subir-material.html" class="text-orange-600 hover:text-orange-700 font-semibold text-sm">
+                        Ver todos →
+                    </a>
+                </div>
+                <div id="recent-materials">
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">hourglass_empty</span>
+                        <p class="text-sm">Cargando materiales...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preguntas Recientes -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Preguntas Recientes</h3>
+                    <a href="historial.html" class="text-orange-600 hover:text-orange-700 font-semibold text-sm">
+                        Ver todas →
+                    </a>
+                </div>
+                <div id="recent-questions">
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">hourglass_empty</span>
+                        <p class="text-sm">Cargando preguntas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temas Débiles -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Temas para Reforzar</h3>
+                    <span class="material-symbols-outlined text-orange-500">priority_high</span>
+                </div>
+                <div id="weak-topics">
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">hourglass_empty</span>
+                        <p class="text-sm">Analizando temas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan de Estudio -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Plan de Refuerzo</h3>
+                    <span class="material-symbols-outlined text-blue-500">school</span>
+                </div>
+                <div id="study-plan">
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">hourglass_empty</span>
+                        <p class="text-sm">Generando plan...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Configuración de API
+        const API_URL = 'http://localhost:8000';
+
+        // ==========================================
+        // FUNCIÓN PRINCIPAL DE INICIALIZACIÓN
+        // ==========================================
+        async function initDashboard() {
+            console.log('📊 INICIALIZANDO DASHBOARD');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            
+            // Obtener todas las preguntas del localStorage
+            console.log('🔍 Buscando preguntas en localStorage...');
+            const questions = getAllQuestions();
+            console.log(`📝 Preguntas encontradas: ${questions.length}`);
+            
+            if (questions.length > 0) {
+                console.log('📋 Primeras 3 preguntas:', questions.slice(0, 3));
+                console.log('🗂️ Keys de localStorage con preguntas:');
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('recuiva_questions_material_')) {
+                        const qs = JSON.parse(localStorage.getItem(key) || '[]');
+                        console.log(`  ✓ ${key}: ${qs.length} preguntas`);
+                    }
+                }
+            } else {
+                console.warn('⚠️ No hay preguntas guardadas en localStorage');
+                console.log('💡 Para ver datos en el dashboard:');
+                console.log('   1. Ve a Sesión Práctica');
+                console.log('   2. Crea y valida algunas preguntas');
+                console.log('   3. Las preguntas se guardarán automáticamente');
+                console.log('   4. Vuelve al dashboard para ver las métricas');
+            }
+            
+            // Obtener materiales del backend
+            console.log('\n🌐 Conectando con backend para obtener materiales...');
+            const materials = await getMaterials();
+            
+            // Validar que materials sea un array
+            const materialsArray = Array.isArray(materials) ? materials : [];
+            
+            console.log(`📚 Materiales encontrados: ${materialsArray.length}`);
+            
+            if (materialsArray.length > 0) {
+                console.log('📦 Materiales:', materialsArray.map(m => `${m.id}: ${m.name}`));
+            } else {
+                console.warn('⚠️ No hay materiales en el backend');
+                console.log('💡 Para agregar materiales:');
+                console.log('   1. Ve a Subir Material');
+                console.log('   2. Sube un PDF');
+                console.log('   3. El sistema lo procesará automáticamente');
+            }
+            
+            // Renderizar todos los componentes
+            console.log('\n🎨 Renderizando componentes del dashboard...');
+            renderMetrics(questions, materialsArray);
+            renderScoreChart(questions);
+            renderRecentMaterials(materialsArray);
+            renderRecentQuestions(questions);
+            renderWeakTopics(questions, materialsArray);
+            renderStudyPlan(questions, materialsArray);
+            
+            console.log('\n✅ DASHBOARD CARGADO CORRECTAMENTE');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        }
+
+        // ==========================================
+        // OBTENER TODAS LAS PREGUNTAS DE LOCALSTORAGE
+        // ==========================================
+        function getAllQuestions() {
+            let allQuestions = [];
+            
+            // Buscar todas las keys que empiecen con 'recuiva_questions_material_'
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('recuiva_questions_material_')) {
+                    try {
+                        const questions = JSON.parse(localStorage.getItem(key) || '[]');
+                        if (Array.isArray(questions)) {
+                            // Normalizar scores (asegurar que estén en escala 0-100)
+                            questions.forEach(q => {
+                                if (q.score && q.score < 1) {
+                                    q.score = q.score * 100; // Convertir de 0-1 a 0-100
+                                }
+                            });
+                            allQuestions = allQuestions.concat(questions);
+                        }
+                    } catch (e) {
+                        console.error(`Error al parsear ${key}:`, e);
+                    }
+                }
+            }
+            
+            return allQuestions;
+        }
+
+        // ==========================================
+        // OBTENER MATERIALES DEL BACKEND (ROBUSTO)
+        // ==========================================
+        async function getMaterials() {
+            try {
+                const response = await fetch(`${API_URL}/api/materials`);
+                
+                if (!response.ok) {
+                    console.warn(`⚠️ Backend respondió con status ${response.status}`);
+                    return [];
+                }
+                
+                const data = await response.json();
+                
+                // Asegurarse de que retornamos un array
+                if (Array.isArray(data)) {
+                    return data;
+                } else if (data && Array.isArray(data.materials)) {
+                    return data.materials;
+                } else if (data && typeof data === 'object') {
+                    // Si es un objeto, intentar extraer el array
+                    const keys = Object.keys(data);
+                    if (keys.length > 0 && Array.isArray(data[keys[0]])) {
+                        return data[keys[0]];
+                    }
+                }
+                
+                console.warn('⚠️ Backend no devolvió un array:', data);
+                return [];
+                
+            } catch (error) {
+                console.error('❌ Error al cargar materiales:', error);
+                return [];
+            }
+        }
+
+        // ==========================================
+        // RENDERIZAR MÉTRICAS PRINCIPALES
+        // ==========================================
+        function renderMetrics(questions, materials) {
+            // Validar que materials sea un array
+            if (!Array.isArray(materials)) {
+                materials = [];
+            }
+            
+            // Total de materiales
+            document.getElementById('total-materials').textContent = materials.length;
+            
+            // Total de preguntas
+            document.getElementById('total-questions').textContent = questions.length;
+            
+            // Score promedio
+            if (questions.length > 0) {
+                const totalScore = questions.reduce((sum, q) => sum + (q.score || 0), 0);
+                const avgScore = Math.round(totalScore / questions.length);
+                document.getElementById('avg-score').textContent = `${avgScore}%`;
+            } else {
+                document.getElementById('avg-score').textContent = '0%';
+            }
+            
+            // Racha actual (calcular días consecutivos)
+            const streak = calculateStreak(questions);
+            document.getElementById('current-streak').textContent = streak;
+        }
+
+        // ==========================================
+        // CALCULAR RACHA DE DÍAS CONSECUTIVOS
+        // ==========================================
+        function calculateStreak(questions) {
+            if (questions.length === 0) return 0;
+            
+            // Ordenar preguntas por fecha (más reciente primero)
+            const sortedQuestions = [...questions].sort((a, b) => {
+                const dateA = new Date(a.timestamp || a.createdAt || 0);
+                const dateB = new Date(b.timestamp || b.createdAt || 0);
+                return dateB - dateA;
+            });
+            
+            let streak = 0;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let currentDate = new Date(today);
+            
+            for (const question of sortedQuestions) {
+                const questionDate = new Date(question.timestamp || question.createdAt || 0);
+                questionDate.setHours(0, 0, 0, 0);
+                
+                if (questionDate.getTime() === currentDate.getTime()) {
+                    if (streak === 0) streak = 1;
+                } else if (questionDate.getTime() === currentDate.getTime() - 86400000) {
+                    // Día anterior
+                    streak++;
+                    currentDate.setDate(currentDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+            
+            return streak;
+        }
+
+        // ==========================================
+        // RENDERIZAR GRÁFICA DE EVOLUCIÓN (CHART.JS)
+        // ==========================================
+        function renderScoreChart(questions) {
+            try {
+                const ctx = document.getElementById('score-chart');
+                
+                if (!ctx) {
+                    console.error('❌ No se encontró el canvas score-chart');
+                    return;
+                }
+                
+                const context = ctx.getContext('2d');
+                
+                // Preparar datos de los últimos 7 días
+                const last7Days = [];
+                const scoresByDay = {};
+                
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    date.setHours(0, 0, 0, 0);
+                    const dateStr = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                    last7Days.push(dateStr);
+                    scoresByDay[dateStr] = [];
+                }
+                
+                // Agrupar preguntas por día
+                questions.forEach(q => {
+                    const questionDate = new Date(q.timestamp || q.createdAt || 0);
+                    questionDate.setHours(0, 0, 0, 0);
+                    const dateStr = questionDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                    
+                    if (scoresByDay[dateStr]) {
+                        scoresByDay[dateStr].push(q.score || 0);
+                    }
+                });
+                
+                // Calcular promedio por día
+                const avgScores = last7Days.map(day => {
+                    const scores = scoresByDay[day];
+                    if (scores.length === 0) return null;
+                    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+                });
+                
+                // Crear gráfica
+                new Chart(context, {
+                    type: 'line',
+                    data: {
+                        labels: last7Days,
+                        datasets: [{
+                            label: 'Score Promedio',
+                            data: avgScores,
+                            borderColor: '#FF6600',
+                            backgroundColor: 'rgba(255, 102, 0, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#FF6600',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointHoverRadius: 7,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                cornerRadius: 8,
+                                titleFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.y !== null ? `Score: ${context.parsed.y}%` : 'Sin datos';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    },
+                                    font: {
+                                        size: 12
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: {
+                                        size: 12
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                console.log('✅ Gráfica renderizada correctamente');
+                
+            } catch (error) {
+                console.error('❌ Error al renderizar gráfica:', error);
+                const container = document.getElementById('score-chart')?.parentElement;
+                if (container) {
+                    container.innerHTML = `
+                        <div class="text-center py-12 text-gray-400">
+                            <span class="material-symbols-outlined text-4xl mb-2">error</span>
+                            <p class="text-sm">Error al cargar gráfica</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // ==========================================
+        // RENDERIZAR MATERIALES RECIENTES
+        // ==========================================
+        function renderRecentMaterials(materials) {
+            const container = document.getElementById('recent-materials');
+            
+            // Verificar que materials sea un array válido
+            if (!materials || !Array.isArray(materials) || materials.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">folder_off</span>
+                        <p class="text-sm">No hay materiales</p>
+                        <a href="subir-material.html" class="mt-3 inline-block text-sm font-semibold text-orange-600 hover:text-orange-700">
+                            Subir material →
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            const recent = materials.slice(0, 5);
+            
+            container.innerHTML = recent.map(material => `
+                <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-orange-600">description</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900 text-sm">${material.name || 'Sin nombre'}</p>
+                            <p class="text-xs text-gray-500">${new Date(material.uploadedAt || Date.now()).toLocaleDateString('es-ES')}</p>
+                        </div>
+                    </div>
+                    <a href="sesion-practica.html?material=${material.id}" class="text-orange-600 hover:text-orange-700">
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                    </a>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // RENDERIZAR PREGUNTAS RECIENTES
+        // ==========================================
+        function renderRecentQuestions(questions) {
+            const container = document.getElementById('recent-questions');
+            
+            if (!Array.isArray(questions) || questions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">quiz</span>
+                        <p class="text-sm">No hay preguntas</p>
+                        <a href="sesion-practica.html" class="mt-3 inline-block text-sm font-semibold text-orange-600 hover:text-orange-700">
+                            Crear preguntas →
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            const recent = [...questions]
+                .sort((a, b) => {
+                    const dateA = new Date(a.timestamp || a.createdAt || 0);
+                    const dateB = new Date(b.timestamp || b.createdAt || 0);
+                    return dateB - dateA;
+                })
+                .slice(0, 10);
+            
+            container.innerHTML = recent.map(q => {
+                const score = Math.round(q.score || 0);
+                const scoreColor = score >= 70 ? 'text-green-600 bg-green-100' : 
+                                   score >= 50 ? 'text-yellow-600 bg-yellow-100' : 
+                                   'text-red-600 bg-red-100';
+                
+                return `
+                    <div class="py-3 border-b border-gray-100 last:border-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <p class="font-semibold text-gray-900 text-sm mb-1">${q.question || 'Sin pregunta'}</p>
+                                <p class="text-xs text-gray-500 line-clamp-2">${q.answer || 'Sin respuesta'}</p>
+                            </div>
+                            <div class="ml-3">
+                                <span class="${scoreColor} px-2 py-1 rounded-full text-xs font-bold">
+                                    ${score}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // RENDERIZAR TEMAS DÉBILES
+        // ==========================================
+        function renderWeakTopics(questions, materials) {
+            const container = document.getElementById('weak-topics');
+            
+            // Validar que materials sea un array
+            if (!Array.isArray(materials)) {
+                materials = [];
+            }
+            
+            if (!Array.isArray(questions) || questions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">sentiment_satisfied</span>
+                        <p class="text-sm">Sin datos suficientes</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Agrupar preguntas por material y calcular promedio
+            const scoresByMaterial = {};
+            
+            questions.forEach(q => {
+                const materialId = q.materialId || 'unknown';
+                if (!scoresByMaterial[materialId]) {
+                    scoresByMaterial[materialId] = [];
+                }
+                scoresByMaterial[materialId].push(q.score || 0);
+            });
+            
+            // Calcular promedios y filtrar los que estén por debajo de 60%
+            const weakTopics = Object.entries(scoresByMaterial)
+                .map(([materialId, scores]) => {
+                    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+                    const material = materials.find(m => m.id == materialId);
+                    return {
+                        materialId,
+                        name: material?.name || `Material ${materialId}`,
+                        avgScore: Math.round(avg),
+                        questionCount: scores.length
+                    };
+                })
+                .filter(topic => topic.avgScore < 60)
+                .sort((a, b) => a.avgScore - b.avgScore)
+                .slice(0, 5);
+            
+            if (weakTopics.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-green-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">check_circle</span>
+                        <p class="text-sm font-semibold text-gray-700">¡Excelente!</p>
+                        <p class="text-xs text-gray-500">No hay temas débiles</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = weakTopics.map(topic => `
+                <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 text-sm">${topic.name}</p>
+                        <p class="text-xs text-gray-500">${topic.questionCount} preguntas</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-red-600 bg-red-100 px-2 py-1 rounded-full text-xs font-bold">
+                            ${topic.avgScore}%
+                        </span>
+                        <a href="sesion-practica.html?material=${topic.materialId}" class="text-orange-600 hover:text-orange-700">
+                            <span class="material-symbols-outlined text-sm">refresh</span>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // RENDERIZAR PLAN DE ESTUDIO
+        // ==========================================
+        function renderStudyPlan(questions, materials) {
+            const container = document.getElementById('study-plan');
+            
+            // Validar que materials sea un array
+            if (!Array.isArray(materials)) {
+                materials = [];
+            }
+            
+            if (!Array.isArray(questions) || questions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">pending_actions</span>
+                        <p class="text-sm">Comienza a estudiar para generar un plan</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Calcular distribución de scores
+            const distribution = {
+                low: questions.filter(q => (q.score || 0) < 50).length,
+                medium: questions.filter(q => (q.score || 0) >= 50 && (q.score || 0) < 70).length,
+                high: questions.filter(q => (q.score || 0) >= 70).length
+            };
+            
+            // Generar recomendaciones
+            let recommendations = [];
+            
+            if (distribution.low > 0) {
+                recommendations.push({
+                    icon: 'priority_high',
+                    color: 'text-red-600 bg-red-100',
+                    title: 'Reforzar fundamentos',
+                    description: `Tienes ${distribution.low} preguntas con bajo score. Dedica 30 min diarios a repasar.`
+                });
+            }
+            
+            if (distribution.medium > 0) {
+                recommendations.push({
+                    icon: 'trending_up',
+                    color: 'text-yellow-600 bg-yellow-100',
+                    title: 'Practicar más',
+                    description: `${distribution.medium} preguntas necesitan más práctica para llegar a dominarlas.`
+                });
+            }
+            
+            if (distribution.high > distribution.low + distribution.medium) {
+                recommendations.push({
+                    icon: 'celebration',
+                    color: 'text-green-600 bg-green-100',
+                    title: '¡Vas muy bien!',
+                    description: 'Mantén el ritmo y continúa agregando nuevos materiales.'
+                });
+            }
+            
+            if (recommendations.length === 0) {
+                recommendations.push({
+                    icon: 'lightbulb',
+                    color: 'text-blue-600 bg-blue-100',
+                    title: 'Continúa estudiando',
+                    description: 'Sigue creando preguntas para generar un plan personalizado.'
+                });
+            }
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="flex items-start space-x-3 py-3 border-b border-gray-100 last:border-0">
+                    <div class="${rec.color} w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined">${rec.icon}</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 text-sm">${rec.title}</p>
+                        <p class="text-xs text-gray-600 mt-1">${rec.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // INICIALIZAR AL CARGAR LA PÁGINA
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
