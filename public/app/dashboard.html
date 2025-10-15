@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin/>
+    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <title>Recuiva - Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      
+      .recuiva-logo {
+        font-family: Manrope, 'Noto Sans', sans-serif;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+      
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      
+      .metric-card {
+        background: linear-gradient(135deg, var(--base-white) 0%, var(--base-gray) 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+      }
+      
+      .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+      }
+      
+      .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        line-height: 1;
+      }
+      
+      .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-top: 0.5rem;
+      }
+      
+      .mobile-menu {
+        transition: all 0.3s ease;
+      }
+    </style>
+</head>
+
+<body class="bg-[var(--base-gray)]" style='font-family: Manrope, "Noto Sans", sans-serif;'>
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<!-- Header -->
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <a href="../index.html" class="flex items-center gap-2">
+      <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  <nav class="hidden md:flex items-center gap-4">
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../index.html">Inicio</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="materiales.html">Materiales</a>
+    <a class="text-[var(--primary-color)] font-semibold px-2 py-1 rounded-lg" href="dashboard.html">Dashboard</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="repasos.html">Repasos</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="sesion-practica.html">Práctica</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <!-- Botón menú móvil (solo móvil) -->
+    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
+      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)] menu-icon">menu</span>
+    </button>
+  </div>
+</div>
+<!-- Mobile Menu -->
+<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu" style="display: none;">
+<div class="flex flex-col h-auto items-center justify-center gap-8 py-6">
+  <!-- Navegación principal -->
+  <nav class="flex flex-col items-center gap-6 w-full">
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../index.html">Inicio</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="materiales.html">Materiales</a>
+    <a class="text-xl text-[var(--primary-color)] font-semibold" href="dashboard.html">Dashboard</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="repasos.html">Repasos</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="sesion-practica.html">Práctica</a>
+  </nav>
+</div>
+</div>
+</header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Título -->
+        <div class="mb-8 flex items-center justify-between">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Panel de Control</h2>
+                <p class="text-gray-600 mt-2">Seguimiento de tu progreso y estadísticas</p>
+            </div>
+            <!-- Botón de recarga manual -->
+            <button onclick="window.reloadDashboard()" 
+                    class="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors shadow-sm">
+                <span class="material-symbols-outlined">refresh</span>
+                <span class="hidden sm:inline">Actualizar</span>
+            </button>
+        </div>
+
+        <!-- Métricas Principales -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Materiales - NARANJA COMPLETO -->
+            <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-6 hover-lift">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-orange-600 uppercase mb-1">Total Materiales</p>
+                        <div class="text-5xl font-bold text-orange-600" id="total-materials">0</div>
+                    </div>
+                    <div class="bg-orange-200 p-3 rounded-lg">
+                        <span class="material-symbols-outlined text-orange-700" style="font-size: 2.5rem;">folder</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Preguntas - AZUL COMPLETO -->
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 hover-lift">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-blue-600 uppercase mb-1">Total Preguntas</p>
+                        <div class="text-5xl font-bold text-blue-600" id="total-questions">0</div>
+                    </div>
+                    <div class="bg-blue-200 p-3 rounded-lg">
+                        <span class="material-symbols-outlined text-blue-700" style="font-size: 2.5rem;">help</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Score Promedio - VERDE COMPLETO -->
+            <div class="bg-green-50 border-2 border-green-200 rounded-2xl p-6 hover-lift">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-green-600 uppercase mb-1">Score Promedio</p>
+                        <div class="text-5xl font-bold text-green-600" id="avg-score">0%</div>
+                    </div>
+                    <div class="bg-green-200 p-3 rounded-lg">
+                        <span class="material-symbols-outlined text-green-700" style="font-size: 2.5rem;">bar_chart</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Racha Actual - MORADO COMPLETO -->
+            <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-6 hover-lift">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-purple-600 uppercase mb-1">Días de Racha</p>
+                        <div class="text-5xl font-bold text-purple-600" id="current-streak">0</div>
+                    </div>
+                    <div class="bg-purple-200 p-3 rounded-lg">
+                        <span class="material-symbols-outlined text-purple-700" style="font-size: 2.5rem;">local_fire_department</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfica de Evolución -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Evolución del Score</h3>
+            <div class="relative" style="height: 300px;">
+                <canvas id="score-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Grid de Contenido -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Materiales Recientes -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Materiales Recientes</h3>
+                    <button onclick="window.openMaterialsModal()" class="text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors cursor-pointer">
+                        Ver todos →
+                    </button>
+                </div>
+                <div id="recent-materials">
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">hourglass_empty</span>
+                        <p class="text-sm">Cargando materiales...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preguntas Recientes -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Preguntas Recientes</h3>
+                    <button onclick="window.openQuestionsModal()" class="text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors cursor-pointer">
+                        Ver todas →
+                    </button>
+                </div>
+                <div id="recent-questions">
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">hourglass_empty</span>
+                        <p class="text-sm">Cargando preguntas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temas Débiles -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Temas para Reforzar</h3>
+                    <span class="material-symbols-outlined text-orange-500">priority_high</span>
+                </div>
+                <div id="weak-topics">
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">hourglass_empty</span>
+                        <p class="text-sm">Analizando temas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan de Estudio -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Plan de Refuerzo</h3>
+                    <span class="material-symbols-outlined text-blue-500">school</span>
+                </div>
+                <div id="study-plan">
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">hourglass_empty</span>
+                        <p class="text-sm">Generando plan...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<!-- Footer -->
+<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
+<div class="container mx-auto text-center">
+<div class="flex justify-center items-center gap-2 mb-6">
+<img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<span class="text-2xl font-black">Recuiva</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
+</div>
+<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
+</div>
+</footer>
+
+<!-- ========================================== -->
+<!-- MODALES -->
+<!-- ========================================== -->
+
+<!-- Modal: Ver Todos los Materiales -->
+<div id="materials-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[80vh] flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-900">📚 Todos los Materiales</h2>
+            <button onclick="window.closeMaterialsModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <span class="material-symbols-outlined text-3xl">close</span>
+            </button>
+        </div>
+        
+        <!-- Content (scrollable) -->
+        <div id="materials-modal-content" class="flex-1 overflow-y-auto p-6">
+            <div class="text-center py-12 text-gray-400">
+                <span class="material-symbols-outlined text-5xl mb-3">hourglass_empty</span>
+                <p>Cargando materiales...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Ver Todas las Preguntas -->
+<div id="questions-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-900">❓ Todas las Preguntas</h2>
+            <button onclick="window.closeQuestionsModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <span class="material-symbols-outlined text-3xl">close</span>
+            </button>
+        </div>
+        
+        <!-- Content (scrollable) -->
+        <div id="questions-modal-content" class="flex-1 overflow-y-auto p-6">
+            <div class="text-center py-12 text-gray-400">
+                <span class="material-symbols-outlined text-5xl mb-3">hourglass_empty</span>
+                <p>Cargando preguntas...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+    <script>
+        // Configuración de API
+        const API_URL = 'http://localhost:8000';
+
+        // ==========================================
+        // FUNCIÓN PRINCIPAL DE INICIALIZACIÓN
+        // ==========================================
+        async function initDashboard() {
+            console.log('📊 INICIALIZANDO DASHBOARD');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            
+            // Obtener todas las preguntas del localStorage
+            console.log('🔍 Buscando preguntas en localStorage...');
+            const questions = getAllQuestions();
+            console.log(`📝 Preguntas encontradas: ${questions.length}`);
+            
+            if (questions.length > 0) {
+                console.log('📋 Primeras 3 preguntas:', questions.slice(0, 3));
+                console.log('🗂️ Keys de localStorage con preguntas:');
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('recuiva_questions_material_')) {
+                        const qs = JSON.parse(localStorage.getItem(key) || '[]');
+                        console.log(`  ✓ ${key}: ${qs.length} preguntas`);
+                    }
+                }
+            } else {
+                console.warn('⚠️ No hay preguntas guardadas en localStorage');
+                console.log('💡 Para ver datos en el dashboard:');
+                console.log('   1. Ve a Sesión Práctica');
+                console.log('   2. Crea y valida algunas preguntas');
+                console.log('   3. Las preguntas se guardarán automáticamente');
+                console.log('   4. Vuelve al dashboard para ver las métricas');
+            }
+            
+            // Obtener materiales del backend
+            console.log('\n🌐 Conectando con backend para obtener materiales...');
+            const materials = await getMaterials();
+            
+            // Validar que materials sea un array
+            const materialsArray = Array.isArray(materials) ? materials : [];
+            
+            console.log(`📚 Materiales encontrados: ${materialsArray.length}`);
+            
+            if (materialsArray.length > 0) {
+                console.log('📦 Materiales:', materialsArray.map(m => `${m.id}: ${m.name}`));
+            } else {
+                console.warn('⚠️ No hay materiales en el backend');
+                console.log('💡 Para agregar materiales:');
+                console.log('   1. Ve a Subir Material');
+                console.log('   2. Sube un PDF');
+                console.log('   3. El sistema lo procesará automáticamente');
+            }
+            
+            // Renderizar todos los componentes
+            console.log('\n🎨 Renderizando componentes del dashboard...');
+            renderMetrics(questions, materialsArray);
+            renderScoreChart(questions);
+            renderRecentMaterials(materialsArray);
+            renderRecentQuestions(questions);
+            renderWeakTopics(questions, materialsArray);
+            renderStudyPlan(questions, materialsArray);
+            
+            console.log('\n✅ DASHBOARD CARGADO CORRECTAMENTE');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        }
+
+        // ==========================================
+        // OBTENER PREGUNTAS DEL MATERIAL ACTIVO (SIN BORRAR NADA)
+        // ==========================================
+        function getAllQuestions() {
+            console.log('🔍 CARGANDO PREGUNTAS DEL MATERIAL ACTIVO...');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            
+            // 📦 PASO 1: OBTENER MATERIAL ACTIVO DE SESIÓN PRÁCTICA
+            console.log('📦 Obteniendo material activo de Sesión Práctica...');
+            const activeMaterialId = localStorage.getItem('active_material_id');
+            
+            if (!activeMaterialId) {
+                console.warn('  ⚠️ NO HAY MATERIAL ACTIVO en Sesión Práctica');
+                console.log('  💡 Ve a Sesión Práctica y selecciona un material primero');
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                return [];
+            }
+            
+            console.log(`  ✓ Material activo: ${activeMaterialId}`);
+            
+            // 📝 PASO 2: CARGAR PREGUNTAS DEL MATERIAL ACTIVO (SIN BORRAR)
+            const activeKey = `recuiva_questions_material_${activeMaterialId}`;
+            console.log(`\n📝 Buscando preguntas en: ${activeKey}`);
+            
+            let allQuestions = [];
+            const seenQuestions = new Set();
+            
+            try {
+                const questions = JSON.parse(localStorage.getItem(activeKey) || '[]');
+                
+                if (!Array.isArray(questions) || questions.length === 0) {
+                    console.warn('  ⚠️ El material activo NO tiene preguntas guardadas');
+                    console.log('  � Crea preguntas en Sesión Práctica para verlas aquí');
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    return [];
+                }
+                
+                console.log(`  ✓ ${questions.length} pregunta(s) encontradas en material activo`);
+                
+                // Normalizar scores y eliminar duplicados
+                questions.forEach(q => {
+                    // Normalizar score
+                    let score = q.score || 0;
+                    if (score > 0 && score <= 1) {
+                        score = Math.round(score * 100);
+                        console.log(`    📊 Score normalizado: ${q.score} → ${score}%`);
+                    } else {
+                        score = Math.round(score);
+                    }
+                    
+                    // Crear copia normalizada
+                    const normalizedQ = { ...q, score };
+                    
+                    // Detectar duplicados
+                    const questionText = (q.pregunta || q.question || q.userQuestion || '').toLowerCase().replace(/\s+/g, ' ').trim();
+                    const answerText = (q.respuesta || q.answer || q.userAnswer || '').toLowerCase().replace(/\s+/g, ' ').trim();
+                    
+                    if (questionText) {
+                        const uniqueId = `${questionText}_${answerText}`;
+                        
+                        if (!seenQuestions.has(uniqueId)) {
+                            seenQuestions.add(uniqueId);
+                            allQuestions.push(normalizedQ);
+                        } else {
+                            console.log(`    ⚠️ Duplicado omitido: "${questionText.substring(0, 30)}..."`);
+                        }
+                    }
+                });
+                
+                console.log(`\n📊 RESULTADO FINAL:`);
+                console.log(`  • Total ÚNICO: ${allQuestions.length} pregunta(s)`);
+                console.log(`  • Scores: [${allQuestions.map(q => q.score + '%').join(', ')}]`);
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                
+            } catch (e) {
+                console.error(`❌ Error al cargar preguntas del material activo:`, e);
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                return [];
+            }
+            
+            return allQuestions;
+        }
+
+        // ==========================================
+        // OBTENER MATERIALES DEL BACKEND (ROBUSTO)
+        // ==========================================
+        async function getMaterials() {
+            try {
+                console.log('🌐 Solicitando materiales del backend...');
+                const response = await fetch(`${API_URL}/api/materials`);
+                
+                if (!response.ok) {
+                    console.warn(`⚠️ Backend respondió con status ${response.status}`);
+                    return [];
+                }
+                
+                const data = await response.json();
+                console.log('📦 Respuesta del backend:', data);
+                
+                // Asegurarse de que retornamos un array
+                let materialsArray = [];
+                
+                if (Array.isArray(data)) {
+                    materialsArray = data;
+                    console.log(`✓ Backend devolvió array directo con ${data.length} materiales`);
+                } else if (data && Array.isArray(data.materials)) {
+                    materialsArray = data.materials;
+                    console.log(`✓ Backend devolvió objeto con propiedad 'materials': ${data.materials.length} materiales`);
+                } else if (data && typeof data === 'object') {
+                    // Si es un objeto, intentar extraer el array
+                    const keys = Object.keys(data);
+                    console.log('🔍 Backend devolvió objeto con keys:', keys);
+                    
+                    if (keys.length > 0 && Array.isArray(data[keys[0]])) {
+                        materialsArray = data[keys[0]];
+                        console.log(`✓ Extrayendo array de key '${keys[0]}': ${materialsArray.length} materiales`);
+                    }
+                }
+                
+                if (materialsArray.length === 0) {
+                    console.warn('⚠️ Backend no devolvió materiales:', data);
+                } else {
+                    console.log('📚 Materiales cargados:');
+                    materialsArray.forEach((m, i) => {
+                        console.log(`  ${i + 1}. ${m.name || m.filename || 'Sin nombre'} (ID: ${m.id})`);
+                    });
+                }
+                
+                return materialsArray;
+                
+            } catch (error) {
+                console.error('❌ Error al cargar materiales:', error);
+                console.log('💡 Verifica que el backend esté corriendo en http://localhost:8000');
+                return [];
+            }
+        }
+
+        // ==========================================
+        // RENDERIZAR MÉTRICAS PRINCIPALES
+        // ==========================================
+        function renderMetrics(questions, materials) {
+            console.log('📊 Renderizando métricas...');
+            
+            // Validar que materials sea un array
+            if (!Array.isArray(materials)) {
+                materials = [];
+            }
+            
+            // Total de materiales
+            const totalMaterials = materials.length;
+            document.getElementById('total-materials').textContent = totalMaterials;
+            console.log(`  🟠 Total Materiales: ${totalMaterials}`);
+            
+            // Total de preguntas (SOLO LAS QUE EXISTEN)
+            const totalQuestions = questions.length;
+            document.getElementById('total-questions').textContent = totalQuestions;
+            console.log(`  🔵 Total Preguntas REALES: ${totalQuestions}`);
+            
+            // Score promedio (BASADO EN PREGUNTAS EXISTENTES)
+            if (totalQuestions > 0) {
+                const scores = questions.map(q => q.score || 0).filter(s => s >= 0 && s <= 100);
+                console.log(`  📈 Scores válidos encontrados:`, scores);
+                
+                if (scores.length > 0) {
+                    const totalScore = scores.reduce((sum, score) => sum + score, 0);
+                    const avgScore = Math.round(totalScore / scores.length);
+                    
+                    document.getElementById('avg-score').textContent = `${avgScore}%`;
+                    console.log(`  🟢 Score Promedio REAL: ${avgScore}% (${scores.length} preguntas)`);
+                } else {
+                    document.getElementById('avg-score').textContent = '0%';
+                    console.log(`  🟢 Score Promedio: 0% (sin scores válidos)`);
+                }
+            } else {
+                document.getElementById('avg-score').textContent = '0%';
+                console.log(`  🟢 Score Promedio: 0% (NO HAY PREGUNTAS)`);
+            }
+            
+            // Racha actual (calcular días consecutivos)
+            const streak = calculateStreak(questions);
+            document.getElementById('current-streak').textContent = streak;
+            console.log(`  🟣 Días de Racha: ${streak}`);
+        }
+
+        // ==========================================
+        // CALCULAR RACHA DE DÍAS CONSECUTIVOS
+        // ==========================================
+        function calculateStreak(questions) {
+            if (questions.length === 0) return 0;
+            
+            // Ordenar preguntas por fecha (más reciente primero)
+            const sortedQuestions = [...questions].sort((a, b) => {
+                const dateA = new Date(a.timestamp || a.createdAt || 0);
+                const dateB = new Date(b.timestamp || b.createdAt || 0);
+                return dateB - dateA;
+            });
+            
+            let streak = 0;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let currentDate = new Date(today);
+            
+            for (const question of sortedQuestions) {
+                const questionDate = new Date(question.timestamp || question.createdAt || 0);
+                questionDate.setHours(0, 0, 0, 0);
+                
+                if (questionDate.getTime() === currentDate.getTime()) {
+                    if (streak === 0) streak = 1;
+                } else if (questionDate.getTime() === currentDate.getTime() - 86400000) {
+                    // Día anterior
+                    streak++;
+                    currentDate.setDate(currentDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+            
+            return streak;
+        }
+
+        // ==========================================
+        // RENDERIZAR GRÁFICA DE EVOLUCIÓN - COMPLETA Y DINÁMICA
+        // ==========================================
+        let scoreChartInstance = null; // Variable global para almacenar la instancia
+        
+        function renderScoreChart(questions) {
+            try {
+                const ctx = document.getElementById('score-chart');
+                
+                if (!ctx) {
+                    console.error('❌ No se encontró el canvas score-chart');
+                    return;
+                }
+                
+                const context = ctx.getContext('2d');
+                
+                // ✅ PASO 1: Destruir gráfica anterior si existe (para actualización dinámica)
+                if (scoreChartInstance) {
+                    scoreChartInstance.destroy();
+                    console.log('🗑️ Gráfica anterior destruida');
+                }
+                
+                // ✅ PASO 2: Preparar datos de los últimos 7 días
+                console.log('\n📊 ═══════════════════════════════════════');
+                console.log('📊 GENERANDO GRÁFICA DE EVOLUCIÓN');
+                console.log('📊 ═══════════════════════════════════════');
+                
+                const last7Days = [];
+                const last7DaysFormatted = [];
+                const scoresByDay = {};
+                const questionCountByDay = {};
+                
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    date.setHours(0, 0, 0, 0);
+                    
+                    // Formato corto para la gráfica (ej: "14 oct")
+                    const dateStr = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                    
+                    // Formato completo para logs
+                    const fullDateStr = date.toLocaleDateString('es-ES', { 
+                        weekday: 'short', 
+                        day: 'numeric', 
+                        month: 'short' 
+                    });
+                    
+                    last7Days.push(dateStr);
+                    last7DaysFormatted.push(fullDateStr);
+                    scoresByDay[dateStr] = [];
+                    questionCountByDay[dateStr] = 0;
+                }
+                
+                console.log('📅 Período: últimos 7 días');
+                console.log(`   ${last7DaysFormatted[0]} → ${last7DaysFormatted[6]}`);
+                
+                // ✅ PASO 3: Agrupar preguntas por día (con timestamp actual)
+                console.log('\n📝 Distribución de preguntas por día:');
+                
+                questions.forEach(q => {
+                    // Usar timestamp actual (fecha y hora de creación)
+                    const questionDate = new Date(q.timestamp || q.createdAt || Date.now());
+                    questionDate.setHours(0, 0, 0, 0);
+                    const dateStr = questionDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                    
+                    if (scoresByDay[dateStr] !== undefined) {
+                        scoresByDay[dateStr].push(q.score || 0);
+                        questionCountByDay[dateStr]++;
+                    }
+                });
+                
+                // Log detallado por día
+                last7Days.forEach((day, idx) => {
+                    const count = questionCountByDay[day];
+                    const scores = scoresByDay[day];
+                    
+                    if (count > 0) {
+                        const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+                        console.log(`   ${last7DaysFormatted[idx]}: ${count} pregunta(s) → Scores: [${scores.join(', ')}] → Promedio: ${avg}%`);
+                    } else {
+                        console.log(`   ${last7DaysFormatted[idx]}: Sin preguntas`);
+                    }
+                });
+                
+                // ✅ PASO 4: Calcular promedio por día
+                const avgScores = last7Days.map(day => {
+                    const scores = scoresByDay[day];
+                    if (scores.length === 0) return null;
+                    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+                });
+                
+                console.log('\n📈 Datos para gráfica:', avgScores);
+                
+                // ✅ PASO 5: Analizar tendencia (subida, bajada, lineal)
+                const validScores = avgScores.filter(s => s !== null);
+                let tendencia = 'Sin datos';
+                let tendenciaIcon = '📊';
+                let tendenciaColor = '#6B7280';
+                
+                if (validScores.length >= 2) {
+                    const firstScore = validScores[0];
+                    const lastScore = validScores[validScores.length - 1];
+                    const diff = lastScore - firstScore;
+                    
+                    if (diff > 5) {
+                        tendencia = `📈 SUBIDA (+${diff}%)`;
+                        tendenciaIcon = '📈';
+                        tendenciaColor = '#10B981'; // Verde
+                    } else if (diff < -5) {
+                        tendencia = `📉 BAJADA (${diff}%)`;
+                        tendenciaIcon = '📉';
+                        tendenciaColor = '#EF4444'; // Rojo
+                    } else {
+                        tendencia = `📊 ESTABLE (${diff >= 0 ? '+' : ''}${diff}%)`;
+                        tendenciaIcon = '📊';
+                        tendenciaColor = '#3B82F6'; // Azul
+                    }
+                    
+                    console.log(`\n${tendencia}`);
+                    console.log(`   Primer valor: ${firstScore}% → Último valor: ${lastScore}%`);
+                }
+                
+                // ✅ PASO 6: Crear gráfica con animaciones y colores dinámicos
+                scoreChartInstance = new Chart(context, {
+                    type: 'line',
+                    data: {
+                        labels: last7Days,
+                        datasets: [{
+                            label: 'Score Promedio Diario',
+                            data: avgScores,
+                            
+                            // 🎨 ESTILOS VISUALES
+                            borderColor: '#FF6600',                    // Línea naranja
+                            backgroundColor: 'rgba(255, 102, 0, 0.15)', // Área sombreada
+                            borderWidth: 3,                            // Línea gruesa
+                            
+                            // 📍 PUNTOS
+                            pointRadius: 6,                            // Puntos visibles
+                            pointHoverRadius: 10,                      // Más grandes al hover
+                            pointBackgroundColor: '#FF6600',           // Puntos naranjas
+                            pointBorderColor: '#fff',                  // Borde blanco
+                            pointBorderWidth: 3,                       // Borde grueso
+                            pointHoverBackgroundColor: '#FF8C00',      // Naranja más claro al hover
+                            pointHoverBorderColor: '#fff',
+                            pointHoverBorderWidth: 4,
+                            
+                            // 🎯 LÍNEA Y RELLENO
+                            tension: 0.3,                              // Curva suave (no muy curva)
+                            fill: true,                                // Área bajo la curva
+                            spanGaps: true,                            // Conectar puntos saltando días vacíos
+                            
+                            // 📊 SEGMENTOS (para mostrar subidas/bajadas con colores)
+                            segment: {
+                                borderColor: ctx => {
+                                    const prev = ctx.p0.parsed.y;
+                                    const curr = ctx.p1.parsed.y;
+                                    
+                                    if (prev === null || curr === null) return '#FF6600';
+                                    
+                                    if (curr > prev) return '#10B981';  // Verde (subida)
+                                    if (curr < prev) return '#EF4444';  // Rojo (bajada)
+                                    return '#3B82F6';                   // Azul (igual)
+                                },
+                                borderWidth: ctx => {
+                                    const prev = ctx.p0.parsed.y;
+                                    const curr = ctx.p1.parsed.y;
+                                    return (prev !== null && curr !== null) ? 4 : 3;
+                                }
+                            }
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        
+                        // 🎬 ANIMACIONES
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeInOutQuart'
+                        },
+                        
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            
+                            // 💬 TOOLTIP MEJORADO
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                                padding: 16,
+                                cornerRadius: 12,
+                                titleFont: {
+                                    size: 15,
+                                    weight: 'bold'
+                                },
+                                bodyFont: {
+                                    size: 14
+                                },
+                                displayColors: false,
+                                callbacks: {
+                                    title: function(context) {
+                                        return context[0].label;
+                                    },
+                                    label: function(context) {
+                                        if (context.parsed.y === null) {
+                                            return '📭 Sin preguntas este día';
+                                        }
+                                        
+                                        const day = context.label;
+                                        const count = questionCountByDay[day] || 0;
+                                        const score = context.parsed.y;
+                                        
+                                        return [
+                                            `📊 Score: ${score}%`,
+                                            `📝 Preguntas: ${count}`,
+                                            `📈 Promedio del día`
+                                        ];
+                                    },
+                                    afterLabel: function(context) {
+                                        if (context.parsed.y === null) return '';
+                                        
+                                        const score = context.parsed.y;
+                                        if (score >= 85) return '\n✨ ¡Excelente dominio!';
+                                        if (score >= 70) return '\n👍 Buen nivel';
+                                        if (score >= 50) return '\n📚 Sigue practicando';
+                                        return '\n⚠️ Necesita refuerzo';
+                                    }
+                                }
+                            }
+                        },
+                        
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    },
+                                    font: {
+                                        size: 13,
+                                        weight: '500'
+                                    },
+                                    color: '#6B7280',
+                                    stepSize: 20
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.06)',
+                                    lineWidth: 1
+                                },
+                                border: {
+                                    display: false
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: {
+                                        size: 12,
+                                        weight: '600'
+                                    },
+                                    color: '#374151',
+                                    maxRotation: 0,
+                                    autoSkip: false
+                                },
+                                grid: {
+                                    display: false
+                                },
+                                border: {
+                                    display: false
+                                }
+                            }
+                        },
+                        
+                        // 🖱️ INTERACCIÓN
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                });
+                
+                // ✅ PASO 7: Resumen final
+                const hasData = avgScores.some(score => score !== null);
+                const totalDaysWithData = avgScores.filter(s => s !== null).length;
+                
+                console.log('\n📊 ═══════════════════════════════════════');
+                console.log('✅ GRÁFICA RENDERIZADA EXITOSAMENTE');
+                console.log('📊 ═══════════════════════════════════════');
+                
+                if (hasData) {
+                    console.log(`✓ Días con datos: ${totalDaysWithData} de 7`);
+                    console.log(`✓ Tendencia: ${tendencia}`);
+                    console.log(`✓ Puntos visibles en gráfica: ${totalDaysWithData}`);
+                    console.log('✓ Colores de líneas:');
+                    console.log('  📈 Verde = Subida entre días');
+                    console.log('  📉 Rojo = Bajada entre días');
+                    console.log('  📊 Azul = Igual score entre días');
+                } else {
+                    console.log('⚠️ Gráfica SIN DATOS (últimos 7 días vacíos)');
+                    console.log('💡 Acciones:');
+                    console.log('  1. Ve a Sesión Práctica');
+                    console.log('  2. Crea y valida preguntas');
+                    console.log('  3. Vuelve aquí y clickea "Actualizar"');
+                    console.log('  4. Verás puntos naranjas en la gráfica');
+                }
+                
+                console.log('📊 ═══════════════════════════════════════\n');
+                
+            } catch (error) {
+                console.error('❌ Error al renderizar gráfica:', error);
+                const container = document.getElementById('score-chart')?.parentElement;
+                if (container) {
+                    container.innerHTML = `
+                        <div class="text-center py-12 text-gray-400">
+                            <span class="material-symbols-outlined text-4xl mb-2">error</span>
+                            <p class="text-sm">Error al cargar gráfica</p>
+                            <p class="text-xs mt-2">${error.message}</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // ==========================================
+        // RENDERIZAR MATERIALES RECIENTES
+        // ==========================================
+        function renderRecentMaterials(materials) {
+            const container = document.getElementById('recent-materials');
+            
+            console.log('📚 Renderizando materiales recientes...');
+            console.log('  Materiales recibidos:', materials);
+            
+            // Verificar que materials sea un array válido
+            if (!materials || !Array.isArray(materials) || materials.length === 0) {
+                console.warn('  ⚠️ No hay materiales para mostrar');
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">folder_off</span>
+                        <p class="text-sm">No hay materiales</p>
+                        <a href="subir-material.html" class="mt-3 inline-block text-sm font-semibold text-orange-600 hover:text-orange-700">
+                            Subir material →
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            const recent = materials.slice(0, 5);
+            console.log(`  ✓ Mostrando ${recent.length} materiales más recientes`);
+            
+            recent.forEach((m, i) => {
+                console.log(`    ${i + 1}. ${m.name || m.filename || 'Sin nombre'} (ID: ${m.id})`);
+            });
+            
+            container.innerHTML = recent.map(material => {
+                const materialName = material.name || material.filename || 'Sin nombre';
+                const uploadDate = material.uploadedAt || material.uploaded_at || material.createdAt || material.created_at || Date.now();
+                
+                return `
+                <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-orange-600">description</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900 text-sm">${materialName}</p>
+                            <p class="text-xs text-gray-500">${new Date(uploadDate).toLocaleDateString('es-ES')}</p>
+                        </div>
+                    </div>
+                    <a href="sesion-practica.html?material=${material.id}" class="text-orange-600 hover:text-orange-700">
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                    </a>
+                </div>
+                `;
+            }).join('');
+            
+            console.log('  ✅ Materiales renderizados correctamente');
+        }
+
+        // ==========================================
+        // RENDERIZAR PREGUNTAS RECIENTES
+        // ==========================================
+        function renderRecentQuestions(questions) {
+            const container = document.getElementById('recent-questions');
+            
+            console.log('❓ Renderizando preguntas recientes...');
+            
+            if (!Array.isArray(questions) || questions.length === 0) {
+                console.warn('  ⚠️ No hay preguntas para mostrar');
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">quiz</span>
+                        <p class="text-sm">No hay preguntas</p>
+                        <a href="sesion-practica.html" class="mt-3 inline-block text-sm font-semibold text-orange-600 hover:text-orange-700">
+                            Crear preguntas →
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            const recent = [...questions]
+                .sort((a, b) => {
+                    const dateA = new Date(a.timestamp || a.createdAt || 0);
+                    const dateB = new Date(b.timestamp || b.createdAt || 0);
+                    return dateB - dateA;
+                })
+                .slice(0, 10);
+            
+            console.log(`  ✓ Mostrando ${recent.length} preguntas más recientes`);
+            recent.forEach((q, i) => {
+                const questionText = q.pregunta || q.question || q.userQuestion || 'Sin pregunta';
+                console.log(`    ${i + 1}. "${questionText.substring(0, 50)}..." - Score: ${q.score}%`);
+            });
+            
+            container.innerHTML = recent.map(q => {
+                const score = Math.round(q.score || 0);
+                const scoreColor = score >= 70 ? 'text-green-600 bg-green-100' : 
+                                   score >= 50 ? 'text-yellow-600 bg-yellow-100' : 
+                                   'text-red-600 bg-red-100';
+                
+                // ✅ PRIORIZAR PROPIEDADES EN ESPAÑOL (pregunta, respuesta)
+                const questionText = q.pregunta || q.question || q.userQuestion || q.text || 'Sin pregunta';
+                const answerText = q.respuesta || q.answer || q.userAnswer || q.response || 'Sin respuesta';
+                
+                console.log(`    - Pregunta: "${questionText.substring(0, 30)}..." | Respuesta: "${answerText.substring(0, 30)}..."`);
+                
+                return `
+                    <div class="py-3 border-b border-gray-100 last:border-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <p class="font-semibold text-gray-900 text-sm mb-1">${questionText}</p>
+                                <p class="text-xs text-gray-500 line-clamp-2">${answerText}</p>
+                            </div>
+                            <div class="ml-3">
+                                <span class="${scoreColor} px-2 py-1 rounded-full text-xs font-bold">
+                                    ${score}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            console.log('  ✅ Preguntas renderizadas correctamente');
+        }
+
+        // ==========================================
+        // RENDERIZAR TEMAS DÉBILES
+        // ==========================================
+        function renderWeakTopics(questions, materials) {
+            const container = document.getElementById('weak-topics');
+            
+            // Validar que materials sea un array
+            if (!Array.isArray(materials)) {
+                materials = [];
+            }
+            
+            if (!Array.isArray(questions) || questions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">sentiment_satisfied</span>
+                        <p class="text-sm">Sin datos suficientes</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Agrupar preguntas por material y calcular promedio
+            const scoresByMaterial = {};
+            
+            questions.forEach(q => {
+                const materialId = q.materialId || 'unknown';
+                if (!scoresByMaterial[materialId]) {
+                    scoresByMaterial[materialId] = [];
+                }
+                scoresByMaterial[materialId].push(q.score || 0);
+            });
+            
+            // Calcular promedios y filtrar los que estén por debajo de 60%
+            const weakTopics = Object.entries(scoresByMaterial)
+                .map(([materialId, scores]) => {
+                    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+                    const material = materials.find(m => m.id == materialId);
+                    return {
+                        materialId,
+                        name: material?.name || `Material ${materialId}`,
+                        avgScore: Math.round(avg),
+                        questionCount: scores.length
+                    };
+                })
+                .filter(topic => topic.avgScore < 60)
+                .sort((a, b) => a.avgScore - b.avgScore)
+                .slice(0, 5);
+            
+            if (weakTopics.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-green-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">check_circle</span>
+                        <p class="text-sm font-semibold text-gray-700">¡Excelente!</p>
+                        <p class="text-xs text-gray-500">No hay temas débiles</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = weakTopics.map(topic => `
+                <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 text-sm">${topic.name}</p>
+                        <p class="text-xs text-gray-500">${topic.questionCount} preguntas</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-red-600 bg-red-100 px-2 py-1 rounded-full text-xs font-bold">
+                            ${topic.avgScore}%
+                        </span>
+                        <a href="sesion-practica.html?material=${topic.materialId}" class="text-orange-600 hover:text-orange-700">
+                            <span class="material-symbols-outlined text-sm">refresh</span>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // RENDERIZAR PLAN DE ESTUDIO
+        // ==========================================
+        function renderStudyPlan(questions, materials) {
+            const container = document.getElementById('study-plan');
+            
+            // Validar que materials sea un array
+            if (!Array.isArray(materials)) {
+                materials = [];
+            }
+            
+            if (!Array.isArray(questions) || questions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">pending_actions</span>
+                        <p class="text-sm">Comienza a estudiar para generar un plan</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // ✨ CÁLCULO CON REGLAS DE VALIDACIÓN SEMÁNTICA RAG
+            // Score ≥ 85% = Excelente (≥0.85 en RAG)
+            // Score 70-84% = Buena (0.70-0.84 en RAG)
+            // Score 50-69% = Regular (0.50-0.69 en RAG)
+            // Score < 50% = Malo (< 0.50 en RAG)
+            
+            const distribution = {
+                excelente: questions.filter(q => (q.score || 0) >= 85).length,
+                buena: questions.filter(q => (q.score || 0) >= 70 && (q.score || 0) < 85).length,
+                regular: questions.filter(q => (q.score || 0) >= 50 && (q.score || 0) < 70).length,
+                malo: questions.filter(q => (q.score || 0) < 50).length
+            };
+            
+            const avgScore = Math.round(questions.reduce((sum, q) => sum + (q.score || 0), 0) / questions.length);
+            
+            console.log(`📊 Distribución RAG:`, distribution);
+            console.log(`📊 Score Promedio: ${avgScore}%`);
+            
+            // Generar recomendaciones basadas en métricas RAG
+            let recommendations = [];
+            
+            if (distribution.malo > 0) {
+                recommendations.push({
+                    icon: 'priority_high',
+                    color: 'text-red-600 bg-red-100',
+                    title: 'Requiere estudio adicional',
+                    description: `${distribution.malo} pregunta(s) con score < 50%. Dedica 30-45 min diarios a reforzar estos temas.`
+                });
+            }
+            
+            if (distribution.regular > 0) {
+                recommendations.push({
+                    icon: 'trending_up',
+                    color: 'text-yellow-600 bg-yellow-100',
+                    title: 'Conceptos en desarrollo',
+                    description: `${distribution.regular} pregunta(s) en nivel regular (50-69%). Práctica adicional recomendada.`
+                });
+            }
+            
+            if (distribution.buena > 0) {
+                recommendations.push({
+                    icon: 'check_circle',
+                    color: 'text-blue-600 bg-blue-100',
+                    title: 'Buen dominio',
+                    description: `${distribution.buena} pregunta(s) con buena comprensión (70-84%). ¡Sigue así!`
+                });
+            }
+            
+            if (distribution.excelente > 0) {
+                recommendations.push({
+                    icon: 'celebration',
+                    color: 'text-green-600 bg-green-100',
+                    title: '¡Excelente dominio!',
+                    description: `${distribution.excelente} pregunta(s) con score ≥85%. Dominio sobresaliente del material.`
+                });
+            }
+            
+            // Recomendación general basada en promedio
+            if (avgScore >= 85) {
+                recommendations.unshift({
+                    icon: 'stars',
+                    color: 'text-purple-600 bg-purple-100',
+                    title: '¡Rendimiento Excelente!',
+                    description: `Score promedio: ${avgScore}%. Mantén este nivel y continúa con nuevo material.`
+                });
+            } else if (avgScore < 70) {
+                recommendations.unshift({
+                    icon: 'school',
+                    color: 'text-orange-600 bg-orange-100',
+                    title: 'Necesitas reforzar',
+                    description: `Score promedio: ${avgScore}%. Revisa el material y practica más preguntas.`
+                });
+            }
+            
+            if (recommendations.length === 0) {
+                recommendations.push({
+                    icon: 'lightbulb',
+                    color: 'text-blue-600 bg-blue-100',
+                    title: 'Continúa estudiando',
+                    description: 'Sigue creando preguntas para generar un plan personalizado.'
+                });
+            }
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="flex items-start space-x-3 py-3 border-b border-gray-100 last:border-0">
+                    <div class="${rec.color} w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined">${rec.icon}</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 text-sm">${rec.title}</p>
+                        <p class="text-xs text-gray-600 mt-1">${rec.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // INICIALIZAR AL CARGAR LA PÁGINA
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', initDashboard);
+        
+        // ==========================================
+        // AUTO-ACTUALIZACIÓN: Detectar cambios en localStorage
+        // ==========================================
+        window.addEventListener('storage', function(e) {
+            // Se dispara cuando OTRA pestaña modifica localStorage
+            if (e.key && (e.key.startsWith('recuiva_questions_material_') || e.key === 'active_material_id')) {
+                console.log('🔄 Cambios detectados en localStorage desde otra pestaña');
+                console.log(`   Key modificada: ${e.key}`);
+                console.log(`   Valor anterior: ${e.oldValue?.substring(0, 50)}...`);
+                console.log(`   Valor nuevo: ${e.newValue?.substring(0, 50)}...`);
+                
+                // Recargar dashboard automáticamente
+                console.log('♻️ Recargando Dashboard...');
+                initDashboard();
+            }
+        });
+        
+        // ==========================================
+        // RECARGAR MANUAL: Botón para forzar actualización
+        // ==========================================
+        window.reloadDashboard = function() {
+            console.log('🔄 Recarga manual del Dashboard solicitada');
+            initDashboard();
+        };
+        
+        // ==========================================
+        // MODALES: Ver Todos los Materiales/Preguntas
+        // ==========================================
+        
+        // Abrir modal de materiales
+        window.openMaterialsModal = async function() {
+            const modal = document.getElementById('materials-modal');
+            const content = document.getElementById('materials-modal-content');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Cargar materiales
+            const materials = await getMaterials();
+            
+            if (!materials || materials.length === 0) {
+                content.innerHTML = `
+                    <div class="text-center py-12">
+                        <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">folder_off</span>
+                        <p class="text-gray-500 text-lg font-semibold mb-2">No hay materiales</p>
+                        <p class="text-gray-400 text-sm mb-4">Sube tu primer material para comenzar</p>
+                        <a href="subir-material.html" class="inline-block px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors">
+                            Subir Material
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            content.innerHTML = `
+                <div class="space-y-3">
+                    ${materials.map(material => {
+                        const materialName = material.name || material.filename || 'Sin nombre';
+                        const uploadDate = material.uploadedAt || material.uploaded_at || material.createdAt || material.created_at || Date.now();
+                        const totalChunks = material.total_chunks || material.totalChunks || 0;
+                        const totalPages = material.real_pages || material.realPages || material.estimated_pages || 0;
+                        
+                        return `
+                        <div class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors border border-gray-200">
+                            <div class="flex items-center space-x-4 flex-1">
+                                <div class="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                    <span class="material-symbols-outlined text-orange-600 text-2xl">description</span>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-gray-900 text-base mb-1">${materialName}</p>
+                                    <div class="flex items-center gap-3 text-xs text-gray-500">
+                                        <span>📅 ${new Date(uploadDate).toLocaleDateString('es-ES')}</span>
+                                        <span>📄 ${totalPages} páginas</span>
+                                        <span>📦 ${totalChunks} chunks</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="sesion-practica.html?material=${material.id}" 
+                               class="ml-4 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold text-sm transition-colors flex items-center gap-2">
+                                <span>Practicar</span>
+                                <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                            </a>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        };
+        
+        // Cerrar modal de materiales
+        window.closeMaterialsModal = function() {
+            const modal = document.getElementById('materials-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+        
+        // Abrir modal de preguntas
+        window.openQuestionsModal = function() {
+            const modal = document.getElementById('questions-modal');
+            const content = document.getElementById('questions-modal-content');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Cargar todas las preguntas
+            const questions = getAllQuestions();
+            
+            if (!questions || questions.length === 0) {
+                content.innerHTML = `
+                    <div class="text-center py-12">
+                        <span class="material-symbols-outlined text-6xl text-gray-300 mb-4">quiz</span>
+                        <p class="text-gray-500 text-lg font-semibold mb-2">No hay preguntas</p>
+                        <p class="text-gray-400 text-sm mb-4">Crea preguntas en Sesión Práctica para verlas aquí</p>
+                        <a href="sesion-practica.html" class="inline-block px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors">
+                            Ir a Práctica
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Ordenar por fecha (más recientes primero)
+            const sortedQuestions = [...questions].sort((a, b) => {
+                const dateA = new Date(a.timestamp || a.createdAt || 0);
+                const dateB = new Date(b.timestamp || b.createdAt || 0);
+                return dateB - dateA;
+            });
+            
+            content.innerHTML = `
+                <div class="space-y-4">
+                    ${sortedQuestions.map((q, idx) => {
+                        const score = Math.round(q.score || 0);
+                        const scoreColor = score >= 85 ? 'bg-green-100 text-green-700' : 
+                                          score >= 70 ? 'bg-blue-100 text-blue-700' : 
+                                          score >= 50 ? 'bg-yellow-100 text-yellow-700' : 
+                                          'bg-red-100 text-red-700';
+                        
+                        const questionText = q.pregunta || q.question || q.userQuestion || 'Sin pregunta';
+                        const answerText = q.respuesta || q.answer || q.userAnswer || 'Sin respuesta';
+                        const timestamp = q.timestamp || q.createdAt || Date.now();
+                        const dateStr = new Date(timestamp).toLocaleDateString('es-ES', { 
+                            day: 'numeric', 
+                            month: 'short',
+                            year: 'numeric'
+                        });
+                        
+                        return `
+                        <div class="p-5 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors border border-gray-200">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-gray-400 text-sm">#${idx + 1}</span>
+                                    <span class="text-xs text-gray-500">📅 ${dateStr}</span>
+                                </div>
+                                <span class="${scoreColor} px-3 py-1 rounded-full text-sm font-bold">
+                                    ${score}%
+                                </span>
+                            </div>
+                            <p class="font-bold text-gray-900 text-base mb-2">❓ ${questionText}</p>
+                            <p class="text-sm text-gray-600 line-clamp-2">✅ ${answerText}</p>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div class="mt-6 pt-6 border-t border-gray-200 text-center">
+                    <p class="text-gray-600 text-sm mb-3">
+                        📊 Total: <span class="font-bold text-gray-900">${questions.length}</span> pregunta(s)
+                    </p>
+                    <a href="sesion-practica.html" class="inline-block px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition-colors">
+                        Crear más preguntas
+                    </a>
+                </div>
+            `;
+        };
+        
+        // Cerrar modal de preguntas
+        window.closeQuestionsModal = function() {
+            const modal = document.getElementById('questions-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+        
+        // Cerrar modal al hacer click fuera
+        document.addEventListener('click', function(e) {
+            const materialsModal = document.getElementById('materials-modal');
+            const questionsModal = document.getElementById('questions-modal');
+            
+            if (e.target === materialsModal) {
+                window.closeMaterialsModal();
+            }
+            if (e.target === questionsModal) {
+                window.closeQuestionsModal();
+            }
+        });
+        
+        // Cerrar modal con tecla ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.closeMaterialsModal();
+                window.closeQuestionsModal();
+            }
+        });
+        
+        // ==========================================
+        // MENÚ MÓVIL
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = menuBtn.querySelector('.menu-icon');
+            
+            menuBtn.addEventListener('click', function() {
+                const isOpen = mobileMenu.style.display !== 'none';
+                
+                if (isOpen) {
+                    mobileMenu.style.display = 'none';
+                    menuIcon.textContent = 'menu';
+                } else {
+                    mobileMenu.style.display = 'block';
+                    menuIcon.textContent = 'close';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

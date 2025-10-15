@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <title>Validación Semántica RAG - Recuiva</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      /* Estilo global para el logo Recuiva */
+      .recuiva-logo {
+        font-family: 'Manrope', sans-serif !important;
+        font-weight: 800 !important;
+        font-size: 1.5rem !important;
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      .menu-btn {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+      .menu-btn:hover {
+        transform: scale(1.1);
+      }
+      .mobile-menu {
+        transform-origin: top;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform: scaleY(0);
+        opacity: 0;
+        pointer-events: none;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .mobile-menu.active {
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #menu-btn.active .menu-icon {
+        transform: rotate(180deg);
+      }
+      .formula-box {
+        background: linear-gradient(135deg, rgba(0,78,170,0.1) 0%, rgba(255,102,0,0.1) 100%);
+        border: 2px solid var(--accent-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        font-family: monospace;
+        font-size: 1.125rem;
+        text-align: center;
+        margin: 1rem 0;
+      }
+      .process-step {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+        border-left: 4px solid var(--primary-color);
+      }
+      .process-step:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 12px -1px rgba(0, 0, 0, 0.15);
+      }
+      .metric-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+      .similarity-badge { background: rgba(34, 197, 94, 0.1); color: #15803d; }
+      .coverage-badge { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; }
+      .contra-badge { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+      .offtopic-badge { background: rgba(168, 85, 247, 0.1); color: #7c3aed; }
+    </style>
+</head>
+<body class="bg-[var(--base-gray)] min-h-screen">
+
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <a href="../../index.html" class="flex items-center gap-2">
+      <img src="../../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  <nav class="hidden md:flex items-center gap-4">
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../../index.html">Inicio</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../materiales.html">Materiales</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../dashboard.html">Dashboard</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../repasos.html">Repasos</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../sesion-practica.html">Práctica</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <!-- Botón menú móvil (solo móvil) -->
+    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
+      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
+    </button>
+  </div>
+</div>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
+<div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-8">
+  <!-- Navegación principal -->
+  <div class="text-2xl text-gray-600 flex flex-col items-center gap-6">
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../../index.html">Inicio</a>
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../materiales.html">Materiales</a>
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../dashboard.html">Dashboard</a>
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../repasos.html">Repasos</a>
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../sesion-practica.html">Práctica</a>
+  </div>
+</div>
+</div>
+</header>
+
+<main class="container mx-auto px-4 py-8 max-w-5xl">
+
+  <!-- Hero Section -->
+  <div class="text-center mb-12">
+    <h1 class="text-4xl md:text-5xl font-bold text-[var(--secondary-color)] mb-4">
+      Validación <span class="text-[var(--primary-color)]">Semántica</span> RAG
+    </h1>
+    <p class="text-xl text-[var(--text-secondary)] max-w-3xl mx-auto">
+      Cómo medimos objetivamente la calidad de tus respuestas usando Retrieval-Augmented Generation
+    </p>
+  </div>
+
+  <!-- Problema que resuelve -->
+  <div class="grid md:grid-cols-2 gap-8 mb-12">
+    
+    <div class="bg-red-50 border border-red-200 rounded-xl p-8">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-3xl text-red-500">help</span>
+        <h2 class="text-xl font-bold text-red-700">El Problema Tradicional</h2>
+      </div>
+      <ul class="space-y-3 text-red-600">
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">close</span>
+          <span class="text-sm"><strong>Subjetividad:</strong> "Creo que respondí bien" sin feedback objetivo</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">close</span>
+          <span class="text-sm"><strong>Autopercepción:</strong> Sesgos cognitivos distorsionan autoevaluación</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">close</span>
+          <span class="text-sm"><strong>Sin métricas:</strong> Imposible trackear mejoras longitudinales</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">close</span>
+          <span class="text-sm"><strong>Escalabilidad:</strong> No hay forma de comparar entre sesiones/usuarios</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="bg-green-50 border border-green-200 rounded-xl p-8">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-3xl text-green-500">psychology</span>
+        <h2 class="text-xl font-bold text-green-700">Nuestra Solución RAG</h2>
+      </div>
+      <ul class="space-y-3 text-green-600">
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">check</span>
+          <span class="text-sm"><strong>Objetividad:</strong> IA compara semánticamente tu respuesta vs. fuente</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">check</span>
+          <span class="text-sm"><strong>Explicabilidad:</strong> Sabes exactamente qué faltó o sobraba</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">check</span>
+          <span class="text-sm"><strong>Longitudinal:</strong> Métricas comparables en el tiempo (ΔS)</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">check</span>
+          <span class="text-sm"><strong>Escalable:</strong> Mismo parámetro S normalizado para todos</span>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Fórmula del Score -->
+  <div class="bg-white rounded-xl p-8 mb-12">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-6 text-center">
+      La Fórmula del Score (S)
+    </h2>
+    
+    <div class="formula-box">
+      <strong>S = 0.45·Similitud + 0.35·Cobertura - 0.10·Contradicciones - 0.10·OffTopic</strong>
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-4 mt-8">
+      
+      <div class="text-center">
+        <div class="metric-badge similarity-badge mx-auto mb-3">
+          <span class="material-symbols-outlined">trending_up</span>
+          Similitud (45%)
+        </div>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Qué tan parecida es tu respuesta al contenido original usando embeddings semánticos
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="metric-badge coverage-badge mx-auto mb-3">
+          <span class="material-symbols-outlined">checklist</span>
+          Cobertura (35%)
+        </div>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Porcentaje de conceptos clave del material que mencionaste correctamente
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="metric-badge contra-badge mx-auto mb-3">
+          <span class="material-symbols-outlined">warning</span>
+          Contradicciones (-10%)
+        </div>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Información incorrecta o que contradice la fuente original de conocimiento
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="metric-badge offtopic-badge mx-auto mb-3">
+          <span class="material-symbols-outlined">center_focus_weak</span>
+          OffTopic (-10%)
+        </div>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Contenido irrelevante que no responde directamente a la pregunta planteada
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Proceso RAG explicado -->
+  <div class="mb-12">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-8 text-center">
+      ¿Cómo funciona el proceso RAG paso a paso?
+    </h2>
+    
+    <div class="grid gap-6">
+      
+      <div class="process-step">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center font-bold text-lg">1</div>
+          <div>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">
+              <span class="material-symbols-outlined align-middle mr-2">picture_as_pdf</span>
+              Ingesta del Material (PDFs)
+            </h3>
+            <p class="text-[var(--text-secondary)] mb-4">
+              Tu PDF es procesado automáticamente: <strong>OCR → Extracción de texto → Chunking inteligente</strong> por conceptos relacionados.
+            </p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm font-mono text-gray-600">
+                📄 "informe_cardiologia.pdf" → 📝 Texto plano → 🧩 Chunks: ["anatomía corazón", "patologías cardíacas", "tratamientos", ...]
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="process-step">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center font-bold text-lg">2</div>
+          <div>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">
+              <span class="material-symbols-outlined align-middle mr-2">hub</span>
+              Generación de Embeddings
+            </h3>
+            <p class="text-[var(--text-secondary)] mb-4">
+              Cada chunk se convierte en <strong>vectores de alta dimensión</strong> que capturan el significado semántico, no solo palabras literales.
+            </p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm font-mono text-gray-600">
+                🧩 "El miocardio es el músculo cardíaco" → 🔢 [0.1, -0.3, 0.8, ...] (384 dimensiones)
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="process-step">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center font-bold text-lg">3</div>
+          <div>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">
+              <span class="material-symbols-outlined align-middle mr-2">storage</span>
+              Vector Store & Indexing
+            </h3>
+            <p class="text-[var(--text-secondary)] mb-4">
+              Los embeddings se almacenan en una <strong>base de datos vectorial</strong> optimizada para búsquedas de similitud semántica.
+            </p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm font-mono text-gray-600">
+                💾 ChromaDB/Pinecone → Índice HNSW → Búsqueda k-NN optimizada → Recuperación < 100ms
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="process-step">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center font-bold text-lg">4</div>
+          <div>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">
+              <span class="material-symbols-outlined align-middle mr-2">search</span>
+              Retrieval (Recuperación)
+            </h3>
+            <p class="text-[var(--text-secondary)] mb-4">
+              Cuando respondes, tu respuesta se vectoriza y se buscan los <strong>chunks más similares</strong> del material original.
+            </p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm font-mono text-gray-600">
+                🗣️ Tu respuesta → 🔢 Vector → 🔍 Similitud coseno → 📋 Top-5 chunks relevantes recuperados
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="process-step">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center font-bold text-lg">5</div>
+          <div>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">
+              <span class="material-symbols-outlined align-middle mr-2">analytics</span>
+              Augmented Scoring
+            </h3>
+            <p class="text-[var(--text-secondary)] mb-4">
+              La IA compara tu respuesta vs. chunks recuperados, calculando Similitud, Cobertura, Contradicciones y OffTopic.
+            </p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm font-mono text-gray-600">
+                📊 Comparación semántica → S = 0.45·0.82 + 0.35·0.75 - 0.10·0.02 - 0.10·0.05 = 0.724 → "Buena"
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Clasificación de resultados -->
+  <div class="bg-white rounded-xl p-8 mb-12">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-6 text-center">
+      Clasificación de Resultados
+    </h2>
+    
+    <div class="grid md:grid-cols-4 gap-4">
+      
+      <div class="text-center p-6 border-2 border-green-500 bg-green-50 rounded-lg">
+        <div class="text-3xl font-bold text-green-700 mb-2">≥ 0.85</div>
+        <h3 class="font-bold text-green-700 mb-2">Excelente</h3>
+        <p class="text-sm text-green-600">
+          Dominio completo del concepto. Respuesta precisa y bien estructurada.
+        </p>
+      </div>
+
+      <div class="text-center p-6 border-2 border-blue-500 bg-blue-50 rounded-lg">
+        <div class="text-3xl font-bold text-blue-700 mb-2">0.70-0.84</div>
+        <h3 class="font-bold text-blue-700 mb-2">Buena</h3>
+        <p class="text-sm text-blue-600">
+          Buen entendimiento. Faltaron algunos detalles menores.
+        </p>
+      </div>
+
+      <div class="text-center p-6 border-2 border-yellow-500 bg-yellow-50 rounded-lg">
+        <div class="text-3xl font-bold text-yellow-700 mb-2">0.50-0.69</div>
+        <h3 class="font-bold text-yellow-700 mb-2">Regular</h3>
+        <p class="text-sm text-yellow-600">
+          Comprensión parcial. Revisar conceptos faltantes.
+        </p>
+      </div>
+
+      <div class="text-center p-6 border-2 border-red-500 bg-red-50 rounded-lg">
+        <div class="text-3xl font-bold text-red-700 mb-2">< 0.50</div>
+        <h3 class="font-bold text-red-700 mb-2">Mala</h3>
+        <p class="text-sm text-red-600">
+          Requiere estudio adicional del material original.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Ejemplo real -->
+  <div class="bg-gradient-to-r from-[var(--secondary-color)] to-[var(--primary-color)] rounded-xl p-8 text-white mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-center">
+      Ejemplo Real: Validación de Respuesta
+    </h2>
+    
+    <div class="grid md:grid-cols-2 gap-8">
+      
+      <div>
+        <h3 class="font-bold mb-4">📚 Material Original (PDF):</h3>
+        <div class="bg-white bg-opacity-20 p-4 rounded-lg mb-4">
+          <p class="text-sm">
+            "La fotosíntesis es el proceso mediante el cual las plantas convierten la luz solar, agua y dióxido de carbono en glucosa y oxígeno. Ocurre en dos fases: reacciones dependientes de luz (tilacoides) y ciclo de Calvin (estroma)."
+          </p>
+        </div>
+        
+        <h3 class="font-bold mb-4">🎯 Pregunta:</h3>
+        <div class="bg-white bg-opacity-20 p-4 rounded-lg">
+          <p class="text-sm">
+            "¿Qué es la fotosíntesis y dónde ocurre?"
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-4">🗣️ Respuesta del Usuario:</h3>
+        <div class="bg-white bg-opacity-20 p-4 rounded-lg mb-4">
+          <p class="text-sm">
+            "La fotosíntesis es cuando las plantas usan luz solar para hacer comida. Toma agua y CO2 del aire y produce azúcar. Pasa en las hojas."
+          </p>
+        </div>
+        
+        <h3 class="font-bold mb-4">📊 Análisis RAG:</h3>
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span>Similitud:</span>
+            <span class="font-bold">0.78 (78%)</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Cobertura:</span>
+            <span class="font-bold">0.65 (65%)</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Contradicciones:</span>
+            <span class="font-bold">0.05 (5%)</span>
+          </div>
+          <div class="flex justify-between">
+            <span>OffTopic:</span>
+            <span class="font-bold">0.02 (2%)</span>
+          </div>
+          <hr class="border-white border-opacity-50 my-3"/>
+          <div class="flex justify-between text-lg font-bold">
+            <span>Score Final:</span>
+            <span>0.72 (Buena)</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="mt-8 bg-white bg-opacity-20 p-6 rounded-lg">
+      <h3 class="font-bold mb-3">💡 Feedback Explicable:</h3>
+      <ul class="text-sm space-y-2">
+        <li>✅ <strong>Conceptos bien cubiertos:</strong> luz solar → glucosa, agua, CO2</li>
+        <li>⚠️ <strong>Conceptos faltantes:</strong> oxígeno como producto, fases (tilacoides/estroma)</li>
+        <li>📍 <strong>Imprecisiones menores:</strong> "comida" es demasiado informal para "glucosa"</li>
+        <li>🎯 <strong>Mejora sugerida:</strong> Mencionar productos específicos y ubicación celular</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Ventajas técnicas -->
+  <div class="bg-white rounded-xl p-8 mb-12">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-6">
+      Ventajas Técnicas del Enfoque RAG
+    </h2>
+    
+    <div class="grid md:grid-cols-3 gap-6">
+      
+      <div class="text-center">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-2xl text-green-600">verified</span>
+        </div>
+        <h3 class="font-bold text-[var(--text-primary)] mb-2">Precisión Semántica</h3>
+        <p class="text-sm text-[var(--text-secondary)]">
+          No depende de coincidencia literal de palabras. "Auto" y "vehículo" se reconocen como sinónimos.
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-2xl text-blue-600">speed</span>
+        </div>
+        <h3 class="font-bold text-[var(--text-primary)] mb-2">Escalabilidad</h3>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Procesa PDFs de cualquier tamaño. Vector store optimizado para millones de documentos.
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-2xl text-purple-600">visibility</span>
+        </div>
+        <h3 class="font-bold text-[var(--text-primary)] mb-2">Explicabilidad</h3>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Siempre sabes qué chunks fueron recuperados y por qué recibiste esa puntuación.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Call to Action -->
+  <div class="text-center">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-4">
+      ¿Quieres probar la validación semántica?
+    </h2>
+    <p class="text-[var(--text-secondary)] mb-6">
+      Sube tu primer PDF y experimenta el feedback objetivo de la IA
+    </p>
+    <div class="flex gap-4 justify-center">
+      <a href="../app/subir-material.html" 
+         class="px-8 py-3 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90 font-semibold">
+        Subir Material
+      </a>
+      <a href="../index.html" 
+         class="px-8 py-3 border border-[var(--secondary-color)] text-[var(--secondary-color)] rounded-lg hover:bg-[var(--base-gray)] font-semibold">
+        Ver Demo
+      </a>
+    </div>
+  </div>
+
+</main>
+
+<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
+<div class="container mx-auto text-center">
+<div class="flex justify-center items-center gap-2 mb-6">
+<img src="../../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<span class="recuiva-logo">Recuiva</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+<a class="hover:text-[var(--primary-color)] transition-colors" href="active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
+</div>
+<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
+</div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Menú móvil animación
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = menuBtn?.querySelector('.material-symbols-outlined');
+  let isMenuOpen = false;
+
+  function toggleMenu() {
+    isMenuOpen = !isMenuOpen;
+    mobileMenu.classList.toggle('active');
+    menuBtn.classList.toggle('active');
+    document.body.classList.toggle('overflow-hidden');
+    if (menuIcon) {
+      menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+      if (isMenuOpen) {
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = 'close';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      } else {
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = 'menu';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      }
+    }
+  }
+
+  if (menuBtn) {
+    menuBtn.addEventListener('click', toggleMenu);
+  }
+
+  // Cerrar menú cuando se hace clic en un enlace
+  const menuLinks = mobileMenu?.querySelectorAll('a');
+  menuLinks?.forEach(link => {
+    link.addEventListener('click', () => {
+      if (isMenuOpen) {
+        toggleMenu();
+      }
+    });
+  });
+});
+</script>
+
+<style>
+#mobile-menu.active {
+  transform: scaleY(1) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Animación del botón hamburger */
+#menu-btn.active .menu-icon {
+  transform: rotate(180deg);
+}
+</style>
+
+</body>
+</html>

@@ -1,132 +1,166 @@
-# Recuiva - Plataforma de Active Recall
+# 📚 Recuiva - Sistema de Active Recall con IA
 
-Sistema de aprendizaje adaptativo basado en Active Recall que optimiza la retención de conocimiento mediante validación semántica.
+Sistema de aprendizaje basado en Active Recall con validación semántica mediante IA.
 
-## 📁 Estructura del Proyecto
+## 🏗️ Estructura del Proyecto
 
 ```
 recuiva/
-├── public/                      # Páginas públicas y de inicio
-│   ├── index.html              # Página de inicio principal
-│   └── landing-page.html       # Landing page
-│
-├── src/                        # Código fuente principal
-│   ├── pages/                  # Páginas de la aplicación
-│   │   ├── auth/              # Autenticación
-│   │   │   ├── crear-cuenta.html
-│   │   │   └── iniciar-sesion.html
-│   │   ├── institucional/     # Páginas institucionales
-│   │   │   ├── active-recall.html
-│   │   │   ├── diferencias.html
-│   │   │   └── validacion-semantica.html
-│   │   ├── analytics.html     # Dashboard analítico
-│   │   ├── dashboard.html     # Panel principal
-│   │   ├── evolucion.html     # Evolución del estudiante
-│   │   ├── materiales.html    # Gestión de materiales
-│   │   ├── mi-perfil.html     # Perfil de usuario
-│   │   ├── repasos.html       # Sistema de repasos
-│   │   ├── sesion-practica.html  # Sesiones de práctica
-│   │   └── subir-material.html   # Subir contenido
-│   │
-│   ├── components/            # Componentes reutilizables
-│   │   └── _header-template.html
-│   │
-│   └── styles/                # Estilos CSS (futuro)
-│
-├── backend/                   # Scripts Python y API
-│   ├── embeddings_gui.py     # GUI para embeddings
-│   ├── embeddings_local.py   # Procesamiento local
-│   ├── launcher.py           # Lanzador de servicios
-│   ├── debug_score.py        # Debug de scoring
-│   ├── test_debug.py         # Tests de debug
-│   ├── sample_active_recall.txt
-│   └── README.md             # Documentación del backend
-│
-├── assets/                    # Recursos estáticos
-│   ├── img/                  # Imágenes e iconos
-│   │   ├── Icon-Recuiva.ico
-│   │   ├── Icon-Recuiva.png
-│   │   └── icon-recuiva.svg
-│   └── js/                   # JavaScript
-│       └── mockApi.js        # API simulada
-│
-├── data/                     # Datos y datasets
-│   └── mock-dataset.json    # Dataset de prueba
-│
-└── docs/                     # Documentación
-    ├── api-migration.md      # Guía de migración de API
-    └── frontend-best-practices.md
-
+├── backend/              # Backend FastAPI
+│   ├── main.py          # API principal
+│   ├── embeddings_module.py
+│   ├── chunking.py
+│   └── requirements.txt
+├── public/              # Frontend (archivos servidos)
+│   ├── index.html      # Landing page principal
+│   ├── dashboard.html  # Dashboard de usuario
+│   ├── landing-page.html
+│   └── app/            # Aplicación web
+│       ├── sesion-practica.html    # ⭐ Página principal de práctica
+│       ├── materiales.html         # Gestión de materiales PDF
+│       ├── repasos.html           # Sistema de repasos espaciados
+│       ├── dashboard.html         # Dashboard de progreso
+│       ├── evolucion.html
+│       ├── mi-perfil.html
+│       ├── subir-material.html
+│       ├── analytics.html
+│       ├── auth/                  # Sistema de autenticación
+│       ├── institucional/         # Páginas informativas
+│       │   ├── active-recall.html
+│       │   ├── validacion-semantica.html
+│       │   └── diferencias.html
+│       └── assets/               # Recursos estáticos
+├── data/               # Datos y materiales
+│   ├── materials/      # Materiales de estudio (PDFs)
+│   ├── embeddings/     # Vectores de embeddings
+│   └── materials_index.json
+├── docs/               # Documentación del proyecto
+│   ├── ANALISIS_SISTEMA_USUARIOS.md    # Análisis del sistema de usuarios
+│   ├── DEPLOYMENT_GUIDE.md             # Guía de deployment
+│   ├── DEPLOYMENT_GUIDE_DIGITALOCEAN.md # Deployment en DigitalOcean
+│   ├── INICIO_RAPIDO.md                # Guía de inicio rápido
+│   └── README_COMPLETO.md              # Documentación completa
+├── scripts/            # Scripts de utilidad
+│   ├── completar_tareas.ps1
+│   ├── setup-server.sh
+│   ├── fix-dokploy-port.sh
+│   └── simple_backend.py
+├── assets/             # Assets globales
+│   ├── img/
+│   └── js/
+├── config.yaml         # Configuración de la aplicación
+├── docker-compose.yml  # Orquestación de contenedores
+├── Dockerfile          # Imagen Docker principal
+├── nginx.conf          # Configuración del servidor web
+├── INICIAR_RECUIVA.bat # Script de inicio Windows
+└── INICIAR_RECUIVA.ps1 # Script de inicio PowerShell
 ```
 
-## 🚀 Características Principales
+## 🚀 Inicio Rápido
 
-- ✅ **Validación semántica** con embeddings
-- ✅ **Algoritmo de intervalos espaciados**
-- ✅ **Análisis de comprensión no literal**
-- ✅ **Dashboard analítico de progreso**
-- ✅ **Gestión de materiales educativos**
+### 1. Iniciar Servidores
 
-## 🛠️ Tecnologías
+**Windows (Batch):**
+```cmd
+INICIAR_RECUIVA.bat
+```
 
-### Frontend
-- HTML5, CSS3 (Tailwind CSS)
-- JavaScript vanilla
-- Arquitectura de componentes
+**Windows (PowerShell):**
+```powershell
+.\INICIAR_RECUIVA.ps1
+```
 
-### Backend
+**Manual:**
+```powershell
+# Backend (puerto 8000)
+cd backend
+python -m uvicorn main:app --reload --port 8000
+
+# Frontend (puerto 5500) - en otra terminal
+cd ..
+python -m http.server 5500 --directory public
+```
+
+### 2. Acceder a la Aplicación
+
+**Página principal de práctica:**
+```
+http://localhost:5500/app/sesion-practica.html?material_id=1
+```
+
+**Dashboard:**
+```
+http://localhost:5500/
+```
+
+> **Nota**: El parámetro `material_id=1` corresponde al material cargado en el sistema. Si tienes múltiples materiales, cambia el número según corresponda.
+
+## 📦 Requisitos
+
 - Python 3.10+
-- sentence-transformers (embeddings)
-- PyPDF2 (procesamiento de PDFs)
-- NumPy (cálculos matemáticos)
+- Librerías: FastAPI, Uvicorn, Sentence-Transformers
+- Navegador moderno (Chrome, Edge, Firefox)
 
-## 📦 Instalación
-
-### Backend (Python)
+**Instalar dependencias:**
 ```bash
 cd backend
-pip install sentence-transformers PyPDF2 numpy
+pip install -r requirements.txt
 ```
 
-### Frontend
+## 🎯 Características Principales
+
+- ✅ **Active Recall**: Práctica basada en recordar activamente
+- 🤖 **Validación Semántica**: IA verifica comprensión conceptual
+- 📊 **Sistema de Puntuación**: Feedback detallado (0-100%)
+- 💾 **Guardado Automático**: Progreso guardado en localStorage
+- 📈 **Análisis de Evolución**: Métricas de aprendizaje
+
+## 🔧 Configuración
+
+Ver `config.yaml` para configuración del sistema.
+
+## 📝 Uso
+
+1. Inicia los servidores con `start-servers.ps1`
+2. Abre `http://localhost:5500/app/sesion-practica.html?material_id=1`
+3. Escribe pregunta y respuesta (mínimo 1+1 caracteres)
+4. Click en "Validar con IA"
+5. Recibe feedback semántico instantáneo
+
+**Control de funcionamiento:**
+- Abre la consola del navegador (F12)
+- Verás logs de: "📁 Material ID: 1", "🌐 Conectando con servidor..."
+- Si el backend responde, verás: "✅ Respuesta recibida del servidor"
+- Si hay errores, aparecerán mensajes detallados en rojo
+
+## 🐛 Solución de Problemas
+
+**Error: No se puede conectar al backend**
+- Verifica que el backend esté corriendo en puerto 8000
+- Ejecuta: `curl http://localhost:8000/` (debe responder `{"status":"OK"}`)
+
+**Página en blanco o errores de consola**
+- Asegúrate de abrir la URL correcta: `/app/sesion-practica.html`
+- Verifica que ambos servidores estén corriendo
+
+**Modelo de IA no carga**
+- Primera vez tarda ~30 segundos descargando modelo
+- Revisa logs del backend
+
+## 📚 Documentación
+
+- **Documentación antigua**: `docs/archive/`
+- **API**: Ver `backend/README.md`
+- **Deployment**: `docs/DEPLOYMENT_GUIDE.md`
+
+## 🌐 Deployment
+
+Sistema listo para deployment con Docker:
 ```bash
-# Abrir en navegador o servidor local
-cd public
-python -m http.server 8000
+docker-compose up -d
 ```
-
-## 🎯 Uso
-
-### Interfaz Gráfica de Embeddings
-```bash
-cd backend
-python launcher.py
-# Seleccionar opción 2 para GUI
-```
-
-### Desarrollo Web
-1. Abre `public/index.html` en tu navegador
-2. Navega a la aplicación desde el menú principal
-3. Registra una cuenta o inicia sesión
-
-## 📊 Roadmap
-
-- [ ] Migrar de mock API a backend real
-- [ ] Implementar base de datos (Supabase)
-- [ ] Despliegue en producción (DigitalOcean + Dokploy)
-- [ ] Sistema de embeddings en tiempo real
-- [ ] Análisis avanzado con LangChain
-
-## 👥 Autor
-
-**Abel Jesús Moya Acosta**
-- Proyecto: Taller Integrador I - UPAO
-- Email: amoya2@upao.edu.pe
-
-## 📄 Licencia
-
-Proyecto académico - Universidad Privada Antenor Orrego (UPAO)
 
 ---
 
-**Última actualización:** Octubre 2025
+**Última actualización**: Octubre 2025
+**Versión**: 2.0 (Limpieza y reorganización completa)

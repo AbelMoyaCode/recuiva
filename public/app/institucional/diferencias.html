@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <title>Diferencias con otras plataformas - Recuiva</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      /* Estilo global para el logo Recuiva */
+      .recuiva-logo {
+        font-family: 'Manrope', sans-serif !important;
+        font-weight: 800 !important;
+        font-size: 1.5rem !important;
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      .menu-btn {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+      .menu-btn:hover {
+        transform: scale(1.1);
+      }
+      .mobile-menu {
+        transform-origin: top;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform: scaleY(0);
+        opacity: 0;
+        pointer-events: none;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .mobile-menu.active {
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #menu-btn.active .menu-icon {
+        transform: rotate(180deg);
+      }
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 1rem;
+        margin: 2rem 0;
+      }
+      @media (max-width: 768px) {
+        .comparison-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .platform-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+      }
+      .platform-card:hover {
+        transform: translateY(-4px);
+      }
+      .recuiva-card {
+        border: 3px solid var(--primary-color);
+        background: linear-gradient(135deg, rgba(255,102,0,0.05) 0%, rgba(0,78,170,0.05) 100%);
+      }
+      .vs-badge {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: bold;
+        display: inline-block;
+        margin: 1rem 0;
+      }
+      .feature-check {
+        color: #10b981;
+        font-weight: bold;
+      }
+      .feature-cross {
+        color: #ef4444;
+        font-weight: bold;
+      }
+      .feature-partial {
+        color: #f59e0b;
+        font-weight: bold;
+      }
+    </style>
+</head>
+<body class="bg-[var(--base-gray)] min-h-screen">
+
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <a href="../../index.html" class="flex items-center gap-2">
+      <img src="../../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  <nav class="hidden md:flex items-center gap-4">
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../../index.html">Inicio</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../materiales.html">Materiales</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../dashboard.html">Dashboard</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../repasos.html">Repasos</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../sesion-practica.html">Práctica</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <!-- Botón menú móvil (solo móvil) -->
+    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
+      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
+    </button>
+  </div>
+</div>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
+<div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-8">
+  <!-- Navegación principal -->
+  <div class="text-2xl text-gray-600 flex flex-col items-center gap-6">
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../../index.html">Inicio</a>
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../materiales.html">Materiales</a>
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../dashboard.html">Dashboard</a>
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../repasos.html">Repasos</a>
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../sesion-practica.html">Práctica</a>
+  </div>
+</div>
+</div>
+</header>
+
+<main class="container mx-auto px-4 py-8 max-w-6xl">
+
+  <!-- Hero Section -->
+  <div class="text-center mb-12">
+    <h1 class="text-4xl md:text-5xl font-bold text-[var(--secondary-color)] mb-4">
+      ¿En qué se diferencia <span class="text-[var(--primary-color)]">Recuiva</span>?
+    </h1>
+    <p class="text-xl text-[var(--text-secondary)] max-w-3xl mx-auto">
+      Comparación técnica y metodológica con las principales plataformas de estudio
+    </p>
+  </div>
+
+  <!-- Tabla comparativa principal -->
+  <div class="bg-white rounded-xl p-8 mb-12 overflow-x-auto">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-8 text-center">
+      Comparación de Características
+    </h2>
+    
+    <div class="min-w-full">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b-2 border-gray-200">
+            <th class="text-left p-4 font-bold text-[var(--text-primary)]">Característica</th>
+            <th class="text-center p-4 font-bold text-[var(--primary-color)] bg-orange-50">Recuiva</th>
+            <th class="text-center p-4 font-bold text-purple-600">Anki</th>
+            <th class="text-center p-4 font-bold text-green-600">ChatGPT</th>
+            <th class="text-center p-4 font-bold text-blue-600">Quizlet</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr class="border-b border-gray-100">
+            <td class="p-4 font-semibold">Active Recall Auténtico</td>
+            <td class="text-center p-4 feature-check">✓ Forzado</td>
+            <td class="text-center p-4 feature-partial">~ Flashcards</td>
+            <td class="text-center p-4 feature-cross">✗ IA responde</td>
+            <td class="text-center p-4 feature-partial">~ Multiple choice</td>
+          </tr>
+
+          <tr class="border-b border-gray-100 bg-gray-50">
+            <td class="p-4 font-semibold">Validación Objetiva (RAG)</td>
+            <td class="text-center p-4 feature-check">✓ Semántica IA</td>
+            <td class="text-center p-4 feature-cross">✗ Autopercepción</td>
+            <td class="text-center p-4 feature-cross">✗ Solo genera</td>
+            <td class="text-center p-4 feature-cross">✗ Respuesta fija</td>
+          </tr>
+
+          <tr class="border-b border-gray-100">
+            <td class="p-4 font-semibold">Métricas Longitudinales</td>
+            <td class="text-center p-4 feature-check">✓ ΔS tracking</td>
+            <td class="text-center p-4 feature-partial">~ Básicas</td>
+            <td class="text-center p-4 feature-cross">✗ Sin historial</td>
+            <td class="text-center p-4 feature-partial">~ Racha días</td>
+          </tr>
+
+          <tr class="border-b border-gray-100 bg-gray-50">
+            <td class="p-4 font-semibold">Ingesta de PDFs</td>
+            <td class="text-center p-4 feature-check">✓ OCR + chunks</td>
+            <td class="text-center p-4 feature-cross">✗ Manual</td>
+            <td class="text-center p-4 feature-partial">~ Upload básico</td>
+            <td class="text-center p-4 feature-cross">✗ Sin PDFs</td>
+          </tr>
+
+          <tr class="border-b border-gray-100">
+            <td class="p-4 font-semibold">Repetición Espaciada</td>
+            <td class="text-center p-4 feature-check">✓ Adaptativa IA</td>
+            <td class="text-center p-4 feature-check">✓ SM-2</td>
+            <td class="text-center p-4 feature-cross">✗ Sin algoritmo</td>
+            <td class="text-center p-4 feature-partial">~ Básica</td>
+          </tr>
+
+          <tr class="border-b border-gray-100 bg-gray-50">
+            <td class="p-4 font-semibold">Feedback Explicable</td>
+            <td class="text-center p-4 feature-check">✓ Qué faltó/sobró</td>
+            <td class="text-center p-4 feature-cross">✗ Fácil/Difícil</td>
+            <td class="text-center p-4 feature-partial">~ Conversacional</td>
+            <td class="text-center p-4 feature-cross">✗ Correcto/Incorrecto</td>
+          </tr>
+
+          <tr class="border-b border-gray-100">
+            <td class="p-4 font-semibold">Curva de Aprendizaje</td>
+            <td class="text-center p-4 feature-check">✓ Minutos</td>
+            <td class="text-center p-4 feature-cross">✗ Días/Semanas</td>
+            <td class="text-center p-4 feature-check">✓ Inmediato</td>
+            <td class="text-center p-4 feature-check">✓ Minutos</td>
+          </tr>
+
+          <tr class="border-b border-gray-100 bg-gray-50">
+            <td class="p-4 font-semibold">Enfoque Pedagógico</td>
+            <td class="text-center p-4 feature-check">✓ Cognitivo</td>
+            <td class="text-center p-4 feature-partial">~ Memorización</td>
+            <td class="text-center p-4 feature-cross">✗ Dependencia IA</td>
+            <td class="text-center p-4 feature-partial">~ Gamificación</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Comparaciones detalladas -->
+  <div class="space-y-12">
+
+    <!-- Recuiva vs. Anki -->
+    <div class="bg-white rounded-xl p-8">
+      <div class="text-center mb-6">
+        <span class="vs-badge">Recuiva vs. Anki</span>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-8">
+        
+        <div>
+          <h3 class="text-xl font-bold text-[var(--primary-color)] mb-4">🧠 Recuiva: Active Recall Auténtico</h3>
+          <ul class="space-y-3 text-[var(--text-secondary)]">
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Creas tus propias preguntas</strong> a partir del material</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>IA valida semánticamente</strong> tus respuestas vs. PDF original</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Métricas objetivas:</strong> Similitud, Cobertura, Contradicciones</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Curva de aprendizaje:</strong> 5 minutos para empezar</span>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-bold text-purple-600 mb-4">📚 Anki: Flashcards Tradicionales</h3>
+          <ul class="space-y-3 text-[var(--text-secondary)]">
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-yellow-500 text-sm mt-0.5">warning</span>
+              <span class="text-sm"><strong>Flashcards pregeneradas</strong> (activo limitado)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-red-500 text-sm mt-0.5">close</span>
+              <span class="text-sm"><strong>Autopercepción subjetiva:</strong> "Fácil/Difícil/Normal"</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-yellow-500 text-sm mt-0.5">warning</span>
+              <span class="text-sm"><strong>Sin feedback específico</strong> sobre qué falló</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-red-500 text-sm mt-0.5">close</span>
+              <span class="text-sm"><strong>Curva de aprendizaje:</strong> Semanas para configurar bien</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+        <p class="text-sm text-orange-700">
+          <strong>🎯 Conclusión:</strong> Anki es excelente para memorización pura (vocabulario, fechas). 
+          Recuiva está diseñada para comprensión profunda y transferencia conceptual.
+        </p>
+      </div>
+    </div>
+
+    <!-- Recuiva vs. ChatGPT -->
+    <div class="bg-white rounded-xl p-8">
+      <div class="text-center mb-6">
+        <span class="vs-badge">Recuiva vs. ChatGPT</span>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-8">
+        
+        <div>
+          <h3 class="text-xl font-bold text-[var(--primary-color)] mb-4">🎯 Recuiva: Te entrena a TI</h3>
+          <ul class="space-y-3 text-[var(--text-secondary)]">
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Tú generas las respuestas,</strong> no la IA</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Fortalece tu memoria:</strong> Active Recall forzado</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Feedback constructivo:</strong> qué conceptos mejora</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Progreso trackeable:</strong> evolución longitudinal</span>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-bold text-green-600 mb-4">🤖 ChatGPT: IA hace el trabajo</h3>
+          <ul class="space-y-3 text-[var(--text-secondary)]">
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-red-500 text-sm mt-0.5">close</span>
+              <span class="text-sm"><strong>IA genera respuestas</strong> por ti (pasivo)</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-red-500 text-sm mt-0.5">close</span>
+              <span class="text-sm"><strong>No entrena memoria:</strong> dependencia creciente</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-red-500 text-sm mt-0.5">close</span>
+              <span class="text-sm"><strong>Conversacional:</strong> sin estructura pedagógica</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-red-500 text-sm mt-0.5">close</span>
+              <span class="text-sm"><strong>Sin historial estructurado</strong> de tu progreso</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-sm text-red-700">
+          <strong>⚠️ Problema del "atajo cognitivo":</strong> ChatGPT resuelve por ti, pero en exámenes estarás solo. 
+          Recuiva te prepara para responder bajo presión sin ayuda externa.
+        </p>
+      </div>
+    </div>
+
+    <!-- Recuiva vs. Quizlet -->
+    <div class="bg-white rounded-xl p-8">
+      <div class="text-center mb-6">
+        <span class="vs-badge">Recuiva vs. Quizlet</span>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-8">
+        
+        <div>
+          <h3 class="text-xl font-bold text-[var(--primary-color)] mb-4">📊 Recuiva: Validación Científica</h3>
+          <ul class="space-y-3 text-[var(--text-secondary)]">
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Respuesta abierta:</strong> escribes libremente</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Validación RAG:</strong> compara vs. material original</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Métricas cognitivas:</strong> coherencia, latencia, evolución</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-green-500 text-sm mt-0.5">check</span>
+              <span class="text-sm"><strong>Enfoque científico:</strong> respaldado por neurociencia</span>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-bold text-blue-600 mb-4">🎮 Quizlet: Gamificación Múltiple Choice</h3>
+          <ul class="space-y-3 text-[var(--text-secondary)]">
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-yellow-500 text-sm mt-0.5">warning</span>
+              <span class="text-sm"><strong>Multiple choice:</strong> reconocimiento, no recuerdo</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-red-500 text-sm mt-0.5">close</span>
+              <span class="text-sm"><strong>Respuesta fija:</strong> coincidencia literal de texto</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-yellow-500 text-sm mt-0.5">warning</span>
+              <span class="text-sm"><strong>Métricas básicas:</strong> racha de días, % aciertos</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="material-symbols-outlined text-yellow-500 text-sm mt-0.5">warning</span>
+              <span class="text-sm"><strong>Enfoque lúdico:</strong> más entretenimiento que aprendizaje</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p class="text-sm text-blue-700">
+          <strong>🎯 Diferencia clave:</strong> Quizlet optimiza para diversión y engagement. 
+          Recuiva optimiza para retención a largo plazo y transferencia de conocimiento.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Casos de uso ideales -->
+  <div class="bg-gradient-to-r from-[var(--secondary-color)] to-[var(--primary-color)] rounded-xl p-8 text-white mb-12">
+    <h2 class="text-2xl font-bold mb-8 text-center">
+      ¿Cuándo usar cada plataforma?
+    </h2>
+    
+    <div class="grid md:grid-cols-2 gap-8">
+      
+      <div>
+        <h3 class="font-bold mb-4 text-xl">✅ Usa Recuiva cuando:</h3>
+        <ul class="space-y-2 text-sm">
+          <li>• Estudias materias conceptuales (medicina, derecho, psicología)</li>
+          <li>• Tienes PDFs/libros como fuente principal</li>
+          <li>• Necesitas entender profundamente, no solo memorizar</li>
+          <li>• Quieres trackear tu progreso objetivamente</li>
+          <li>• Te preparas para exámenes de desarrollo/casos</li>
+          <li>• Buscas transferir conocimiento a situaciones nuevas</li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-4 text-xl">⚡ Usa otras plataformas cuando:</h3>
+        <div class="space-y-4 text-sm">
+          <div>
+            <strong>Anki:</strong> Vocabulario, fechas, fórmulas (memorización pura)
+          </div>
+          <div>
+            <strong>ChatGPT:</strong> Aclarar dudas puntuales, brainstorming, ideas
+          </div>
+          <div>
+            <strong>Quizlet:</strong> Repaso rápido, motivación gamificada, estudio grupal
+          </div>
+          <div>
+            <strong>Notion/Obsidian:</strong> Organizar apuntes, crear mapas conceptuales
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Call to Action -->
+  <div class="text-center">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-4">
+      ¿Listo para probar una metodología diferente?
+    </h2>
+    <p class="text-[var(--text-secondary)] mb-6">
+      Experimenta Active Recall con validación semántica objetiva
+    </p>
+    <div class="flex gap-4 justify-center">
+      <a href="../index.html" 
+         class="px-8 py-3 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90 font-semibold">
+        Probar Demo Gratis
+      </a>
+      <a href="active-recall.html" 
+         class="px-8 py-3 border border-[var(--secondary-color)] text-[var(--secondary-color)] rounded-lg hover:bg-[var(--base-gray)] font-semibold">
+         Entender Metodología
+      </a>
+    </div>
+  </div>
+
+</main>
+
+<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
+<div class="container mx-auto text-center">
+<div class="flex justify-center items-center gap-2 mb-6">
+<img src="../../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<span class="recuiva-logo">Recuiva</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+<a class="hover:text-[var(--primary-color)] transition-colors" href="active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
+</div>
+<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
+</div>
+</footer>
+
+<script>
+// Mobile menu functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = menuBtn?.querySelector('.material-symbols-outlined');
+  let isMenuOpen = false;
+
+  function toggleMenu() {
+    isMenuOpen = !isMenuOpen;
+    mobileMenu.classList.toggle('active');
+    menuBtn.classList.toggle('active');
+    document.body.classList.toggle('overflow-hidden');
+    if (menuIcon) {
+      menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+      if (isMenuOpen) {
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = 'close';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      } else {
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = 'menu';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      }
+    }
+  }
+  
+  if (menuBtn) {
+    menuBtn.addEventListener('click', toggleMenu);
+  }
+
+  // Cerrar menú cuando se hace clic en un enlace
+  const menuLinks = mobileMenu?.querySelectorAll('a');
+  menuLinks?.forEach(link => {
+    link.addEventListener('click', () => {
+      if (isMenuOpen) {
+        toggleMenu();
+      }
+    });
+  });
+
+  // Close mobile menu when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!menuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+      if (isMenuOpen) {
+        toggleMenu();
+      }
+    }
+  });
+});
+</script>
+
+<style>
+#mobile-menu.active {
+  transform: scaleY(1) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Animación del botón hamburger */
+#menu-btn.active .menu-icon {
+  transform: rotate(180deg);
+}
+</style>
+
+</body>
+</html>

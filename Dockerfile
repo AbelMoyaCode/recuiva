@@ -20,13 +20,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código
 COPY backend/ .
 
-# Crear directorios
-RUN mkdir -p /app/data/embeddings /app/data/materials
+# Crear directorios y establecer permisos
+RUN mkdir -p /app/data && \
+    chown -R nobody:nogroup /app/data && \
+    chmod -R 777 /app/data
 
-EXPOSE 80
+EXPOSE 8001
 
 ENV PYTHONUNBUFFERED=1
 ENV TRANSFORMERS_CACHE=/app/.cache
 ENV MODEL_NAME=all-MiniLM-L6-v2
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]

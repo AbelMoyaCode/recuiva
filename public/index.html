@@ -313,41 +313,9 @@
   <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="app/materiales.html">Materiales</a>
   <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="app/dashboard.html">Dashboard</a>
   <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="app/repasos.html">Repasos</a>
-  <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="app/sesion-practica.html">Práctica</a>
+  <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="#" onclick="validarYIrAPractica(event)">Práctica</a>
   </nav>
   <div class="flex items-center gap-4">
-    <!-- Notifications (solo desktop) -->
-    <button onclick="showBackendModal('notifications', 'Notificaciones', 'Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor.')" class="hidden md:inline-block relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none transition-all">
-      <span class="material-symbols-outlined">notifications</span>
-      <span class="notification-badge">3</span>
-    </button>
-    <!-- Profile Dropdown (solo desktop) -->
-    <div class="hidden md:inline-block relative">
-      <button id="profile-btn" class="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus:outline-none">
-        <img alt="User profile picture" class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR"/>
-        <span class="material-symbols-outlined text-gray-500">expand_more</span>
-      </button>
-      <div id="profile-dropdown" class="profile-dropdown">
-        <div class="px-4 py-3 border-b border-gray-100">
-          <div class="flex items-center gap-3">
-            <img class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR" alt="Foto de perfil"/>
-            <div>
-              <div class="font-medium text-gray-900">Juan Pérez</div>
-              <div class="text-sm text-gray-500">juan@ejemplo.com</div>
-            </div>
-          </div>
-        </div>
-        <a href="app/mi-perfil.html" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
-          <span class="material-symbols-outlined mr-2">person</span>
-          Mi Perfil
-        </a>
-        <hr class="my-1 border-gray-200">
-        <button onclick="logout()" class="flex w-full items-center px-4 py-2 text-red-600 hover:bg-red-50">
-          <span class="material-symbols-outlined mr-2">logout</span>
-          Cerrar sesión
-        </button>
-      </div>
-    </div>
     <!-- Botón menú móvil (solo móvil) -->
     <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
       <span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
@@ -371,12 +339,12 @@
   <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="app/materiales.html">Materiales</a>
   <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="app/dashboard.html">Dashboard</a>
   <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="app/repasos.html">Repasos</a>
-  <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="app/sesion-practica.html">Práctica</a>
+  <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="#" onclick="validarYIrAPractica(event)">Práctica</a>
   </nav>
   <hr class="w-2/3 border-gray-300 my-2" />
-  <button onclick="logout()" class="flex items-center gap-2 text-base text-red-600 font-semibold">
-  <span class="material-symbols-outlined">logout</span>
-  <a href="landing-page.html">Cerrar sesión</a>
+  <button onclick="limpiarDatos()" class="flex items-center gap-2 text-base text-[var(--primary-color)] font-semibold">
+  <span class="material-symbols-outlined">delete_sweep</span>
+  Limpiar datos locales
   </button>
 </div>
 </header>
@@ -385,8 +353,8 @@
   <!-- Hero / Bienvenida -->
   <section id="inicio" class="bg-[var(--base-white)] py-16 md:py-20 px-4 md:px-6">
     <div class="container mx-auto">
-      <h1 class="text-center text-[34px] leading-tight md:text-6xl font-extrabold text-[var(--text-primary)] tracking-tight">
-        Bienvenido de nuevo, <span class="text-[var(--primary-color)]">[Nombre]</span>
+      <h1 id="titulo-bienvenida" class="text-center text-[34px] leading-tight md:text-6xl font-extrabold text-[var(--text-primary)] tracking-tight">
+        ¡<span style="color: #004EAA;">Bienvenido</span> a <span style="color: #ff6600;">Recuiva</span>!
       </h1>
       <!-- Onboarding + Entrenador alineados -->
       <div class="mt-8 md:mt-10 max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 md:gap-8 items-start">
@@ -445,8 +413,8 @@
             <span class="material-symbols-outlined text-3xl md:text-4xl text-[var(--secondary-color)] mr-3 md:mr-4">history</span>
             <h3 class="text-lg md:text-xl font-bold text-[var(--text-primary)]">Última sesión</h3>
           </div>
-          <p class="text-[var(--text-secondary)] mb-4">Continúa practicando Biología Celular.</p>
-          <a class="text-[var(--primary-color)] font-bold hover:underline transition-colors" href="app/sesion-practica.html">Continuar práctica →</a>
+          <p id="last-session-text" class="text-[var(--text-secondary)] mb-4">Cargando...</p>
+          <a id="last-session-link" class="text-[var(--primary-color)] font-bold hover:underline transition-colors cursor-pointer" href="#" onclick="validarYIrAPractica(event)">Continuar práctica →</a>
         </div>
 
         <!-- Progreso -->
@@ -457,11 +425,11 @@
           </div>
           <div class="flex justify-around text-center">
             <div>
-              <p class="text-2xl md:text-3xl font-bold text-[var(--primary-color)]">85%</p>
+              <p id="progress-retention" class="text-2xl md:text-3xl font-bold text-[var(--primary-color)]">--</p>
               <p class="text-[var(--text-secondary)] text-sm">Retención</p>
             </div>
             <div>
-              <p class="text-2xl md:text-3xl font-bold text-[var(--primary-color)]">12 <span class="text-sm md:text-lg">días</span></p>
+              <p id="progress-streak" class="text-2xl md:text-3xl font-bold text-[var(--primary-color)]">-- <span class="text-sm md:text-lg">días</span></p>
               <p class="text-[var(--text-secondary)] text-sm">Racha</p>
             </div>
           </div>
@@ -473,9 +441,8 @@
             <span class="material-symbols-outlined text-3xl md:text-4xl text-[var(--secondary-color)] mr-3 md:mr-4">psychology_alt</span>
             <h3 class="text-lg md:text-xl font-bold text-[var(--text-primary)]">Temas a repasar</h3>
           </div>
-          <ul class="space-y-2 text-[var(--text-secondary)]">
-            <li>Fórmulas de Física Cuántica</li>
-            <li>Fechas clave de la Revolución Francesa</li>
+          <ul id="review-topics-list" class="space-y-2 text-[var(--text-secondary)]">
+            <li>Cargando...</li>
           </ul>
           <a class="text-[var(--primary-color)] font-bold hover:underline mt-3 inline-block transition-colors" href="app/repasos.html">Ver sugerencias →</a>
         </div>
@@ -491,9 +458,9 @@
 <span class="recuiva-logo">Recuiva</span>
 </div>
 <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
-<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/active-recall.html">Active Recall</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/validacion-semantica.html">Validación Semántica</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="app/institucional/active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="app/institucional/validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="app/institucional/diferencias.html">Diferencias</a>
 <a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
 <a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
 <a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
@@ -556,7 +523,12 @@ window.modal = (() => {
   centrarEntrenadorTexto();
 
 // === FUNCIONES MODALES DE MATERIAL (SCOPE GLOBAL) ===
-function mostrarModalMaterial(carpetaId, carpetaNombre) {
+function mostrarModalMaterial(carpetaId, carpetaNombre, modalidad = '') {
+  // Actualizar carpeta activa en el header
+  if (typeof window.actualizarCarpetaActiva === 'function') {
+    window.actualizarCarpetaActiva(carpetaNombre, modalidad);
+  }
+  
   const modalMaterial = `
     <div id="modal-material" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-carpeta-id="${carpetaId}" data-carpeta-nombre="${carpetaNombre}">
       <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
@@ -925,6 +897,176 @@ function cerrarModalBienvenida() {
   if (modal) modal.remove();
 }
 
+// --- SISTEMA DE VALIDACIÓN DE CONFIGURACIÓN (GLOBAL) ---
+
+/**
+ * Verifica si el usuario ha configurado carpeta, material y preguntas
+ * @returns {object} { valido: boolean, razon: string }
+ */
+window.validarConfiguracion = function() {
+  // 1. Verificar si existe al menos una carpeta configurada
+  let tieneCarpetas = false;
+  
+  // Verificar en localStorage
+  const carpetasGuardadas = localStorage.getItem('recuiva_carpetas');
+  if (carpetasGuardadas) {
+    try {
+      const parsed = JSON.parse(carpetasGuardadas);
+      tieneCarpetas = parsed && parsed.length > 0;
+    } catch(e) {
+      tieneCarpetas = false;
+    }
+  }
+  
+  if (!tieneCarpetas) {
+    return { 
+      valido: false, 
+      razon: 'carpeta',
+      mensaje: 'Primero debes crear una carpeta (Semestre, Curso, Tema, etc.)'
+    };
+  }
+  
+  // 2. Verificar si tiene preguntas creadas
+  const preguntas = JSON.parse(localStorage.getItem('recuiva_preguntas') || '[]');
+  
+  if (!preguntas || preguntas.length === 0) {
+    return { 
+      valido: false, 
+      razon: 'preguntas',
+      mensaje: 'Necesitas crear al menos una pregunta para practicar'
+    };
+  }
+  
+  // Todo está listo para practicar
+  return { 
+    valido: true, 
+    razon: 'completo',
+    mensaje: 'Configuración completa'
+  };
+};
+
+/**
+ * Muestra un modal cuando el usuario intenta acceder a práctica sin configurar
+ */
+window.mostrarModalAdvertenciaPractica = function(validacion) {
+  const razon = validacion?.razon || 'carpeta';
+  
+  let pasos = '';
+  let titulo = '¡Espera un momento!';
+  let descripcion = 'Antes de practicar, necesitas configurar tu material de estudio';
+  
+  if (razon === 'carpeta') {
+    titulo = 'Configura tu primera carpeta';
+    descripcion = 'Para comenzar a practicar, primero debes crear una carpeta de estudio';
+    pasos = `
+      <ol class="text-sm text-[var(--text-secondary)] space-y-2 ml-1">
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-[var(--primary-color)]">1.</span>
+          <span>Elige una <strong>modalidad</strong> (Semestre, Curso, Tema, etc.)</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-[var(--primary-color)]">2.</span>
+          <span>Dale un <strong>nombre</strong> a tu carpeta</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-[var(--primary-color)]">3.</span>
+          <span>Haz clic en <strong>"+ Agregar carpeta"</strong></span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-[var(--primary-color)]">4.</span>
+          <span>Haz clic en <strong>"Entrar"</strong> en la carpeta creada</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-[var(--primary-color)]">5.</span>
+          <span>Selecciona tu tipo de material y crea una pregunta</span>
+        </li>
+      </ol>
+    `;
+  } else if (razon === 'preguntas') {
+    titulo = 'Crea tu primera pregunta';
+    descripcion = 'Ya tienes una carpeta, ahora necesitas crear al menos una pregunta para practicar';
+    pasos = `
+      <ol class="text-sm text-[var(--text-secondary)] space-y-2 ml-1">
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-[var(--primary-color)]">1.</span>
+          <span>Haz clic en el botón <strong>"Entrar"</strong> de tu carpeta</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-[var(--primary-color)]">2.</span>
+          <span>Selecciona tu <strong>tipo de material</strong> (PDF, libro físico, o sin material)</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-[var(--primary-color)]">3.</span>
+          <span>Crea tu <strong>primera pregunta</strong> con su respuesta</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="font-bold text-[var(--primary-color)]">4.</span>
+          <span>¡Listo! Ya podrás <strong>empezar a practicar</strong></span>
+        </li>
+      </ol>
+    `;
+  }
+  
+  const modalAdvertencia = `
+    <div id="modal-advertencia-practica" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-[var(--accent-color)]">
+        <div class="text-center mb-6">
+          <div class="size-16 rounded-full flex items-center justify-center mx-auto mb-4
+                      ring-2 ring-[var(--primary-color)] bg-orange-50">
+            <span class="material-symbols-outlined text-5xl text-[var(--primary-color)]">warning</span>
+          </div>
+          <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-2">
+            ${titulo}
+          </h3>
+          <p class="text-[var(--text-secondary)]">
+            ${descripcion}
+          </p>
+        </div>
+        
+        <div class="bg-[var(--base-gray)] p-4 rounded-xl mb-6">
+          <h4 class="font-bold text-[var(--secondary-color)] mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined">checklist</span>
+            Pasos para comenzar:
+          </h4>
+          ${pasos}
+        </div>
+
+        <button onclick="cerrarModalAdvertenciaPractica()" 
+                class="w-full bg-[var(--primary-color)] text-white py-3 px-6 rounded-lg font-bold 
+                       hover:bg-opacity-90 transition-all shadow-lg">
+          Entendido, voy a configurar
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalAdvertencia);
+};
+
+/**
+ * Cierra el modal de advertencia
+ */
+window.cerrarModalAdvertenciaPractica = function() {
+  const modal = document.getElementById('modal-advertencia-practica');
+  if (modal) modal.remove();
+};
+
+/**
+ * Función global para validar y redirigir a práctica
+ * Úsala en los enlaces: onclick="validarYIrAPractica(event)"
+ */
+window.validarYIrAPractica = function(event) {
+  if (event) event.preventDefault();
+  
+  const validacion = window.validarConfiguracion();
+  if (!validacion.valido) {
+    window.mostrarModalAdvertenciaPractica(validacion);
+    return false;
+  }
+  
+  window.location.href = 'app/sesion-practica.html';
+  return true;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   
   // === FUNCIONES MODALES BACKEND MEJORADAS ===
@@ -995,12 +1137,44 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   
   // === FUNCIONES NAVEGACIÓN ===
-  window.logout = function() {
-    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-      localStorage.removeItem('recuiva_user');
-      window.location.href = 'auth/iniciar-sesion.html';
+  
+  // Función para limpiar datos locales (reemplaza logout)
+  window.limpiarDatos = function() {
+    if (confirm('⚠️ ¿Estás seguro?\n\nSe borrarán todas tus carpetas, preguntas y progreso guardados.\n\nEsta acción no se puede deshacer.')) {
+      localStorage.clear();
+      alert('✅ Datos locales eliminados correctamente.');
+      window.location.reload();
     }
   };
+  
+  // Función para mostrar configuración (placeholder)
+  window.mostrarConfiguracion = function() {
+    showAdvancedModal('settings', 'Configuración', 'Aquí podrás ajustar preferencias del sistema, exportar/importar datos, y personalizar tu experiencia de estudio.');
+  };
+  
+  // Función para actualizar carpeta activa en el header
+  window.actualizarCarpetaActiva = function(nombre, tipo) {
+    const displayDesktop = document.getElementById('carpeta-activa-nombre');
+    const displayMobile = document.getElementById('carpeta-activa-nombre-mobile');
+    const textoCompleto = tipo ? `${nombre} (${tipo})` : nombre;
+    
+    if (displayDesktop) displayDesktop.textContent = textoCompleto;
+    if (displayMobile) displayMobile.textContent = textoCompleto;
+    
+    // Guardar en localStorage para persistencia
+    localStorage.setItem('recuiva_carpeta_activa', JSON.stringify({ nombre, tipo }));
+  };
+  
+  // Cargar carpeta activa al iniciar
+  const carpetaActiva = localStorage.getItem('recuiva_carpeta_activa');
+  if (carpetaActiva) {
+    try {
+      const { nombre, tipo } = JSON.parse(carpetaActiva);
+      window.actualizarCarpetaActiva(nombre, tipo);
+    } catch(e) {
+      console.log('No hay carpeta activa guardada');
+    }
+  }
   
   // === DRAG & DROP HELPERS ===
   function findNodeById(id, nodes, parent = null) {
@@ -1013,6 +1187,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return null;
   }
+  
+  // 🔥 CONSTRUIR RUTA BREADCRUMB (camino completo desde raíz)
+  function construirRutaBreadcrumb(carpetaId) {
+    const ruta = [];
+    function buscarRuta(id, nodes, camino = []) {
+      for (const node of nodes) {
+        const nuevoCamino = [...camino, node.nombre];
+        if (node.id === id) {
+          ruta.push(...nuevoCamino);
+          return true;
+        }
+        if (node.subcarpetas && node.subcarpetas.length > 0) {
+          if (buscarRuta(id, node.subcarpetas, nuevoCamino)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    buscarRuta(carpetaId, carpetas);
+    return ruta;
+  }
+  
   function removeNode(id) {
     const found = findNodeById(id, carpetas);
     if (!found) return null;
@@ -1157,8 +1354,55 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Onboarding jerárquico en un solo board ---
+  // --- Onboarding jerárquico en un solo board CON PERSISTENCIA ---
   let carpetas = [];
+  
+  // 🔥 CARGAR CARPETAS DESDE LOCALSTORAGE AL INICIO
+  function cargarCarpetasDesdeStorage() {
+    console.log('🔍 CARGANDO CARPETAS DESDE LOCALSTORAGE...');
+    const stored = localStorage.getItem('recuiva_organization');
+    console.log('   • Datos en storage:', stored ? stored.substring(0, 100) + '...' : 'null');
+    
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        carpetas = parsed.carpetas || [];
+        console.log('📂 Carpetas cargadas desde localStorage:', carpetas.length);
+        console.log('   • Carpetas:', carpetas);
+      } catch(e) {
+        console.error('❌ Error al cargar carpetas:', e);
+        carpetas = [];
+      }
+    } else {
+      console.log('📭 Sin carpetas guardadas, iniciando vacío');
+      carpetas = [];
+    }
+  }
+  
+  // 🔥 GUARDAR CARPETAS EN LOCALSTORAGE
+  function guardarCarpetasEnStorage() {
+    try {
+      console.log('💾 GUARDANDO EN LOCALSTORAGE...');
+      console.log('   • Carpetas a guardar:', carpetas);
+      
+      const data = { carpetas };
+      const jsonString = JSON.stringify(data);
+      
+      console.log('   • JSON generado:', jsonString);
+      console.log('   • Tamaño:', jsonString.length, 'caracteres');
+      
+      localStorage.setItem('recuiva_organization', jsonString);
+      
+      // Verificar que se guardó correctamente
+      const verificacion = localStorage.getItem('recuiva_organization');
+      console.log('   • Verificación lectura:', verificacion ? 'OK' : 'ERROR');
+      
+      console.log('✅ Carpetas guardadas en localStorage:', carpetas.length);
+    } catch(e) {
+      console.error('❌ Error al guardar carpetas:', e);
+    }
+  }
+  
   // Elementos
   const modalidadChips = document.getElementById('modalidad-chips');
   const modalidadInput = document.getElementById('modalidad-input');
@@ -1253,6 +1497,17 @@ document.addEventListener('DOMContentLoaded', () => {
     entrar.title = 'Entrar';
     entrar.textContent = 'Entrar';
     entrar.onclick = () => { 
+      // 🔥 GUARDAR RUTA ACTIVA (breadcrumb trail)
+      const rutaCompleta = construirRutaBreadcrumb(carpeta.id);
+      const rutaActiva = {
+        carpetaId: carpeta.id,
+        carpetaNombre: carpeta.nombre,
+        carpetas: rutaCompleta,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('recuiva_active_path', JSON.stringify(rutaActiva));
+      console.log('📍 Ruta activa guardada:', rutaCompleta.join(' › '));
+      
       // Si es una carpeta hoja (sin subcarpetas), abrir modal de material
       if (!carpeta.subcarpetas || carpeta.subcarpetas.length === 0) {
         mostrarModalMaterial(carpeta.id, carpeta.nombre);
@@ -1270,6 +1525,7 @@ document.addEventListener('DOMContentLoaded', () => {
       abrirModalAgregar(({ nombre }) => {
         (carpeta.subcarpetas ||= []).push({ id: genId(), nombre, modalidad: carpeta.modalidad, subcarpetas: [], _expand:false });
         carpeta._expand = true;
+        guardarCarpetasEnStorage(); // 🔥 PERSISTENCIA
         renderTree();
       }, false);
     };
@@ -1284,6 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         carpetas = carpetas.filter(x => x !== carpeta);
       }
+      guardarCarpetasEnStorage(); // 🔥 PERSISTENCIA
       renderTree();
     };
     acciones.append(entrar, add, del);
@@ -1343,6 +1600,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (dropIntent === 'inside') {
         moveNode(draggedId, carpeta.id, carpeta.subcarpetas ? carpeta.subcarpetas.length : 0);
       }
+      guardarCarpetasEnStorage(); // 🔥 PERSISTENCIA DESPUÉS DE REORDENAR
       renderTree();
     });
     fila.addEventListener('dragend', () => {
@@ -1354,17 +1612,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Evento para agregar carpeta raíz
   document.getElementById('agregar-carpeta-btn').addEventListener('click', () => {
+    console.log('🔵 CLICK EN BOTÓN AGREGAR CARPETA');
+    console.log('   • Nombre:', modalidadInput.value.trim());
+    console.log('   • Modalidad seleccionada:', modalidadSeleccionada);
+    
     const nombre = modalidadInput.value.trim();
     if (!modalidadSeleccionada || !nombre) {
+      console.log('⚠️ Falta modalidad o nombre');
       modal.alert({ message: 'Selecciona modalidad y escribe el nombre.' });
       return;
     }
-    carpetas.push({ id: genId(), nombre, modalidad: modalidadSeleccionada, subcarpetas: [], _expand: false });
+    
+    const nuevaCarpeta = { id: genId(), nombre, modalidad: modalidadSeleccionada, subcarpetas: [], _expand: false };
+    console.log('📁 Nueva carpeta creada:', nuevaCarpeta);
+    
+    carpetas.push(nuevaCarpeta);
+    console.log('📦 Array carpetas después de push:', carpetas);
+    
     modalidadInput.value = '';
+    
+    guardarCarpetasEnStorage(); // 🔥 PERSISTENCIA
     renderTree();
+    
+    console.log('✅ Proceso completo');
   });
 
-  // Inicializar board único al cargar
+  // 🔥 INICIALIZAR: Cargar carpetas guardadas
+  cargarCarpetasDesdeStorage();
   renderTree();
 
   // --- MODAL AGREGAR MATERIAL ---
@@ -1620,6 +1894,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function irAPractica() {
+    // Validar antes de ir a práctica usando la función global
+    const validacion = window.validarConfiguracion();
+    if (!validacion.valido) {
+      window.mostrarModalAdvertenciaPractica(validacion);
+      return;
+    }
     window.location.href = 'app/sesion-practica.html';
   }
 
@@ -1632,6 +1912,160 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 });
+
+// ==========================================
+// SINCRONIZAR CARDS CON LOCALSTORAGE
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🔄 Sincronizando cards de index.html con localStorage...');
+  
+  // 1️⃣ ÚLTIMA SESIÓN
+  try {
+    const activeMaterialId = localStorage.getItem('active_material_id');
+    const lastSessionText = document.getElementById('last-session-text');
+    const lastSessionLink = document.getElementById('last-session-link');
+    
+    if (activeMaterialId && activeMaterialId !== 'null') {
+      // Buscar preguntas del material activo
+      const storageKey = `recuiva_questions_material_${activeMaterialId}`;
+      const questions = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      
+      if (questions.length > 0) {
+        // Obtener la última pregunta
+        const lastQuestion = questions[questions.length - 1];
+        const questionText = (lastQuestion.pregunta || lastQuestion.question || '').substring(0, 40);
+        
+        lastSessionText.textContent = `Última pregunta: "${questionText}..."`;
+        lastSessionLink.href = `app/sesion-practica.html?material=${activeMaterialId}`;
+        console.log('  ✓ Última sesión: Material ID', activeMaterialId);
+      } else {
+        lastSessionText.textContent = 'Aún no hay preguntas en este material.';
+        lastSessionLink.textContent = 'Empezar práctica →';
+        lastSessionLink.href = 'app/sesion-practica.html';
+        console.log('  ⚠️ Material activo sin preguntas');
+      }
+    } else {
+      lastSessionText.textContent = 'Aún no hay sesiones de práctica.';
+      lastSessionLink.textContent = 'Empezar primera sesión →';
+      lastSessionLink.href = 'app/sesion-practica.html';
+      console.log('  ⚠️ Sin material activo');
+    }
+  } catch (e) {
+    console.error('❌ Error en última sesión:', e);
+    document.getElementById('last-session-text').textContent = 'Error al cargar.';
+  }
+  
+  // 2️⃣ TU PROGRESO (sincronizar con Dashboard)
+  try {
+    const activeMaterialId = localStorage.getItem('active_material_id');
+    const progressRetention = document.getElementById('progress-retention');
+    const progressStreak = document.getElementById('progress-streak');
+    
+    if (activeMaterialId && activeMaterialId !== 'null') {
+      const storageKey = `recuiva_questions_material_${activeMaterialId}`;
+      const questions = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      
+      if (questions.length > 0) {
+        // Calcular score promedio (retención)
+        const scores = questions.map(q => q.score || 0).filter(s => s >= 0 && s <= 100);
+        if (scores.length > 0) {
+          const avgScore = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+          progressRetention.innerHTML = `${avgScore}<span class="text-lg">%</span>`;
+          console.log('  ✓ Retención:', avgScore + '%');
+        } else {
+          progressRetention.innerHTML = '0<span class="text-lg">%</span>';
+        }
+        
+        // Calcular racha de días
+        const streak = calculateStreak(questions);
+        progressStreak.innerHTML = `${streak} <span class="text-sm md:text-lg">días</span>`;
+        console.log('  ✓ Racha:', streak, 'días');
+      } else {
+        progressRetention.innerHTML = '0<span class="text-lg">%</span>';
+        progressStreak.innerHTML = '0 <span class="text-sm md:text-lg">días</span>';
+        console.log('  ⚠️ Sin datos de progreso');
+      }
+    } else {
+      progressRetention.innerHTML = '0<span class="text-lg">%</span>';
+      progressStreak.innerHTML = '0 <span class="text-sm md:text-lg">días</span>';
+      console.log('  ⚠️ Sin material activo para progreso');
+    }
+  } catch (e) {
+    console.error('❌ Error en progreso:', e);
+    document.getElementById('progress-retention').textContent = '--';
+    document.getElementById('progress-streak').textContent = '--';
+  }
+  
+  // 3️⃣ TEMAS A REPASAR (preguntas con score < 70%)
+  try {
+    const activeMaterialId = localStorage.getItem('active_material_id');
+    const reviewTopicsList = document.getElementById('review-topics-list');
+    
+    if (activeMaterialId && activeMaterialId !== 'null') {
+      const storageKey = `recuiva_questions_material_${activeMaterialId}`;
+      const questions = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      
+      // Filtrar preguntas con score < 70%
+      const weakQuestions = questions.filter(q => (q.score || 0) < 70);
+      
+      if (weakQuestions.length > 0) {
+        // Mostrar hasta 3 preguntas para repasar
+        const topicsHTML = weakQuestions.slice(0, 3).map(q => {
+          const questionText = (q.pregunta || q.question || 'Sin título').substring(0, 50);
+          const score = Math.round(q.score || 0);
+          return `<li>📌 ${questionText}... (${score}%)</li>`;
+        }).join('');
+        
+        reviewTopicsList.innerHTML = topicsHTML;
+        console.log('  ✓ Temas a repasar:', weakQuestions.length);
+      } else {
+        reviewTopicsList.innerHTML = '<li class="text-green-600 font-semibold">✨ ¡Excelente! No hay temas que necesiten repaso.</li>';
+        console.log('  ✓ Sin temas débiles');
+      }
+    } else {
+      reviewTopicsList.innerHTML = '<li class="text-gray-400">Aún no hay repasos pendientes.</li>';
+      console.log('  ⚠️ Sin material activo para repasos');
+    }
+  } catch (e) {
+    console.error('❌ Error en temas a repasar:', e);
+    document.getElementById('review-topics-list').innerHTML = '<li>Error al cargar.</li>';
+  }
+  
+  console.log('✅ Sincronización de cards completada');
+});
+
+// Función auxiliar: Calcular racha de días
+function calculateStreak(questions) {
+  if (!questions || questions.length === 0) return 0;
+  
+  const sortedQuestions = [...questions].sort((a, b) => {
+    const dateA = new Date(a.timestamp || a.createdAt || 0);
+    const dateB = new Date(b.timestamp || b.createdAt || 0);
+    return dateB - dateA;
+  });
+  
+  let streak = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  let currentDate = new Date(today);
+  
+  for (const question of sortedQuestions) {
+    const questionDate = new Date(question.timestamp || question.createdAt || 0);
+    questionDate.setHours(0, 0, 0, 0);
+    
+    if (questionDate.getTime() === currentDate.getTime()) {
+      if (streak === 0) streak = 1;
+    } else if (questionDate.getTime() === currentDate.getTime() - 86400000) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  
+  return streak;
+}
 </script>
 
 <!-- Modales adicionales para el onboarding completo -->

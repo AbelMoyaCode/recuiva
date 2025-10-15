@@ -19,13 +19,22 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 import argparse
+import sys
+from pathlib import Path
+
+# Agregar el directorio backend al path para imports locales
+BACKEND_DIR = Path(__file__).parent
+sys.path.insert(0, str(BACKEND_DIR))
 
 # Importar módulos locales
 try:
     from embeddings_module import generate_embeddings, calculate_similarity, load_model
     from chunking import chunk_text, extract_text_from_pdf, get_text_stats
-except ImportError:
-    print("⚠️ Módulos locales no encontrados. Asegúrate de tener embeddings_module.py y chunking.py")
+    MODULES_LOADED = True
+except ImportError as e:
+    print(f"⚠️ Módulos locales no encontrados: {e}")
+    print("⚠️ Asegúrate de tener embeddings_module.py y chunking.py")
+    MODULES_LOADED = False
 
 # Cargar variables de entorno
 load_dotenv()
@@ -59,7 +68,9 @@ class Question(BaseModel):
     material_id: Optional[int] = None
 
 class Answer(BaseModel):
-    question_id: int
+    question_id: Optional[int] = None  # Para preguntas guardadas
+    question_text: Optional[str] = None  # Para preguntas dinámicas
+    material_id: Optional[int] = None  # Para especificar material directamente
     user_answer: str
 
 class Material(BaseModel):
@@ -72,7 +83,8 @@ class ValidationResult(BaseModel):
     is_correct: bool
     feedback: str
     similarity: float
-    best_match_chunk: Optional[str] = None
+    best_match_chunk: Optional[dict] = None  # Ahora es dict con info completa
+    relevant_chunks: Optional[List[dict]] = []  # Lista de chunks relevantes
 
 class MaterialResponse(BaseModel):
     id: int
@@ -82,6 +94,7 @@ class MaterialResponse(BaseModel):
     total_chunks: int
     total_characters: int
     estimated_pages: int
+    real_pages: Optional[int] = None  # Páginas reales del PDF (si aplica)
 
 # ==================== CONFIGURACIÓN ====================
 
@@ -90,6 +103,7 @@ BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"
 EMBEDDINGS_DIR = DATA_DIR / "embeddings"
 MATERIALS_DIR = DATA_DIR / "materials"
+MATERIALS_INDEX_FILE = DATA_DIR / "materials_index.json"
 
 # Crear directorios si no existen
 EMBEDDINGS_DIR.mkdir(parents=True, exist_ok=True)
@@ -118,17 +132,24 @@ async def startup_event():
     print("🚀 Iniciando Recuiva Backend API...")
     print(f"📁 Directorio de datos: {DATA_DIR}")
     print(f"📊 Directorio de embeddings: {EMBEDDINGS_DIR}")
+    print(f"📂 Directorio de materiales: {MATERIALS_DIR}")
     
-    # Precargar modelo de embeddings
-    try:
-        load_model()
-        print("✅ Modelo de embeddings cargado exitosamente")
-    except Exception as e:
-        print(f"⚠️ Error cargando modelo: {e}")
+    # Cargar índice de materiales
+    load_materials_index()
     
-    # Cargar materiales existentes
-    load_existing_materials()
-    print(f"📚 Materiales cargados: {len(materials_db)}")
+    # Precargar modelo de embeddings solo si los módulos están disponibles
+    if MODULES_LOADED:
+        try:
+            load_model()
+            print("✅ Modelo de embeddings cargado exitosamente")
+        except Exception as e:
+            print(f"⚠️ Error cargando modelo: {e}")
+    else:
+        print("⚠️ Módulos de embeddings no disponibles - modo limitado")
+    
+    # Ya no necesitamos load_existing_materials() porque usamos índice persistente
+    # load_existing_materials()
+    print(f"📚 Materiales en índice: {len(materials_db)}")
 
 @app.get("/")
 async def root():
@@ -177,14 +198,22 @@ async def upload_material(file: UploadFile = File(...)):
         content = await file.read()
         
         # Extraer texto según el tipo de archivo
+        pdf_page_count = None
         if file.filename.endswith('.pdf'):
             print("📄 Extrayendo texto de PDF...")
-            text = extract_text_from_pdf(content)
+            text, pdf_page_count = extract_text_from_pdf(content)
+            print(f"📄 PDF con {pdf_page_count} páginas reales")
         else:
             text = content.decode('utf-8')
         
         # Obtener estadísticas del texto
         stats = get_text_stats(text)
+        
+        # Usar conteo real de páginas del PDF si está disponible
+        if pdf_page_count is not None:
+            stats["estimated_pages"] = pdf_page_count
+            stats["real_pages"] = pdf_page_count
+        
         print(f"📊 Estadísticas: {stats}")
         
         # Validar tamaño mínimo (aprox 80 páginas = ~200,000 caracteres)
@@ -216,20 +245,34 @@ async def upload_material(file: UploadFile = File(...)):
         print(f"✅ Embeddings generados: {len(embeddings_data)}")
         
         # Guardar material y embeddings
-        material_id = len(materials_db) + 1
+        material_id = get_next_material_id()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Guardar archivo original
+        original_filename = file.filename
+        safe_filename = f"{original_filename.rsplit('.', 1)[0]}_{material_id}_{timestamp}.{original_filename.rsplit('.', 1)[1]}"
+        material_file_path = MATERIALS_DIR / safe_filename
+        
+        print(f"💾 Guardando archivo original: {material_file_path}")
+        with open(material_file_path, 'wb') as f:
+            f.write(content)
         
         material_data = {
             "id": material_id,
             "filename": file.filename,
+            "saved_filename": safe_filename,
+            "file_path": str(material_file_path),
+            "file_exists": True,
             "title": file.filename.replace('.pdf', '').replace('.txt', '').replace('_', ' ').title(),
             "uploaded_at": timestamp,
             "total_chunks": len(chunks),
             "total_characters": len(text),
-            "estimated_pages": stats["estimated_pages"]
+            "estimated_pages": stats["estimated_pages"],
+            "real_pages": stats.get("real_pages", None)  # Páginas reales del PDF
         }
         
         materials_db.append(material_data)
+        save_materials_index()  # Guardar índice persistente
         
         # Guardar embeddings en archivo JSON
         embeddings_file = EMBEDDINGS_DIR / f"material_{material_id}_{timestamp}.json"
@@ -254,31 +297,62 @@ async def upload_material(file: UploadFile = File(...)):
 @app.post("/api/validate-answer", response_model=ValidationResult)
 async def validate_answer(answer: Answer):
     """
-    Valida semánticamente la respuesta del usuario
-    Compara con los embeddings del material usando similaridad coseno
+    Valida semánticamente la respuesta del usuario con SCORING INTELIGENTE
+    - Análisis multi-chunk (top 5)
+    - Palabras clave contextuales
+    - Bonus por elaboración
+    - Boost de inteligencia para variaciones
     
     Args:
-        answer: Respuesta del usuario con ID de pregunta
+        answer: Respuesta del usuario con ID de pregunta O texto de pregunta directa
         
     Returns:
         ValidationResult: Resultado de la validación con score y feedback
     """
     try:
-        print(f"🔍 Validando respuesta para pregunta {answer.question_id}")
+        print(f"\n{'='*70}")
+        print(f"🔍 VALIDACIÓN SEMÁNTICA INTELIGENTE")
+        print(f"{'='*70}")
         
-        # Buscar la pregunta
-        question = next((q for q in questions_db if q["id"] == answer.question_id), None)
-        if not question:
-            raise HTTPException(status_code=404, detail="Pregunta no encontrada")
+        # ===== DETERMINAR PREGUNTA Y MATERIAL =====
+        question_text = None
+        material_id = answer.material_id or 1
         
-        # Cargar embeddings del material relacionado
-        material_id = question.get("material_id", 1)  # Por defecto usar el primer material
+        if answer.question_id:
+            # Pregunta guardada
+            question = next((q for q in questions_db if q["id"] == answer.question_id), None)
+            if not question:
+                raise HTTPException(status_code=404, detail="Pregunta no encontrada")
+            question_text = question.get("text", "")
+            material_id = question.get("material_id", material_id)
+            print(f"📝 Pregunta guardada ID: {answer.question_id}")
+        elif answer.question_text:
+            # Pregunta dinámica
+            question_text = answer.question_text
+            print(f"📝 Pregunta dinámica: {question_text[:50]}...")
+        else:
+            raise HTTPException(status_code=400, detail="Debe proporcionar question_id o question_text")
         
-        # Buscar archivo de embeddings
+        print(f"✍️  Respuesta: {answer.user_answer[:100]}...")
+        print(f"📏 Longitud: {len(answer.user_answer)} caracteres")
+        
+        # ===== VALIDACIONES PREVIAS =====
+        MIN_RESPONSE_LENGTH = 15
+        if len(answer.user_answer.strip()) < MIN_RESPONSE_LENGTH:
+            print(f"❌ Respuesta muy corta")
+            return ValidationResult(
+                score=0.0,
+                is_correct=False,
+                similarity=0.0,
+                feedback=f"❌ Respuesta muy corta. Active Recall requiere que expliques el concepto con tus propias palabras (mínimo {MIN_RESPONSE_LENGTH} caracteres).",
+                relevant_chunks=[],
+                best_match_chunk=None
+            )
+        
+        # ===== CARGAR MATERIAL =====
         embeddings_files = list(EMBEDDINGS_DIR.glob(f"material_{material_id}_*.json"))
         
         if not embeddings_files:
-            # Si no hay material específico, usar el primero disponible
             embeddings_files = list(EMBEDDINGS_DIR.glob("material_*.json"))
             if not embeddings_files:
                 raise HTTPException(
@@ -286,54 +360,197 @@ async def validate_answer(answer: Answer):
                     detail="No hay materiales procesados. Sube un material primero."
                 )
         
-        # Cargar embeddings
-        print(f"📂 Cargando embeddings de: {embeddings_files[0]}")
+        print(f"📂 Cargando: {embeddings_files[0].name}")
         with open(embeddings_files[0], 'r', encoding='utf-8') as f:
             material_embeddings = json.load(f)
         
-        # Generar embedding de la respuesta del usuario
-        print("🧠 Generando embedding de la respuesta...")
-        user_embedding = generate_embeddings(answer.user_answer)
+        print(f"📚 {len(material_embeddings)} chunks disponibles")
         
-        # Calcular similaridad con cada chunk y obtener el máximo
-        max_similarity = 0
-        best_chunk = None
+        # ===== GENERAR EMBEDDINGS =====
+        # Combinar pregunta + respuesta para mejor contexto
+        combined_text = f"Pregunta: {question_text}\nRespuesta: {answer.user_answer}"
+        user_embedding = generate_embeddings(combined_text)
+        print(f"� Embedding generado (dim: {len(user_embedding)})")
         
-        print(f"🔬 Calculando similaridad con {len(material_embeddings)} chunks...")
-        for chunk_data in material_embeddings:
+        # ===== CALCULAR SIMILARIDADES (TODOS LOS CHUNKS) =====
+        similarities = []
+        for idx, chunk_data in enumerate(material_embeddings):
             chunk_embedding = chunk_data["embedding"]
+            chunk_text = chunk_data.get("text_full", chunk_data.get("text", ""))
             similarity = calculate_similarity(user_embedding, chunk_embedding)
             
-            if similarity > max_similarity:
-                max_similarity = similarity
-                best_chunk = chunk_data.get("text_full", chunk_data["text"])
+            similarities.append({
+                "chunk_id": chunk_data.get("chunk_id", idx),
+                "text": chunk_text,
+                "text_short": chunk_text[:200] + "..." if len(chunk_text) > 200 else chunk_text,
+                "similarity": float(similarity)
+            })
         
-        print(f"✅ Similaridad máxima: {max_similarity:.4f}")
+        # Ordenar por similaridad
+        similarities.sort(key=lambda x: x["similarity"], reverse=True)
         
-        # Determinar si es correcto
-        is_correct = max_similarity >= THRESHOLD_GOOD
+        # ===== ANÁLISIS MULTI-CHUNK (TOP 5) =====
+        TOP_CHUNKS = min(5, len(similarities))
+        top_chunks = similarities[:TOP_CHUNKS]
         
-        # Generar feedback basado en thresholds
-        if max_similarity >= THRESHOLD_EXCELLENT:
-            feedback = "¡Excelente! Tu respuesta demuestra una comprensión profunda del tema. 🌟"
-        elif max_similarity >= THRESHOLD_GOOD:
-            feedback = "Bien, tu respuesta es correcta pero podrías profundizar más en algunos aspectos. 👍"
-        elif max_similarity >= THRESHOLD_ACCEPTABLE:
-            feedback = "Tu respuesta tiene algunos conceptos correctos, pero necesitas revisar el material. 📚"
+        print(f"\n� TOP {TOP_CHUNKS} CHUNKS MÁS RELEVANTES:")
+        for i, chunk in enumerate(top_chunks, 1):
+            print(f"   {i}. Chunk {chunk['chunk_id']}: {chunk['similarity']:.4f} ({int(chunk['similarity']*100)}%)")
+        
+        best_match = similarities[0]
+        base_similarity = best_match["similarity"]
+        
+        # ===== SCORING INTELIGENTE =====
+        import re
+        
+        # FACTOR 1: Similitud base
+        similarity_score = base_similarity * 100
+        
+        # FACTOR 2: Contexto amplio (múltiples chunks relevantes)
+        context_bonus = 0
+        high_sim_chunks = [c for c in top_chunks if c['similarity'] > 0.5]
+        if len(high_sim_chunks) >= 3:
+            context_bonus = 10
+            print(f"   ✅ Bonus contexto: +{context_bonus}% ({len(high_sim_chunks)} chunks)")
+        elif len(high_sim_chunks) >= 2:
+            context_bonus = 5
+            print(f"   ✅ Bonus contexto: +{context_bonus}% ({len(high_sim_chunks)} chunks)")
+        
+        # FACTOR 3: Palabras clave compartidas
+        answer_keywords = set(re.findall(r'\b\w{4,}\b', answer.user_answer.lower()))
+        chunk_keywords = set(re.findall(r'\b\w{4,}\b', best_match["text"].lower()))
+        shared_keywords = answer_keywords.intersection(chunk_keywords)
+        
+        keyword_bonus = 0
+        if len(shared_keywords) >= 5:
+            keyword_bonus = 8
+            print(f"   ✅ Bonus keywords: +{keyword_bonus}% ({len(shared_keywords)} términos)")
+        elif len(shared_keywords) >= 3:
+            keyword_bonus = 5
+            print(f"   ✅ Bonus keywords: +{keyword_bonus}% ({len(shared_keywords)} términos)")
+        
+        # FACTOR 4: Elaboración de respuesta
+        length_bonus = 0
+        if len(answer.user_answer) > 200:
+            length_bonus = 5
+            print(f"   ✅ Bonus elaboración: +{length_bonus}% ({len(answer.user_answer)} chars)")
+        elif len(answer.user_answer) > 100:
+            length_bonus = 3
+            print(f"   ✅ Bonus elaboración: +{length_bonus}% ({len(answer.user_answer)} chars)")
+        
+        # FACTOR 5: Boost de inteligencia (concepto correcto, formulación diferente)
+        intelligence_boost = 0
+        if 0.50 <= base_similarity < 0.70:
+            if context_bonus > 0 or keyword_bonus >= 5:
+                intelligence_boost = 15
+                print(f"   🧠 BOOST INTELIGENCIA: +{intelligence_boost}% (concepto OK, forma diferente)")
+        elif 0.35 <= base_similarity < 0.50:
+            if context_bonus >= 5 and keyword_bonus >= 5:
+                intelligence_boost = 20
+                print(f"   🧠 BOOST INTELIGENCIA: +{intelligence_boost}% (contexto+keywords buenos)")
+        
+        # SCORE FINAL
+        raw_score = similarity_score + context_bonus + keyword_bonus + length_bonus + intelligence_boost
+        score_percentage = min(int(raw_score), 100)
+        
+        print(f"\n📊 DESGLOSE DEL SCORE:")
+        print(f"   Base (similitud):     {int(similarity_score)}%")
+        print(f"   + Contexto amplio:    {context_bonus}%")
+        print(f"   + Palabras clave:     {keyword_bonus}%")
+        print(f"   + Elaboración:        {length_bonus}%")
+        print(f"   + Boost inteligencia: {intelligence_boost}%")
+        print(f"   {'─'*40}")
+        print(f"   SCORE FINAL:          {score_percentage}%")
+        
+        # ===== GENERAR FEEDBACK =====
+        is_correct = score_percentage >= 55
+        
+        if score_percentage >= 85:
+            feedback = f"""🎉 ¡EXCELENTE! Tu respuesta demuestra comprensión profunda del concepto.
+
+📊 Score de comprensión: {score_percentage}%
+
+✅ Tu explicación coincide muy bien con el material. El sistema identificó {len(high_sim_chunks)} fragmentos relacionados en el libro.
+
+💡 Captaste correctamente la esencia del concepto. ¡Sigue así con Active Recall!"""
+
+        elif score_percentage >= 70:
+            feedback = f"""✅ ¡MUY BIEN! Tu respuesta muestra buen entendimiento del tema.
+
+📊 Score de comprensión: {score_percentage}%
+
+👍 Has captado los conceptos principales. Tu formulación puede ser diferente al libro, pero el contenido es correcto.
+
+💭 Sugerencia: Podrías profundizar un poco más, pero vas por buen camino."""
+
+        elif score_percentage >= 55:
+            feedback = f"""⚠️ RESPUESTA PARCIAL. Tienes la idea general, pero falta desarrollo.
+
+📊 Score de comprensión: {score_percentage}%
+
+🔍 Tu respuesta toca algunos puntos correctos, pero necesita más detalle o precisión.
+
+📖 Revisa el material y explica el concepto con más profundidad. Recuerda: Active Recall = ENTENDER, no memorizar."""
+
         else:
-            feedback = "Tu respuesta no refleja el contenido del material. Te recomendamos repasarlo con atención. 🔄"
+            feedback = f"""❌ NECESITA MEJORAR. La respuesta no refleja bien el contenido del material.
+
+📊 Score de comprensión: {score_percentage}%
+
+🔄 Intenta de nuevo:
+1. Relee el fragmento relevante
+2. Cierra el libro y explica CON TUS PROPIAS PALABRAS
+3. Enfócate en ENTENDER el concepto
+
+💡 Tip: Imagina que se lo explicas a un amigo."""
         
+        print(f"\n✅ Validación completada: {score_percentage}% {'✓' if is_correct else '✗'}")
+        print(f"{'='*70}\n")
+        
+        # Calcular la posición del chunk en el material (estimada)
+        total_chunks = len(similarities)
+        best_chunk_position = best_match["chunk_id"]
+        estimated_page = (best_chunk_position * 500) // 2500  # Estimar página basada en caracteres
+        
+        # Resultado con información COMPLETA del chunk
         result = ValidationResult(
-            score=round(max_similarity * 100, 2),
+            score=score_percentage,
             is_correct=is_correct,
+            similarity=float(base_similarity),
             feedback=feedback,
-            similarity=round(max_similarity, 4),
-            best_match_chunk=best_chunk[:300] + "..." if best_chunk and len(best_chunk) > 300 else best_chunk
+            relevant_chunks=[
+                {
+                    "text": chunk["text_short"],
+                    "text_full": chunk["text"],
+                    "similarity": chunk["similarity"],
+                    "position": chunk["chunk_id"],
+                    "total_chunks": total_chunks
+                }
+                for chunk in top_chunks[:3]
+            ],
+            best_match_chunk={
+                "text": best_match["text"],
+                "text_short": best_match["text_short"],
+                "similarity": best_match["similarity"],
+                "chunk_id": best_chunk_position,
+                "total_chunks": total_chunks,
+                "estimated_page": estimated_page
+            }
         )
         
-        print(f"📊 Resultado: {result.score}% - {'✅ Correcto' if is_correct else '❌ Incorrecto'}")
+        print(f"📍 Chunk más relevante: {best_chunk_position + 1}/{total_chunks} (página ~{estimated_page})")
         
         return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===================================================================
+# ENDPOINT: OBTENER MATERIALES
+# ===================================================================
     
     except HTTPException:
         raise
@@ -360,6 +577,81 @@ async def get_material(material_id: int):
         "success": True,
         "material": material
     }
+
+@app.delete("/api/materials/{material_id}")
+async def delete_material(material_id: int):
+    """
+    Elimina un material y todos sus archivos asociados
+    - Elimina embeddings del material
+    - Elimina archivos PDF originales
+    - Elimina entrada de la base de datos
+    """
+    global materials_db
+    
+    # Verificar que el material existe
+    material = next((m for m in materials_db if m["id"] == material_id), None)
+    if not material:
+        raise HTTPException(status_code=404, detail=f"Material con ID {material_id} no encontrado")
+    
+    deleted_files = []
+    errors = []
+    
+    try:
+        # 1. Eliminar archivos de embeddings
+        embeddings_files = list(EMBEDDINGS_DIR.glob(f"material_{material_id}_*.json"))
+        for emb_file in embeddings_files:
+            try:
+                emb_file.unlink()
+                deleted_files.append(str(emb_file.name))
+                print(f"🗑️ Embedding eliminado: {emb_file.name}")
+            except Exception as e:
+                errors.append(f"Error eliminando {emb_file.name}: {str(e)}")
+        
+        # 2. Eliminar archivo original si existe
+        if material.get("file_path"):
+            try:
+                file_path = Path(material["file_path"])
+                if file_path.exists():
+                    file_path.unlink()
+                    deleted_files.append(str(file_path.name))
+                    print(f"🗑️ Archivo original eliminado: {file_path.name}")
+            except Exception as e:
+                errors.append(f"Error eliminando archivo original: {str(e)}")
+        
+        # También buscar por saved_filename
+        if material.get("saved_filename"):
+            try:
+                saved_file = MATERIALS_DIR / material["saved_filename"]
+                if saved_file.exists():
+                    saved_file.unlink()
+                    deleted_files.append(str(saved_file.name))
+                    print(f"🗑️ Archivo guardado eliminado: {saved_file.name}")
+            except Exception as e:
+                errors.append(f"Error eliminando archivo guardado: {str(e)}")
+        
+        # 3. Eliminar de la base de datos en memoria
+        materials_db = [m for m in materials_db if m["id"] != material_id]
+        save_materials_index()  # Guardar cambios en el índice
+        
+        print(f"✅ Material {material_id} eliminado exitosamente")
+        print(f"   - Archivos eliminados: {len(deleted_files)}")
+        print(f"   - Errores: {len(errors)}")
+        
+        return {
+            "success": True,
+            "message": f"Material '{material.get('filename', material_id)}' eliminado exitosamente",
+            "material": material,
+            "deleted_files": deleted_files,
+            "files_deleted_count": len(deleted_files),
+            "errors": errors if errors else None
+        }
+        
+    except Exception as e:
+        print(f"❌ Error eliminando material {material_id}: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error al eliminar material: {str(e)}"
+        )
 
 @app.post("/api/questions")
 async def create_question(question: Question):
@@ -430,6 +722,81 @@ async def health_check():
 
 # ==================== FUNCIONES AUXILIARES ====================
 
+def load_materials_index():
+    """Carga el índice de materiales desde el archivo JSON"""
+    global materials_db
+    if MATERIALS_INDEX_FILE.exists():
+        try:
+            with open(MATERIALS_INDEX_FILE, 'r', encoding='utf-8') as f:
+                materials_db = json.load(f)
+            print(f"📚 Índice de materiales cargado: {len(materials_db)} materiales")
+        except Exception as e:
+            print(f"⚠️ Error cargando índice de materiales: {e}")
+            materials_db = []
+    else:
+        print("📝 No existe índice, migrando materiales existentes...")
+        materials_db = []
+        # Migrar automáticamente desde embeddings
+        migrate_existing_materials()
+        save_materials_index()
+
+def migrate_existing_materials():
+    """Migra materiales existentes desde embeddings al índice"""
+    global materials_db
+    
+    for file in sorted(EMBEDDINGS_DIR.glob("material_*.json")):
+        try:
+            parts = file.stem.split('_')
+            if len(parts) >= 3:
+                material_id = int(parts[1])
+                timestamp = parts[2]
+                
+                # Verificar si ya existe
+                if any(m["id"] == material_id for m in materials_db):
+                    continue
+                
+                # Cargar datos del embedding
+                with open(file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                # Buscar archivo original
+                pdf_files = list(MATERIALS_DIR.glob(f"*_{material_id}_*"))
+                saved_filename = pdf_files[0].name if pdf_files else None
+                file_path = str(pdf_files[0]) if pdf_files else None
+                file_exists = bool(pdf_files)
+                original_filename = saved_filename.split(f"_{material_id}_")[0] + pdf_files[0].suffix if pdf_files else f"material_{material_id}"
+                
+                materials_db.append({
+                    "id": material_id,
+                    "filename": original_filename,
+                    "saved_filename": saved_filename,
+                    "file_path": file_path,
+                    "file_exists": file_exists,
+                    "title": original_filename.replace('.pdf', '').replace('.txt', '').replace('_', ' ').title(),
+                    "uploaded_at": timestamp,
+                    "total_chunks": len(data),
+                    "total_characters": sum(len(chunk.get("text_full", "")) for chunk in data),
+                    "estimated_pages": len(data) // 3
+                })
+                print(f"  ✅ Migrado material {material_id}: {original_filename}")
+        except Exception as e:
+            print(f"  ⚠️ Error migrando {file.name}: {e}")
+
+def save_materials_index():
+    """Guarda el índice de materiales en el archivo JSON"""
+    try:
+        with open(MATERIALS_INDEX_FILE, 'w', encoding='utf-8') as f:
+            json.dump(materials_db, f, ensure_ascii=False, indent=2)
+        print(f"💾 Índice de materiales guardado: {len(materials_db)} materiales")
+    except Exception as e:
+        print(f"❌ Error guardando índice de materiales: {e}")
+
+def get_next_material_id():
+    """Obtiene el siguiente ID disponible para materiales"""
+    if not materials_db:
+        return 1
+    return max(m["id"] for m in materials_db) + 1
+
 def load_existing_materials():
     """Carga materiales existentes del directorio de embeddings"""
     global materials_db
@@ -444,7 +811,7 @@ def load_existing_materials():
                 timestamp = parts[2]
                 
                 # Cargar datos del embedding para obtener información
-                with open(file, 'r') as f:
+                with open(file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 
                 # Agregar a la base de datos si no existe

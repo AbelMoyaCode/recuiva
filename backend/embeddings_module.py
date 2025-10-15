@@ -57,7 +57,7 @@ def calculate_similarity(embedding1: Union[np.ndarray, List],
         embedding2: Segundo embedding
         
     Returns:
-        float: Similaridad coseno (0 a 1)
+        float: Similaridad coseno (0 a 1, sin normalización artificial)
     """
     # Convertir a numpy arrays si son listas
     if isinstance(embedding1, list):
@@ -75,9 +75,11 @@ def calculate_similarity(embedding1: Union[np.ndarray, List],
     
     similarity = dot_product / (norm1 * norm2)
     
-    # Asegurar que esté en rango [0, 1]
-    # La similaridad coseno va de -1 a 1, normalizar a 0-1
-    return float(max(0.0, min(1.0, (similarity + 1) / 2)))
+    # NO normalizar artificialmente - la similaridad coseno en embeddings
+    # de Sentence Transformers ya está optimizada en rango [0, 1]
+    # porque los embeddings están pre-normalizados
+    # Solo asegurar que esté en rango válido por seguridad
+    return float(max(0.0, min(1.0, similarity)))
 
 def find_most_similar(query_embedding: np.ndarray, 
                      embeddings_list: List[dict], 
@@ -136,5 +138,6 @@ def load_embeddings(filepath: Path) -> List[dict]:
     with open(filepath, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-# Precargar el modelo cuando se importa el módulo (opcional)
+# NO precargar el modelo automáticamente
+# Se cargará bajo demanda cuando se llame a load_model()
 # load_model()

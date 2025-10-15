@@ -1,0 +1,2445 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>Recuiva - Sesión Práctica</title>
+<link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Sistema de Repaso Espaciado -->
+<script src="spaced-repetition.js"></script>
+<script src="repetition-data.js"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      
+      /* Estilo global para el logo Recuiva */
+      .recuiva-logo {
+        font-family: 'Manrope', sans-serif !important;
+        font-weight: 800 !important;
+        font-size: 1.5rem !important;
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      .menu-btn {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+      .menu-btn:hover {
+        transform: scale(1.1);
+      }
+      .mobile-menu {
+        transform-origin: top;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform: scaleY(0);
+        opacity: 0;
+        pointer-events: none;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .mobile-menu.active {
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #menu-btn.active .menu-icon {
+        transform: rotate(180deg);
+      }
+      .profile-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        padding: 0.75rem 0;
+        min-width: 14rem;
+        z-index: 50;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+      }
+      .profile-dropdown.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      .profile-dropdown a, .profile-dropdown button {
+        transition: all 0.2s ease;
+      }
+      .profile-dropdown a:hover, .profile-dropdown button:hover {
+        transform: translateX(4px);
+      }
+      .notification-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        padding: 0.1rem 0.4rem;
+        min-width: 1.2rem;
+        text-align: center;
+      }
+      
+      /* Modal de notificaciones mejorado - Estilo elegante */
+      .notification-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      .notification-modal.show {
+        opacity: 1;
+        visibility: visible;
+      }
+      .notification-modal-content {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        max-width: 26rem;
+        margin: 1rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.8) translateY(30px);
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .notification-modal.show .notification-modal-content {
+        transform: scale(1) translateY(0);
+      }
+      .notification-icon-container {
+        background: linear-gradient(135deg, #FF6600, #FF8533);
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 8px 16px rgba(255, 102, 0, 0.3);
+      }
+      .notification-modal h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.75rem;
+        text-align: center;
+      }
+      .notification-modal p {
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: #6b7280;
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .modal-button {
+        background: linear-gradient(135deg, #FF6600, #FF8533);
+        color: white;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+        width: 100%;
+      }
+      .modal-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 102, 0, 0.4);
+      }
+      
+      /* Scrollbar personalizado para lista de preguntas */
+      #questions-list::-webkit-scrollbar {
+        width: 6px;
+      }
+      #questions-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+      #questions-list::-webkit-scrollbar-thumb {
+        background: #FF6600;
+        border-radius: 10px;
+      }
+      #questions-list::-webkit-scrollbar-thumb:hover {
+        background: #FF8533;
+      }
+    </style>
+</head>
+<body class="bg-[var(--base-gray)]" style='font-family: Manrope, "Noto Sans", sans-serif;'>
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <a href="../index.html" class="flex items-center gap-2">
+      <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  <nav class="hidden md:flex items-center gap-4">
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../index.html">Inicio</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="materiales.html">Materiales</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../dashboard.html">Dashboard</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="repasos.html">Repasos</a>
+    <a class="text-[var(--primary-color)] font-semibold px-2 py-1 rounded-lg" href="sesion-practica.html">Práctica</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <!-- Botón menú móvil (solo móvil) -->
+    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
+      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)] menu-icon">menu</span>
+    </button>
+  </div>
+</div>
+<!-- Mobile Menu -->
+<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
+<div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-8">
+  <!-- Perfil y configuración arriba de navegación -->
+  <div class="flex flex-col items-center w-full mb-2 py-2">
+    <div class="flex flex-col items-center w-full px-6 py-2 hover:bg-gray-100 rounded-xl cursor-pointer transition-all">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR" alt="Perfil" class="w-10 h-10 rounded-full border-2 border-blue-700 mx-auto object-cover" />
+      <span class="text-base font-semibold text-gray-800 mt-2 text-center">Mi perfil</span>
+    </div>
+    <div class="flex flex-col items-center w-full px-6 py-2 hover:bg-gray-100 rounded-xl cursor-pointer transition-all">
+      <span class="material-symbols-outlined mx-auto">settings</span>
+    </div>
+  </div>
+  <hr class="w-2/3 border-gray-300 my-2" />
+  <!-- Navegación principal -->
+  <nav class="flex flex-col items-center gap-6 w-full">
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../index.html">Inicio</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="materiales.html">Materiales</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../dashboard.html">Dashboard</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="repasos.html">Repasos</a>
+    <a class="text-xl text-[var(--primary-color)] font-semibold" href="sesion-practica.html">Práctica</a>
+  </nav>
+  <hr class="w-2/3 border-gray-300 my-2" />
+  <button onclick="logout()" class="flex items-center gap-2 text-base text-red-600 font-semibold">
+    <span class="material-symbols-outlined">logout</span>
+    Cerrar sesión
+  </button>
+</div>
+</header>
+<main class="flex-grow">
+<div class="flex-grow w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+<div class="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-200/80 flex flex-col">
+<div class="p-6 pb-4 border-b border-gray-200">
+<h2 class="text-xl font-bold text-gray-900">Preguntas</h2>
+</div>
+<div class="p-6 flex-1 overflow-y-auto" style="max-height: calc(100vh - 250px);">
+<nav class="space-y-2" id="questions-list">
+  <!-- Se llenará dinámicamente con las preguntas guardadas -->
+  <div class="text-center py-8 text-gray-400">
+    <span class="material-symbols-outlined text-4xl mb-2">quiz</span>
+    <p class="text-sm">Aún no hay preguntas</p>
+    <p class="text-xs mt-1">Crea tu primera pregunta →</p>
+  </div>
+</nav>
+</div>
+</div>
+      <!-- PANEL PRINCIPAL DE PRÁCTICA (ESTILO PYTHON GUI) -->
+      <div class="lg:col-span-6 bg-white rounded-xl shadow-sm border border-gray-200/80 p-6 md:p-8 space-y-6">
+        
+        <!-- 📄 MATERIAL DE ESTUDIO ACTUAL -->
+        <div id="current-material-banner" class="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-300 rounded-xl p-4 mb-4" style="display: none;">
+          <!-- BREADCRUMB DE RUTA (ARRIBA DEL TODO) -->
+          <div id="breadcrumb-carpeta" class="flex items-center gap-2 mb-3 pb-3 border-b border-orange-200">
+            <span class="material-symbols-outlined text-blue-600">folder_open</span>
+            <span id="breadcrumb-nombre" class="text-sm font-semibold text-gray-700">Sin carpeta</span>
+          </div>
+          
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-3xl text-orange-600">picture_as_pdf</span>
+            <div class="flex-1">
+              <div class="text-xs font-semibold text-orange-800 uppercase tracking-wide mb-1">Material de Estudio</div>
+              <div id="material-filename" class="text-base font-bold text-gray-900">Cargando...</div>
+              <div id="material-stats" class="text-xs text-gray-600 mt-1">0 chunks disponibles</div>
+              <div id="material-location" class="text-xs text-blue-600 font-semibold mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                <span>Chunk: Cargando...</span>
+              </div>
+            </div>
+            <span class="text-green-600 font-bold text-sm">✓ Activo</span>
+          </div>
+        </div>
+        
+        <!-- �📝 TU PREGUNTA (EL USUARIO LA ESCRIBE) -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-3xl text-blue-600">help</span>
+            <h3 class="text-lg font-bold text-gray-900">ESCRIBE TU PREGUNTA</h3>
+          </div>
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
+            <p class="text-sm text-gray-700 mb-3">
+              <span class="font-semibold">💡 Active Recall:</span> Escribe una pregunta sobre el material que acabas de estudiar. Luego respóndela SIN mirar el material.
+            </p>
+            <textarea 
+              id="user-question" 
+              class="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200 text-base font-medium resize-none"
+              placeholder="Ejemplo: ¿Por qué inicialmente se sospechó de Henriette?"
+              rows="3"
+              oninput='window.checkValidateButton()'
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- ✍️ ÁREA DE RESPUESTA DEL USUARIO -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-2xl text-green-600">edit_note</span>
+              <h3 class="text-lg font-bold text-gray-900">TU RESPUESTA (sin mirar el material)</h3>
+            </div>
+            <span id="char-count" class="text-sm text-gray-500">0 caracteres</span>
+          </div>
+          <textarea 
+            id="user-answer" 
+            class="form-textarea w-full resize-none rounded-lg border-2 border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition duration-200 p-4 font-sans text-base leading-relaxed bg-white" 
+            placeholder="Escribe tu respuesta aquí con TUS propias palabras...
+
+Ejemplo: Porque vivía en el mismo edificio, tenía acceso visual al patio y a la ventana del gabinete, y conocía que el collar se guardaba allí, aunque no se halló evidencia directa."
+            rows="10"
+            oninput='window.updateCharCount(this);'
+          ></textarea>
+          
+          <!-- BOTONES DE ACCIÓN -->
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex gap-3">
+              <span class="text-sm text-gray-600 italic">💡 Tip: Explica el "por qué" y el "cómo", no solo memorices</span>
+            </div>
+            <div class="flex gap-3">
+              <button 
+                id="btn-validate-answer" 
+                onclick='window.validateWithBackend()' 
+                class="flex items-center gap-2 rounded-lg bg-green-600 text-white font-bold px-6 py-3 text-base transition-all duration-200 shadow-lg opacity-50 cursor-not-allowed"
+                disabled
+              >
+                <span class="material-symbols-outlined text-xl">psychology</span>
+                <span>VALIDAR RESPUESTA</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 🎯 ESTADO DEL BOTÓN (DEBUG) -->
+          <div id="button-status" class="mt-3 px-4 py-2 rounded-lg border-2 bg-red-50 border-red-200 text-red-700 font-semibold text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">block</span>
+            <span>❌ Botón DESHABILITADO (esperando 1+1 carácter)</span>
+          </div>
+
+          <!-- 📋 LOG DE EVENTOS (DEBUG - Colapsable) -->
+          <details class="mt-4" open>
+            <summary class="cursor-pointer px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-semibold text-sm text-gray-700 flex items-center gap-2">
+              <span class="material-symbols-outlined">receipt_long</span>
+              📋 Ver Log de Eventos (Debug)
+            </summary>
+            <div class="mt-2 border-2 border-gray-200 rounded-lg overflow-hidden">
+              <div class="bg-gray-700 px-3 py-2 flex items-center justify-between">
+                <span class="text-white font-semibold text-xs">Log de Eventos en Tiempo Real</span>
+                <div class="flex gap-2">
+                  <button onclick='window.runAutoTest()' class="text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition">
+                    🧪 Auto Test
+                  </button>
+                  <button onclick='window.clearValidationLog()' class="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition">
+                    Limpiar
+                  </button>
+                </div>
+              </div>
+              <div id="validation-log" class="bg-gray-50 p-3 max-h-60 overflow-y-auto font-mono text-xs">
+                <div class="text-gray-500 italic">Esperando eventos...</div>
+              </div>
+            </div>
+          </details>
+
+          <!-- 🧪 PANEL DE DIAGNÓSTICO AUTOMÁTICO -->
+          <details class="mt-4">
+            <summary class="cursor-pointer px-4 py-2 bg-blue-100 rounded-lg hover:bg-blue-200 transition font-semibold text-sm text-blue-700 flex items-center gap-2">
+              <span class="material-symbols-outlined">bug_report</span>
+              🔍 Diagnóstico Automático del Botón
+            </summary>
+            <div class="mt-2 border-2 border-blue-200 rounded-lg overflow-hidden">
+              <div class="bg-blue-700 px-3 py-2">
+                <span class="text-white font-semibold text-xs">Pruebas Automatizadas - Haz clic en "Ejecutar Diagnóstico"</span>
+              </div>
+              <div class="p-4 bg-blue-50">
+                <button onclick='window.runFullDiagnosis()' class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition mb-3">
+                  🚀 EJECUTAR DIAGNÓSTICO COMPLETO
+                </button>
+                <div id="diagnosis-results" class="bg-white p-3 rounded border text-sm font-mono">
+                  <div class="text-gray-500 italic">Presiona el botón para iniciar el diagnóstico...</div>
+                </div>
+              </div>
+            </div>
+          </details>
+
+        <!-- 📊 ÁREA DE RESULTADO/VALIDACIÓN -->
+        <div id="validation-result" class="hidden space-y-4">
+          <div class="border-t-2 border-gray-200 pt-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span class="material-symbols-outlined text-2xl">analytics</span>
+              Resultado de Validación Semántica
+            </h3>
+            
+            <!-- Pregunta validada -->
+            <div id="validated-question" class="mb-4 p-4 rounded-xl bg-blue-50 border border-blue-200">
+              <!-- Se llenará dinámicamente -->
+            </div>
+
+            <!-- Score de Similaridad -->
+            <div id="similarity-score" class="mb-4 p-5 rounded-xl border-2 bg-gradient-to-r">
+              <!-- Se llenará dinámicamente -->
+            </div>
+
+            <!-- Feedback Conceptual -->
+            <div id="feedback-message" class="mb-4 p-5 rounded-xl border-2">
+              <!-- Se llenará dinámicamente -->
+            </div>
+
+            <!-- Chunks relevantes encontrados -->
+            <div id="relevant-chunks" class="mb-4">
+              <!-- Se llenará dinámicamente -->
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex gap-3 mb-4">
+              <!-- Botón GUARDAR PREGUNTA (nuevo) -->
+              <button 
+                id="btn-save-question"
+                onclick='saveCurrentQuestion()' 
+                class="flex-1 flex items-center justify-center gap-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 text-base transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <span class="material-symbols-outlined text-xl">bookmark_add</span>
+                <span>GUARDAR PREGUNTA</span>
+              </button>
+
+              <!-- Botón Nueva Pregunta -->
+              <button 
+                onclick='newQuestion()' 
+                class="flex-1 flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 text-base transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <span class="material-symbols-outlined text-xl">add_circle</span>
+                <span>NUEVA PREGUNTA</span>
+              </button>
+            </div>
+
+            <!-- Mensaje de guardado exitoso -->
+            <div id="save-success-message" class="hidden mb-4 p-4 rounded-lg bg-green-50 border-2 border-green-300">
+              <div class="flex items-center gap-2 text-green-700">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span class="font-semibold">¡Pregunta guardada exitosamente en "Mis Preguntas"!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 📈 INFO ACTIVE RECALL -->
+        <div class="border-t-2 border-gray-200 pt-6">
+          <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+            <h4 class="font-bold text-gray-700 mb-2 flex items-center gap-2">
+              <span class="material-symbols-outlined">info</span>
+              Sobre Active Recall
+            </h4>
+            <p class="text-sm text-gray-600 leading-relaxed">
+              <strong>Active Recall</strong> es intentar recordar información activamente sin mirar el material. 
+              La validación semántica compara tu respuesta con el material usando IA (Sentence Transformers), no requiere palabras exactas.
+              <br><br>
+              <span class="text-blue-600 font-semibold">💡 Tip:</span> Cuanto más practiques, mejor será tu retención a largo plazo.
+            </p>
+          </div>
+        </div>
+      </div>
+<div class="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-200/80">
+<div class="p-6">
+<h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+  <span class="material-symbols-outlined">folder_open</span>
+  Mis Preguntas
+</h2>
+
+<!-- Lista de preguntas guardadas -->
+<div id="questions-list" class="space-y-3">
+  <!-- Estado vacío -->
+  <div id="empty-state" class="text-center py-12 text-gray-400">
+    <span class="material-symbols-outlined text-5xl mb-3">quiz</span>
+    <p class="text-sm font-medium">Aún no hay preguntas</p>
+    <p class="text-xs mt-1">Crea tu primera pregunta →</p>
+  </div>
+</div>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
+<div class="container mx-auto text-center">
+<div class="flex justify-center items-center gap-2 mb-6">
+<img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<span class="text-2xl font-black">Recuiva</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
+</div>
+<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
+</div>
+</footer>
+<script>
+// ===================================================================
+// ⚡ FUNCIÓN CRÍTICA: window.checkValidateButton - DEBE ESTAR PRIMERA
+// Se define ANTES de todo para que esté disponible en los oninput
+// ===================================================================
+window.checkValidateButton = function() {
+  const questionInput = document.getElementById('user-question');
+  const userAnswer = document.getElementById('user-answer');
+  const btnValidate = document.getElementById('btn-validate-answer');
+  const statusDiv = document.getElementById('button-status');
+  
+  // Registrar en log si está disponible
+  if (typeof window.addValidationLog === 'function') {
+    window.addValidationLog('🔍 checkValidateButton() llamada', 'info');
+  }
+  
+  console.log('🔍 checkValidateButton ejecutada');
+  
+  if (!questionInput || !userAnswer || !btnValidate) {
+    console.warn('⚠️ Elementos no encontrados');
+    if (typeof window.addValidationLog === 'function') {
+      window.addValidationLog('⚠️ ERROR: Elementos no encontrados', 'error');
+    }
+    return;
+  }
+  
+  // LÓGICA SIMPLE: Solo requiere 1 carácter mínimo en cada campo
+  const questionLength = questionInput.value.trim().length;
+  const answerLength = userAnswer.value.trim().length;
+  const hasQuestion = questionLength >= 1;
+  const hasAnswer = answerLength >= 1;
+  
+  console.log('📝 Pregunta:', questionLength, 'chars');
+  console.log('✍️ Respuesta:', answerLength, 'chars');
+  console.log('🔍 hasQuestion (>=1):', hasQuestion);
+  console.log('🔍 hasAnswer (>=1):', hasAnswer);
+  
+  // ✅ HABILITAR/DESHABILITAR TEXTAREA DE RESPUESTA según si hay pregunta
+  if (hasQuestion) {
+    if (userAnswer.disabled) {
+      console.log('✅ Habilitando textarea de respuesta (hay pregunta)');
+      userAnswer.disabled = false;
+      userAnswer.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-100');
+      userAnswer.classList.add('bg-white');
+      if (typeof window.addValidationLog === 'function') {
+        window.addValidationLog('✅ Campo de respuesta habilitado - Puedes escribir', 'success');
+      }
+    }
+  } else {
+    if (!userAnswer.disabled) {
+      console.log('❌ Deshabilitando textarea de respuesta (no hay pregunta)');
+      userAnswer.disabled = true;
+      userAnswer.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-100');
+      userAnswer.classList.remove('bg-white');
+      if (typeof window.addValidationLog === 'function') {
+        window.addValidationLog('⚠️ Campo de respuesta deshabilitado - Escribe una pregunta primero', 'warning');
+      }
+    }
+  }
+  
+  if (typeof window.addValidationLog === 'function') {
+    window.addValidationLog(`📝 Pregunta: ${questionLength} chars (${hasQuestion ? 'OK' : 'Vacío'})`, hasQuestion ? 'success' : 'error');
+    window.addValidationLog(`✍️ Respuesta: ${answerLength} chars (${hasAnswer ? 'OK' : 'Vacío'})`, hasAnswer ? 'success' : 'error');
+  }
+  
+  if (hasQuestion && hasAnswer) {
+    console.log('✅ HABILITANDO BOTÓN');
+    if (typeof window.addValidationLog === 'function') {
+      window.addValidationLog('✅ HABILITANDO BOTÓN - Ambos campos OK', 'success');
+    }
+    
+    btnValidate.disabled = false;
+    btnValidate.classList.remove('opacity-50', 'cursor-not-allowed');
+    btnValidate.classList.add('hover:bg-green-700', 'hover:shadow-xl', 'hover:-translate-y-0.5');
+    
+    // Actualizar estado visual
+    if (statusDiv) {
+      statusDiv.className = 'mt-3 px-4 py-2 rounded-lg border-2 bg-green-50 border-green-200 text-green-700 font-semibold text-sm flex items-center gap-2';
+      statusDiv.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span><span>✅ Botón HABILITADO (puedes validar)</span>';
+    }
+  } else {
+    console.log('❌ DESHABILITANDO BOTÓN');
+    if (typeof window.addValidationLog === 'function') {
+      window.addValidationLog('❌ DESHABILITANDO BOTÓN - Faltan datos', 'error');
+    }
+    
+    btnValidate.disabled = true;
+    btnValidate.classList.add('opacity-50', 'cursor-not-allowed');
+    btnValidate.classList.remove('hover:bg-green-700', 'hover:shadow-xl', 'hover:-translate-y-0.5');
+    
+    // Actualizar estado visual
+    if (statusDiv) {
+      statusDiv.className = 'mt-3 px-4 py-2 rounded-lg border-2 bg-red-50 border-red-200 text-red-700 font-semibold text-sm flex items-center gap-2';
+      statusDiv.innerHTML = '<span class="material-symbols-outlined text-lg">cancel</span><span>❌ Botón DESHABILITADO (escribe en ambos campos)</span>';
+    }
+  }
+};
+
+console.log('✅ window.checkValidateButton definida y lista');
+
+// ===================================================================
+// ⚡ FUNCIÓN: window.updateCharCount - Contador de caracteres
+// ===================================================================
+window.updateCharCount = function(textarea) {
+  const charCount = textarea.value.trim().length;
+  const charCountEl = document.getElementById('char-count');
+  
+  if (charCountEl) {
+    charCountEl.textContent = `${charCount} caracteres`;
+    
+    if (charCount >= 30) {
+      charCountEl.classList.remove('text-gray-500');
+      charCountEl.classList.add('text-green-600', 'font-semibold');
+    } else {
+      charCountEl.classList.remove('text-green-600', 'font-semibold');
+      charCountEl.classList.add('text-gray-500');
+    }
+  }
+  
+  // También llamar a checkValidateButton
+  if (typeof window.checkValidateButton === 'function') {
+    window.checkValidateButton();
+  }
+};
+
+console.log('✅ window.updateCharCount definida y lista');
+
+// ===================================================================
+// FUNCIONES GLOBALES PARA ACTIVE RECALL (FUERA DEL DOM READY)
+// ===================================================================
+
+console.log('🚀 Cargando funciones globales de Active Recall...');
+
+// Variables globales
+window.questionsHistory = [];
+let questionsHistory = window.questionsHistory;
+
+// ===================================================================
+// FUNCIONES DE MODAL DE ERROR
+// ===================================================================
+function showErrorModal(title, message) {
+  const modal = document.getElementById('error-modal');
+  const titleEl = document.getElementById('error-modal-title');
+  const messageEl = document.getElementById('error-modal-message');
+  
+  if (titleEl) titleEl.textContent = title;
+  if (messageEl) messageEl.textContent = message;
+  
+  if (modal) {
+    modal.classList.add('show');
+  }
+}
+
+function closeErrorModal() {
+  const modal = document.getElementById('error-modal');
+  if (modal) {
+    modal.classList.remove('show');
+  }
+}
+
+// ===================================================================
+// FUNCIÓN SHOWVALIDATIONRESULT (DEBE IR ANTES DE VALIDATEWITHBACKEND)
+// ===================================================================
+window.showValidationResult = function(result) {
+  const scoreEl = document.getElementById('similarity-score');
+  const feedbackEl = document.getElementById('feedback-message');
+  const chunksEl = document.getElementById('relevant-chunks');
+  const questionEl = document.getElementById('validated-question');
+  
+  // Mostrar la pregunta que se validó
+  if (questionEl) {
+    questionEl.innerHTML = `
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined text-2xl text-blue-600">help_outline</span>
+        <div>
+          <span class="text-sm font-semibold text-blue-600">TU PREGUNTA:</span>
+          <p class="text-base font-medium text-gray-900 mt-1">${result.question || 'Sin pregunta'}</p>
+        </div>
+      </div>
+    `;
+  }
+  
+  // Determinar color según score
+  let bgColor, borderColor, textColor, emoji, interpretation;
+  
+  if (result.score >= 0.80) {
+    bgColor = 'from-green-50 to-emerald-50';
+    borderColor = 'border-green-400';
+    textColor = 'text-green-800';
+    emoji = '✅';
+    interpretation = 'EXCELENTE - Has demostrado comprensión profunda del concepto';
+  } else if (result.score >= 0.60) {
+    bgColor = 'from-blue-50 to-cyan-50';
+    borderColor = 'border-blue-400';
+    textColor = 'text-blue-800';
+    emoji = '👍';
+    interpretation = 'BUENO - Entiendes el concepto, pero podrías profundizar más';
+  } else if (result.score >= 0.40) {
+    bgColor = 'from-yellow-50 to-amber-50';
+    borderColor = 'border-yellow-400';
+    textColor = 'text-yellow-800';
+    emoji = '⚠️';
+    interpretation = 'REGULAR - Tu respuesta tiene relación, pero falta más detalle';
+  } else {
+    bgColor = 'from-red-50 to-rose-50';
+    borderColor = 'border-red-400';
+    textColor = 'text-red-800';
+    emoji = '❌';
+    interpretation = 'NECESITA MEJORAR - Revisa el material y vuelve a intentarlo';
+  }
+
+  // Mostrar score
+  if (scoreEl) {
+    scoreEl.className = `mb-4 p-5 rounded-xl border-2 bg-gradient-to-r ${bgColor} ${borderColor}`;
+    scoreEl.innerHTML = `
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-lg font-bold ${textColor}">SCORE DE SIMILARIDAD SEMÁNTICA</span>
+        <span class="text-4xl">${emoji}</span>
+      </div>
+      <div class="text-5xl font-black ${textColor} mb-2">${(result.score * 100).toFixed(1)}%</div>
+      <div class="text-sm font-medium ${textColor}">${interpretation}</div>
+      <div class="mt-3 text-xs ${textColor} opacity-75">
+        🤖 Validado con Sentence Transformers (all-MiniLM-L6-v2)
+      </div>
+    `;
+  }
+
+  // Mostrar feedback
+  if (feedbackEl) {
+    feedbackEl.className = `mb-4 p-5 rounded-xl border-2 ${borderColor} bg-white`;
+    feedbackEl.innerHTML = `
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined ${textColor} text-2xl">psychology</span>
+        <div class="flex-1">
+          <h4 class="font-bold ${textColor} mb-2">Análisis Semántico IA</h4>
+          <div class="text-gray-700 leading-relaxed whitespace-pre-line">${result.feedback || 'Tu respuesta ha sido procesada correctamente.'}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Mostrar chunk REAL del libro (VERSIÓN MEJORADA CON INFO COMPLETA)
+  if (chunksEl && result.bestMatchChunk) {
+    const chunk = result.bestMatchChunk;
+    const chunkText = chunk.text || chunk.text_full || chunk;
+    const similarity = chunk.similarity ? (chunk.similarity * 100).toFixed(1) : (result.score * 100).toFixed(1);
+    const chunkId = chunk.chunk_id !== undefined ? chunk.chunk_id : 0;
+    const totalChunks = chunk.total_chunks || 0;
+    const estimatedPage = chunk.estimated_page || Math.floor((chunkId * 500) / 2500);
+    
+    chunksEl.innerHTML = `
+      <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-5 shadow-md">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-bold text-blue-900 text-lg flex items-center gap-2">
+            <span class="material-symbols-outlined text-2xl">auto_stories</span>
+            📖 Fragmento Relacionado del Material
+          </h4>
+          <div class="flex items-center gap-2">
+            <span class="text-xs bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-semibold">
+              ${similarity}% coincidencia
+            </span>
+          </div>
+        </div>
+        
+        <!-- Información de ubicación del chunk -->
+        <div class="mb-3 flex flex-wrap items-center gap-2 text-sm">
+          <div class="flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-blue-200">
+            <span class="material-symbols-outlined text-sm text-blue-600">widgets</span>
+            <span class="font-semibold text-gray-700">Chunk ${chunkId + 1} de ${totalChunks}</span>
+          </div>
+          <div class="flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-blue-200">
+            <span class="material-symbols-outlined text-sm text-blue-600">description</span>
+            <span class="font-semibold text-gray-700">~Página ${estimatedPage + 1}</span>
+          </div>
+          <div class="flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-blue-200">
+            <span class="material-symbols-outlined text-sm text-blue-600">analytics</span>
+            <span class="font-semibold text-gray-700">${(typeof chunkText === 'string' ? chunkText.length : 0)} caracteres</span>
+          </div>
+        </div>
+        
+        <!-- Contenido del chunk -->
+        <div class="bg-white rounded-lg p-4 border-l-4 border-blue-500 shadow-sm">
+          <p class="text-sm text-gray-500 font-semibold mb-2 uppercase tracking-wide flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">bookmark</span>
+            🎯 Fragmento EXACTO del material que coincide con tu respuesta:
+          </p>
+          <blockquote class="text-base text-gray-800 leading-relaxed font-serif italic border-l-2 border-blue-300 pl-4 py-2 max-h-60 overflow-y-auto">
+            "${typeof chunkText === 'string' ? chunkText : JSON.stringify(chunkText)}"
+          </blockquote>
+        </div>
+        
+        <!-- Explicación contextual -->
+        <div class="mt-3 text-sm text-blue-700 bg-blue-100 rounded-lg p-3">
+          <p class="font-semibold mb-1 flex items-center gap-1">
+            <span class="material-symbols-outlined text-lg">lightbulb</span>
+            💡 ¿Qué significa esto?
+          </p>
+          <p class="text-blue-900">
+            Este es el fragmento <strong>LITERAL del libro que subiste</strong> (ubicado en el <strong>chunk ${chunkId + 1} de ${totalChunks}</strong>, aproximadamente en la <strong>página ${estimatedPage + 1}</strong>) que tiene mayor relación semántica con tu respuesta. 
+            ${similarity >= 70 
+              ? '✅ Tu respuesta captura muy bien la esencia de este extracto. ¡Excelente comprensión!' 
+              : similarity >= 50 
+                ? '📚 Tu respuesta tiene relación, pero podrías profundizar más en estos conceptos clave.'
+                : '🔍 Compara tu respuesta con este extracto. ¿Incluiste los conceptos principales?'
+            }
+          </p>
+        </div>
+        
+        ${result.relevantChunks && result.relevantChunks.length > 1 ? `
+          <details class="mt-4">
+            <summary class="cursor-pointer text-sm font-semibold text-blue-700 hover:text-blue-900 flex items-center gap-2">
+              <span class="material-symbols-outlined text-lg">expand_more</span>
+              Ver otros ${result.relevantChunks.length - 1} fragmentos relacionados
+            </summary>
+            <div class="mt-3 space-y-2">
+              ${result.relevantChunks.slice(1, 3).map((relChunk, idx) => `
+                <div class="bg-white rounded-lg p-3 border border-blue-200 text-sm">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="font-semibold text-gray-600 flex items-center gap-1">
+                      <span class="material-symbols-outlined text-sm">layers</span>
+                      Chunk ${(relChunk.position || 0) + 1} / ${relChunk.total_chunks || totalChunks}
+                    </span>
+                    <span class="text-xs text-blue-600 font-mono">${(relChunk.similarity * 100).toFixed(1)}% similar</span>
+                  </div>
+                  <p class="text-gray-700 leading-relaxed italic">
+                    "${(relChunk.text || relChunk.text_full || '').substring(0, 300)}${((relChunk.text || relChunk.text_full || '').length > 300) ? '...' : ''}"
+                  </p>
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        ` : ''}
+      </div>
+    `;
+  } else if (chunksEl) {
+    // Si no hay chunks, mostrar mensaje
+    chunksEl.innerHTML = `
+      <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 text-center">
+        <span class="material-symbols-outlined text-yellow-600 text-3xl">warning</span>
+        <p class="text-sm text-yellow-800 mt-2">No se encontraron fragmentos relacionados en el material</p>
+      </div>
+    `;
+  }
+  
+  // Restaurar botón validar
+  const btnValidate = document.getElementById('btn-validate-answer');
+  if (btnValidate) {
+    btnValidate.disabled = false;
+    btnValidate.innerHTML = `
+      <span class="material-symbols-outlined text-xl">psychology</span>
+      <span>VALIDAR RESPUESTA</span>
+    `;
+  }
+};
+
+// ===================================================================
+// FUNCIÓN checkValidateButton - COMENTADA (duplicada)
+// La versión activa está en línea ~1703 dentro de DOMContentLoaded
+// ===================================================================
+/*
+function checkValidateButton() {
+  console.log('🔍 checkValidateButton ejecutada');
+  
+  const questionInput = document.getElementById('user-question');
+  const userAnswer = document.getElementById('user-answer');
+  const btnValidate = document.getElementById('btn-validate-answer');
+  
+  if (!questionInput || !userAnswer || !btnValidate) {
+    console.warn('❌ Elementos no encontrados');
+    return;
+  }
+  
+  const questionText = questionInput.value.trim();
+  const answerText = userAnswer.value.trim();
+  
+  console.log('📝 Textos:', {
+    pregunta: questionText.length + ' chars',
+    respuesta: answerText.length + ' chars'
+  });
+  
+  // Lógica: 1 carácter mínimo en cada campo
+  const hasQuestion = questionText.length >= 1;
+  const hasAnswer = answerText.length >= 1;
+  
+  if (hasQuestion && hasAnswer) {
+    console.log('✅ HABILITANDO BOTÓN');
+    btnValidate.disabled = false;
+    btnValidate.classList.remove('opacity-50', 'cursor-not-allowed');
+    btnValidate.classList.add('hover:bg-green-700', 'hover:shadow-xl', 'hover:-translate-y-0.5');
+  } else {
+    console.log('❌ DESHABILITANDO BOTÓN');
+    btnValidate.disabled = true;
+    btnValidate.classList.add('opacity-50', 'cursor-not-allowed');
+    btnValidate.classList.remove('hover:bg-green-700', 'hover:shadow-xl', 'hover:-translate-y-0.5');
+  }
+}
+*/
+
+// Función de validación con backend (GLOBAL)
+async function validateWithBackend() {
+  console.log('🚀 validateWithBackend ejecutada');
+  window.addValidationLog('🚀 Botón VALIDAR clickeado!', 'success');
+  
+  const questionInput = document.getElementById('user-question');
+  const userAnswer = document.getElementById('user-answer');
+  const btnValidate = document.getElementById('btn-validate-answer');
+  const validationResult = document.getElementById('validation-result');
+  
+  if (!questionInput || !questionInput.value.trim()) {
+    window.addValidationLog('❌ ERROR: Pregunta vacía', 'error');
+    showErrorModal('Campo vacío', 'Por favor escribe una pregunta primero');
+    return;
+  }
+  
+  if (!userAnswer || !userAnswer.value.trim()) {
+    window.addValidationLog('❌ ERROR: Respuesta vacía', 'error');
+    showErrorModal('Campo vacío', 'Por favor escribe una respuesta primero');
+    return;
+  }
+
+  // Deshabilitar botón mientras se procesa
+  btnValidate.disabled = true;
+  btnValidate.innerHTML = `
+    <span class="material-symbols-outlined text-xl animate-spin">progress_activity</span>
+    <span>VALIDANDO...</span>
+  `;
+  
+  window.addValidationLog('⏳ Enviando petición al backend...', 'info');
+
+  try {
+    // Obtener material_id de la URL (soporta ambos parámetros: material o material_id)
+    const urlParams = new URLSearchParams(window.location.search);
+    const materialId = urlParams.get('material') || urlParams.get('material_id') || '1';
+    
+    console.log('🚀 Llamando al backend REAL con Sentence Transformers...');
+    console.log('Material ID:', materialId);
+    console.log('Pregunta:', questionInput.value.trim());
+    console.log('Respuesta:', userAnswer.value.trim().substring(0, 100) + '...');
+    
+    window.addValidationLog(`📁 Material ID: ${materialId}`, 'info');
+    window.addValidationLog(`Pregunta: ${questionInput.value.trim().substring(0, 50)}...`, 'info');
+    
+    // LLAMADA REAL AL BACKEND con timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
+    
+    window.addValidationLog('🌐 Conectando con servidor (puerto 8000)...', 'info');
+    
+    const response = await fetch('http://localhost:8000/api/validate-answer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question_text: questionInput.value.trim(),
+        material_id: parseInt(materialId),
+        user_answer: userAnswer.value.trim()
+      }),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Error completo del servidor:', errorText);
+      
+      // Manejar errores específicos
+      if (response.status === 422) {
+        throw new Error(`Error 422: El material no está disponible o el formato de datos es incorrecto.\nPor favor verifica que el material esté cargado correctamente.`);
+      } else if (response.status === 404) {
+        throw new Error(`Error 404: No se encontró el material "${materialId}".\nVerifica que el material esté cargado en el sistema.`);
+      } else {
+        throw new Error(`Error del servidor (${response.status}): ${errorText}`);
+      }
+    }
+
+    const result = await response.json();
+    
+    console.log('✅ Resultado REAL del backend:', result);
+    console.log('Score:', result.score);
+    console.log('Feedback:', result.feedback);
+    
+    window.addValidationLog('✅ Respuesta recibida del backend', 'success');
+    window.addValidationLog(`📊 Score obtenido: ${result.score}%`, result.score >= 70 ? 'success' : result.score >= 50 ? 'warning' : 'error');
+    
+    // ✅ NORMALIZAR SCORE: Asegurar que siempre esté en escala 0-100
+    const normalizedScore = result.score >= 0 && result.score <= 1 
+      ? Math.round(result.score * 100) // Si viene como decimal (0.69) → convertir a porcentaje (69)
+      : Math.round(result.score);      // Si ya es porcentaje (69) → mantener
+    
+    console.log(`🔢 Score normalizado: ${result.score} → ${normalizedScore}%`);
+    
+    // GUARDAR TEMPORALMENTE CON TODA LA INFORMACIÓN DEL CHUNK
+    window.currentValidatedQuestion = {
+      id: Date.now(),
+      carpeta_id: materialId,
+      pregunta: questionInput.value.trim(),
+      respuesta: userAnswer.value.trim(),
+      score: normalizedScore, // ✅ SIEMPRE 0-100
+      feedback: result.feedback,
+      timestamp: new Date().toISOString(),
+      
+      // INFORMACIÓN COMPLETA DE CHUNKS Y FRAGMENTOS
+      chunks_relevantes: result.relevant_chunks || [],
+      best_match_chunk: result.best_match_chunk || null,
+      
+      // MÉTRICAS DETALLADAS
+      similarity: result.similarity || 0,
+      is_correct: result.is_correct || false,
+      
+      // METADATOS
+      material_id: materialId,
+      saved: false // Indicador de que NO está guardada aún
+    };
+    
+    console.log('💾 Pregunta validada (pendiente de guardar):', window.currentValidatedQuestion);
+    console.log('📍 Chunk principal:', result.best_match_chunk);
+    
+    // NO actualizar métricas ni lista todavía (solo cuando se guarde)
+    
+    // Mostrar resultados REALES (si existe la función)
+    console.log('🔍 Verificando window.showValidationResult...', typeof window.showValidationResult);
+    console.log('🔍 Datos para showValidationResult:', {
+      score: result.score / 100,
+      feedback: result.feedback,
+      question: questionInput.value.trim()
+    });
+    
+    if (typeof window.showValidationResult === 'function') {
+      console.log('✅ Llamando a window.showValidationResult...');
+      window.showValidationResult({
+        score: normalizedScore / 100, // ✅ Convertir a decimal para visualización (0.0-1.0)
+        feedback: result.feedback,
+        relevantChunks: result.relevant_chunks || [],
+        bestMatchChunk: result.best_match_chunk,
+        question: questionInput.value.trim()
+      });
+      console.log('✅ showValidationResult ejecutado');
+    } else {
+      console.error('❌ window.showValidationResult NO es una función!');
+      showErrorModal('Error de función', 'La función showValidationResult no está disponible');
+    }
+    
+    // Mostrar panel de resultados
+    const validationResult = document.getElementById('validation-result');
+    console.log('🔍 validation-result element:', validationResult);
+    if (validationResult) {
+      console.log('✅ Mostrando panel de resultados...');
+      validationResult.classList.remove('hidden');
+      console.log('✅ Panel mostrado, classes:', validationResult.className);
+    } else {
+      console.error('❌ No se encontró el elemento validation-result!');
+    }
+    
+    // Scroll suave hacia resultados
+    if (validationResult) {
+      validationResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    // RESTAURAR BOTÓN DESPUÉS DE VALIDACIÓN EXITOSA
+    btnValidate.innerHTML = `
+      <span class="material-symbols-outlined text-xl">psychology</span>
+      <span>VALIDAR RESPUESTA</span>
+    `;
+    
+    // Re-verificar si debe estar habilitado según contenido actual
+    window.checkValidateButton();
+
+  } catch (error) {
+    console.error('❌ Error validando respuesta:', error);
+    alert(`Error al validar la respuesta: ${error.message}\n\nAsegúrate de que:\n1. El servidor backend esté corriendo (puerto 8000)\n2. Hayas subido material primero\n3. El modelo Sentence Transformers esté disponible`);
+    
+    // Restaurar botón
+    btnValidate.innerHTML = `
+      <span class="material-symbols-outlined text-xl">psychology</span>
+      <span>VALIDAR RESPUESTA</span>
+    `;
+    
+    // Re-verificar si debe estar habilitado según contenido actual
+    window.checkValidateButton();
+  }
+}
+
+// ===================================================================
+// FUNCIÓN DE LOG DE EVENTOS (GLOBAL - para debugging)
+// ===================================================================
+window.addValidationLog = function(message, type = 'info') {
+  const logDiv = document.getElementById('validation-log');
+  if (!logDiv) {
+    // Si el log aún no existe, guardarlo temporalmente
+    if (!window._pendingLogs) window._pendingLogs = [];
+    window._pendingLogs.push({message, type});
+    return;
+  }
+  
+  // Si es el primer log real, limpiar el placeholder
+  if (logDiv.textContent.includes('Esperando eventos')) {
+    logDiv.innerHTML = '';
+  }
+  
+  const entry = document.createElement('div');
+  entry.className = 'py-1 border-b border-gray-200';
+  
+  const timestamp = new Date().toLocaleTimeString();
+  const icons = {
+    'info': '🔍',
+    'success': '✅',
+    'error': '❌',
+    'warning': '⚠️'
+  };
+  const colors = {
+    'info': 'text-blue-600',
+    'success': 'text-green-600',
+    'error': 'text-red-600',
+    'warning': 'text-yellow-600'
+  };
+  
+  entry.innerHTML = `
+    <span class="text-gray-500">[${timestamp}]</span>
+    <span class="${colors[type] || 'text-gray-600'}">${icons[type] || '•'} ${message}</span>
+  `;
+  
+  logDiv.appendChild(entry);
+  logDiv.scrollTop = logDiv.scrollHeight;
+};
+
+window.clearValidationLog = function() {
+  const logDiv = document.getElementById('validation-log');
+  if (logDiv) {
+    logDiv.innerHTML = '<div class="text-gray-500 italic">Log limpiado</div>';
+    addValidationLog('Sistema reiniciado', 'info');
+  }
+};
+
+// 🧪 FUNCIONES DE PRUEBA AUTOMÁTICA - NUEVAS
+window.runAutoTest = function() {
+  addValidationLog("🧪 INICIANDO PRUEBA AUTOMÁTICA", "info");
+  
+  const questionInput = document.getElementById('user-question');
+  const answerInput = document.getElementById('user-answer');
+  const validateBtn = document.getElementById('btn-validate-answer');
+  
+  if (!questionInput || !answerInput || !validateBtn) {
+    addValidationLog("❌ ERROR: No se encontraron los elementos necesarios", "error");
+    return;
+  }
+  
+  // Paso 1: Limpiar campos
+  addValidationLog("🔄 Paso 1: Limpiando campos...", "info");
+  questionInput.value = '';
+  answerInput.value = '';
+  questionInput.dispatchEvent(new Event('input'));
+  answerInput.dispatchEvent(new Event('input'));
+  
+  setTimeout(() => {
+    // Paso 2: Escribir en pregunta
+    addValidationLog("📝 Paso 2: Escribiendo '1' en pregunta...", "info");
+    questionInput.value = '1';
+    questionInput.dispatchEvent(new Event('input'));
+    
+    setTimeout(() => {
+      // Paso 3: Escribir en respuesta
+      addValidationLog("📝 Paso 3: Escribiendo '1' en respuesta...", "info");
+      answerInput.value = '1';
+      answerInput.dispatchEvent(new Event('input'));
+      
+      setTimeout(() => {
+        // Verificar resultado
+        const isEnabled = !validateBtn.disabled;
+        if (isEnabled) {
+          addValidationLog("✅ ÉXITO: El botón se habilitó correctamente", "success");
+        } else {
+          addValidationLog("❌ FALLO: El botón NO se habilitó", "error");
+        }
+      }, 100);
+    }, 500);
+  }, 500);
+};
+
+window.runFullDiagnosis = function() {
+  const resultsDiv = document.getElementById('diagnosis-results');
+  resultsDiv.innerHTML = '<div class="text-blue-600">🔄 Ejecutando diagnóstico...</div>';
+  
+  let results = [];
+  
+  // 1. Verificar elementos DOM
+  const questionInput = document.getElementById('user-question');
+  const answerInput = document.getElementById('user-answer');
+  const validateBtn = document.getElementById('btn-validate-answer');
+  
+  results.push('<div class="font-bold text-lg mb-2">📊 RESULTADOS DEL DIAGNÓSTICO</div>');
+  results.push('<div class="border-b pb-2 mb-2">');
+  results.push('<div class="font-semibold">1. Verificación de Elementos DOM:</div>');
+  results.push(`• Campo Pregunta: ${questionInput ? '✅ Encontrado' : '❌ NO encontrado'}`);
+  results.push(`• Campo Respuesta: ${answerInput ? '✅ Encontrado' : '❌ NO encontrado'}`);
+  results.push(`• Botón Validar: ${validateBtn ? '✅ Encontrado' : '❌ NO encontrado'}`);
+  results.push('</div>');
+  
+  if (!questionInput || !answerInput || !validateBtn) {
+    results.push('<div class="text-red-600 font-bold">❌ ERROR CRÍTICO: Faltan elementos esenciales</div>');
+    resultsDiv.innerHTML = results.join('<br>');
+    return;
+  }
+  
+  // 2. Verificar funciones
+  results.push('<div class="border-b pb-2 mb-2">');
+  results.push('<div class="font-semibold">2. Verificación de Funciones:</div>');
+  results.push(`• checkValidateButton: ${typeof window.checkValidateButton === 'function' ? '✅ Disponible' : '❌ NO disponible'}`);
+  results.push(`• addValidationLog: ${typeof window.addValidationLog === 'function' ? '✅ Disponible' : '❌ NO disponible'}`);
+  results.push('</div>');
+  
+  // 3. Verificar event listeners
+  results.push('<div class="border-b pb-2 mb-2">');
+  results.push('<div class="font-semibold">3. Verificación de Event Listeners:</div>');
+  results.push(`• oninput en pregunta: ${questionInput.oninput ? '✅ Configurado' : '❌ NO configurado'}`);
+  results.push(`• oninput en respuesta: ${answerInput.oninput ? '✅ Configurado' : '❌ NO configurado'}`);
+  results.push('</div>');
+  
+  // 4. Prueba en vivo
+  results.push('<div class="border-b pb-2 mb-2">');
+  results.push('<div class="font-semibold">4. Prueba en Vivo:</div>');
+  
+  // Guardar valores actuales
+  const originalQuestion = questionInput.value;
+  const originalAnswer = answerInput.value;
+  
+  // Prueba 1: Campos vacíos
+  questionInput.value = '';
+  answerInput.value = '';
+  if (typeof window.checkValidateButton === 'function') {
+    window.checkValidateButton();
+  }
+  const emptyResult = validateBtn.disabled;
+  results.push(`• Campos vacíos → Botón ${emptyResult ? 'DESHABILITADO ✅' : 'HABILITADO ❌'}`);
+  
+  // Prueba 2: Solo pregunta
+  questionInput.value = '1';
+  answerInput.value = '';
+  if (typeof window.checkValidateButton === 'function') {
+    window.checkValidateButton();
+  }
+  const onlyQuestionResult = validateBtn.disabled;
+  results.push(`• Solo pregunta → Botón ${onlyQuestionResult ? 'DESHABILITADO ✅' : 'HABILITADO ❌'}`);
+  
+  // Prueba 3: Solo respuesta
+  questionInput.value = '';
+  answerInput.value = '1';
+  if (typeof window.checkValidateButton === 'function') {
+    window.checkValidateButton();
+  }
+  const onlyAnswerResult = validateBtn.disabled;
+  results.push(`• Solo respuesta → Botón ${onlyAnswerResult ? 'DESHABILITADO ✅' : 'HABILITADO ❌'}`);
+  
+  // Prueba 4: Ambos campos
+  questionInput.value = '1';
+  answerInput.value = '1';
+  if (typeof window.checkValidateButton === 'function') {
+    window.checkValidateButton();
+  }
+  const bothFieldsResult = !validateBtn.disabled;
+  results.push(`• Ambos campos (1+1) → Botón ${bothFieldsResult ? 'HABILITADO ✅' : 'DESHABILITADO ❌'}`);
+  
+  // Restaurar valores originales
+  questionInput.value = originalQuestion;
+  answerInput.value = originalAnswer;
+  if (typeof window.checkValidateButton === 'function') {
+    window.checkValidateButton();
+  }
+  
+  results.push('</div>');
+  
+  // 5. Conclusión
+  const allTestsPassed = emptyResult && onlyQuestionResult && onlyAnswerResult && bothFieldsResult;
+  results.push('<div class="mt-4 p-3 rounded ' + (allTestsPassed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') + '">');
+  results.push(`<div class="font-bold">${allTestsPassed ? '🎉 DIAGNÓSTICO EXITOSO' : '⚠️ PROBLEMAS DETECTADOS'}</div>`);
+  if (allTestsPassed) {
+    results.push('El botón funciona correctamente según las especificaciones.');
+  } else {
+    results.push('Se detectaron problemas en el funcionamiento del botón.');
+  }
+  results.push('</div>');
+  
+  results.push('<div class="mt-2 text-xs text-gray-500">Diagnóstico completado en ' + new Date().toLocaleTimeString() + '</div>');
+  
+  resultsDiv.innerHTML = results.join('<br>');
+};
+
+// Función para actualizar métricas (PLACEHOLDER - se implementará cuando haya sistema de métricas)
+function updateRealMetrics() {
+  console.log('📊 updateRealMetrics placeholder - se implementará más adelante');
+}
+
+// Hacer las funciones accesibles globalmente
+// window.checkValidateButton = checkValidateButton; // COMENTADO - Se define más abajo (línea ~1703)
+window.validateWithBackend = validateWithBackend;
+window.updateRealMetrics = updateRealMetrics;
+
+console.log('✅ Funciones globales cargadas (validateWithBackend + updateRealMetrics)');
+
+// ===================================================================
+// FUNCIÓN MOSTRAR NOTIFICACIÓN DE ÉXITO (GLOBAL)
+// ===================================================================
+function showSuccessNotification(message) {
+  // Crear elemento de notificación
+  const notification = document.createElement('div');
+  notification.className = 'fixed top-20 right-6 bg-green-600 text-white px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3 z-50 animate-slide-in';
+  notification.innerHTML = `
+    <span class="material-symbols-outlined">check_circle</span>
+    <span class="font-semibold">${message}</span>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Eliminar después de 3 segundos
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateX(400px)';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// ===================================================================
+// FUNCIONES GLOBALES PARA BOTONES (DEBEN ESTAR FUERA DE DOMCONTENTLOADED)
+// ===================================================================
+window.saveCurrentQuestion = function() {
+  console.log('🔥💾 FUNCIÓN saveCurrentQuestion LLAMADA');
+  
+  // Verificar que hay una pregunta validada
+  if (!window.currentValidatedQuestion) {
+    showErrorModal('Sin pregunta', 'No hay ninguna pregunta validada para guardar.\\nPrimero valida una respuesta.');
+    return;
+  }
+  
+  // Verificar que no esté ya guardada
+  if (window.currentValidatedQuestion.saved) {
+    showErrorModal('Ya guardada', 'Esta pregunta ya fue guardada anteriormente.');
+    return;
+  }
+  
+  // Obtener material ID y nombre de la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const materialId = urlParams.get('material') || urlParams.get('material_id') || '1';
+  const folderName = urlParams.get('folder') || null;
+  
+  // Agregar metadata de carpeta/material
+  window.currentValidatedQuestion.folder = folderName;
+  window.currentValidatedQuestion.materialId = materialId;
+  window.currentValidatedQuestion.saved = true;
+  
+  // ✅ NUEVO: Inicializar datos de repaso espaciado
+  if (window.RepetitionData) {
+    window.currentValidatedQuestion = window.RepetitionData.initializeReviewData(window.currentValidatedQuestion);
+    console.log('📅 Datos de repaso inicializados. Próximo repaso:', new Date(window.currentValidatedQuestion.nextReviewDate).toLocaleDateString('es-ES'));
+  }
+  
+  // Agregar al historial
+  questionsHistory.push(window.currentValidatedQuestion);
+  
+  // Guardar en localStorage con nueva función
+  saveQuestionsToStorage();
+  
+  console.log('✅ Pregunta guardada exitosamente:', window.currentValidatedQuestion);
+  console.log('📊 Total preguntas guardadas:', questionsHistory.length);
+  
+  // Actualizar lista de preguntas en sidebar
+  if (typeof window.updateQuestionsList === 'function') {
+    window.updateQuestionsList();
+  }
+  
+  // Mostrar notificación de éxito
+  showSuccessNotification('Pregunta guardada correctamente');
+  
+  // Deshabilitar botón de guardar (ya fue guardada)
+  const btnSave = document.getElementById('btn-save-question');
+  if (btnSave) {
+    btnSave.disabled = true;
+    btnSave.classList.add('opacity-50', 'cursor-not-allowed');
+    btnSave.innerHTML = `
+      <span class="material-symbols-outlined text-xl">check</span>
+      <span>YA GUARDADA</span>
+    `;
+  }
+};
+
+// ===================================================================
+// FUNCIONES DE EDICIÓN Y ELIMINACIÓN DE PREGUNTAS
+// ===================================================================
+
+window.editQuestion = function(index) {
+  console.log('✏️ Editando pregunta', index);
+  const q = questionsHistory[index];
+  if (!q) return;
+  
+  const newText = prompt('Editar pregunta:', q.pregunta);
+  if (newText && newText.trim() !== '') {
+    questionsHistory[index].pregunta = newText.trim();
+    saveQuestionsToStorage();
+    window.updateQuestionsList();
+    showSuccessNotification('✏️ Pregunta editada correctamente');
+  }
+};
+
+window.deleteQuestion = function(index) {
+  console.log('🗑️ Eliminando pregunta', index);
+  const q = questionsHistory[index];
+  if (!q) return;
+  
+  const questionPreview = q.pregunta?.substring(0, 50) || 'Sin título';
+  
+  if (confirm(`¿Estás seguro de eliminar la pregunta "${questionPreview}..."?`)) {
+    // Eliminar pregunta del array
+    questionsHistory.splice(index, 1);
+    
+    // ✅ Guardar cambios (sincroniza con Dashboard automáticamente)
+    saveQuestionsToStorage();
+    
+    // Actualizar UI
+    window.updateQuestionsList();
+    
+    // Mensaje de confirmación
+    if (questionsHistory.length === 0) {
+      console.log('📭 Material sin preguntas - Dashboard mostrará 0');
+      showSuccessNotification('🗑️ Pregunta eliminada. No quedan preguntas en este material.');
+    } else {
+      console.log(`📊 Quedan ${questionsHistory.length} preguntas en el material`);
+      showSuccessNotification(`🗑️ Pregunta eliminada. Quedan ${questionsHistory.length} preguntas.`);
+    }
+  }
+};
+
+// Guardar preguntas en localStorage con metadata de carpeta
+function saveQuestionsToStorage() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const materialId = urlParams.get('material') || urlParams.get('material_id') || '1';
+    
+    // ✅ PASO 1: Guardar material activo para sincronización con Dashboard
+    localStorage.setItem('active_material_id', materialId);
+    console.log(`🔑 Material activo establecido: ${materialId}`);
+    
+    // ✅ PASO 2: Guardar preguntas con clave única por material
+    const storageKey = `recuiva_questions_material_${materialId}`;
+    localStorage.setItem(storageKey, JSON.stringify(questionsHistory));
+    console.log(`💾 ${questionsHistory.length} preguntas guardadas en ${storageKey}`);
+    
+    // ✅ PASO 3: Log para verificar sincronización
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✅ SINCRONIZACIÓN COMPLETADA:');
+    console.log(`   • Material Activo: ${materialId}`);
+    console.log(`   • Total Preguntas: ${questionsHistory.length}`);
+    console.log(`   • Storage Key: ${storageKey}`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  } catch (e) {
+    console.error('❌ Error guardando preguntas:', e);
+  }
+}
+
+// Cargar preguntas desde localStorage
+function loadQuestionsFromStorage() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const materialId = urlParams.get('material') || urlParams.get('material_id') || '1';
+    
+    // ✅ PASO 1: Establecer material activo al cargar
+    localStorage.setItem('active_material_id', materialId);
+    console.log(`🔑 Material activo establecido al cargar: ${materialId}`);
+    
+    const storageKey = `recuiva_questions_material_${materialId}`;
+    const stored = localStorage.getItem(storageKey);
+    
+    if (stored) {
+      questionsHistory = JSON.parse(stored);
+      
+      // ✅ NORMALIZAR SCORES: Asegurar que todos estén en escala 0-100
+      let needsSave = false;
+      questionsHistory = questionsHistory.map(q => {
+        if (q.score !== undefined && q.score >= 0 && q.score <= 1) {
+          // Si está en escala decimal (0.69), convertir a porcentaje (69)
+          console.log(`🔄 Normalizando score: ${q.score} → ${Math.round(q.score * 100)}`);
+          q.score = Math.round(q.score * 100);
+          needsSave = true;
+        }
+        return q;
+      });
+      
+      // Guardar si se hicieron cambios
+      if (needsSave) {
+        console.log('💾 Guardando preguntas normalizadas...');
+        localStorage.setItem(storageKey, JSON.stringify(questionsHistory));
+      }
+      
+      console.log(`📂 ${questionsHistory.length} preguntas cargadas desde ${storageKey}`);
+      window.updateQuestionsList();
+    } else {
+      console.log(`📭 No hay preguntas guardadas para material ${materialId}`);
+      questionsHistory = [];
+    }
+  } catch (e) {
+    console.error('❌ Error cargando preguntas:', e);
+    questionsHistory = [];
+  }
+}
+
+window.newQuestion = function() {
+  console.log('🔥🆕 FUNCIÓN newQuestion LLAMADA');
+  
+  // Limpiar inputs
+  const questionInput = document.getElementById('user-question');
+  const userAnswer = document.getElementById('user-answer');
+  const validationResult = document.getElementById('validation-result');
+  const btnValidate = document.getElementById('btn-validate-answer');
+  const btnSave = document.getElementById('btn-save-question');
+  
+  if (questionInput) questionInput.value = '';
+  if (userAnswer) {
+    userAnswer.value = '';
+    userAnswer.disabled = true; // ✅ Deshabilitado hasta que se escriba una pregunta
+    userAnswer.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-100');
+    userAnswer.classList.remove('bg-white');
+    userAnswer.dispatchEvent(new Event('input'));
+  }
+  
+  if (validationResult) validationResult.classList.add('hidden');
+  
+  if (btnValidate) {
+    btnValidate.disabled = true;
+    btnValidate.innerHTML = `
+      <span class="material-symbols-outlined text-xl">psychology</span>
+      <span>VALIDAR RESPUESTA</span>
+    `;
+  }
+  
+  if (btnSave) {
+    btnSave.disabled = false;
+    btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
+    btnSave.innerHTML = `
+      <span class="material-symbols-outlined text-xl">bookmark_add</span>
+      <span>GUARDAR PREGUNTA</span>
+    `;
+  }
+  
+  window.currentValidatedQuestion = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.updateQuestionsList = function() {
+  console.log('📋 updateQuestionsList llamada, preguntas:', questionsHistory.length);
+  const questionsList = document.getElementById('questions-list');
+  if (!questionsList) return;
+  
+  if (questionsHistory.length === 0) {
+    questionsList.innerHTML = `
+      <div class="text-center py-12 text-gray-400">
+        <span class="material-symbols-outlined text-5xl mb-3">quiz</span>
+        <p class="text-sm font-medium">Aún no hay preguntas</p>
+        <p class="text-xs mt-1">Crea tu primera pregunta →</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // ✅ Detectar si se necesita normalización
+  let needsNormalization = false;
+  
+  const questionsHTML = questionsHistory.map((q, idx) => {
+    // ✅ ASEGURAR que el score esté normalizado 0-100
+    let displayScore = q.score;
+    if (displayScore !== undefined && displayScore > 0 && displayScore <= 1) {
+      displayScore = Math.round(displayScore * 100);
+      // Actualizar en el array también
+      q.score = displayScore;
+      needsNormalization = true; // ✅ Marcar que se normalizó
+    }
+    
+    const scoreColor = displayScore >= 80 ? 'bg-green-50 border-green-200' : 
+                       displayScore >= 60 ? 'bg-blue-50 border-blue-200' : 
+                       displayScore >= 40 ? 'bg-yellow-50 border-yellow-200' : 
+                       'bg-red-50 border-red-200';
+    
+    const folderTag = q.folder ? `<span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">${q.folder}</span>` : '';
+    
+    // Información del chunk si existe
+    const chunkInfo = q.best_match_chunk ? `
+      <div class="mt-2 text-xs text-gray-600 bg-white bg-opacity-50 rounded px-2 py-1">
+        <span class="material-symbols-outlined text-xs align-middle">widgets</span>
+        Chunk ${(q.best_match_chunk.chunk_id || 0) + 1}/${q.best_match_chunk.total_chunks || 0} 
+        · Pág ~${(q.best_match_chunk.estimated_page || 0) + 1}
+      </div>
+    ` : '';
+    
+    return `
+      <div class="rounded-lg border-2 hover:shadow-md transition-all p-3 ${scoreColor} group relative">
+        <div class="flex items-start justify-between mb-1">
+          <p class="text-sm font-bold flex-1">PREGUNTA #${idx + 1}</p>
+          <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onclick="window.viewQuestionDetails(${idx})" 
+                    class="p-1 hover:bg-blue-100 rounded-md transition-colors" 
+                    title="Ver detalles completos">
+              <span class="material-symbols-outlined text-blue-600" style="font-size: 18px;">visibility</span>
+            </button>
+            <button onclick="window.editQuestion(${idx})" 
+                    class="p-1 hover:bg-amber-100 rounded-md transition-colors" 
+                    title="Editar pregunta">
+              <span class="material-symbols-outlined text-amber-600" style="font-size: 18px;">edit</span>
+            </button>
+            <button onclick="window.deleteQuestion(${idx})" 
+                    class="p-1 hover:bg-red-100 rounded-md transition-colors" 
+                    title="Eliminar pregunta">
+              <span class="material-symbols-outlined text-red-600" style="font-size: 18px;">delete</span>
+            </button>
+          </div>
+        </div>
+        ${folderTag}
+        <p class="text-sm text-gray-700 line-clamp-2 mb-2 cursor-pointer" onclick="window.loadQuestion(${idx})">${q.pregunta}</p>
+        <div class="flex justify-between items-center text-xs text-gray-500">
+          <span>${new Date(q.timestamp || Date.now()).toLocaleDateString('es-ES')}</span>
+          <span class="font-bold text-base">${displayScore}%</span>
+        </div>
+        ${chunkInfo}
+      </div>
+    `;
+  }).join('');
+  
+  // Agregar botón "+" al final
+  const addButtonHTML = `
+    <button onclick="window.newQuestion()" 
+            class="w-full rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all p-4 flex items-center justify-center gap-2 text-gray-500 hover:text-blue-600">
+      <span class="material-symbols-outlined" style="font-size: 24px;">add_circle</span>
+      <span class="text-sm font-semibold">Nueva Pregunta</span>
+    </button>
+  `;
+  
+  questionsList.innerHTML = questionsHTML + addButtonHTML;
+  
+  // ✅ GUARDAR solo si se normalizaron scores
+  if (needsNormalization) {
+    console.log('💾 Guardando preguntas normalizadas...');
+    saveQuestionsToStorage();
+  }
+};
+
+window.loadQuestion = function(index) {
+  console.log('📖 Cargando pregunta', index);
+  const q = questionsHistory[index];
+  if (!q) return;
+  
+  const questionInput = document.getElementById('user-question');
+  const userAnswer = document.getElementById('user-answer');
+  
+  if (questionInput) {
+    questionInput.value = q.pregunta;
+    // ✅ Disparar evento input para habilitar el textarea de respuesta
+    questionInput.dispatchEvent(new Event('input'));
+  }
+  
+  if (userAnswer) {
+    userAnswer.value = q.respuesta;
+    // ✅ Asegurar que el textarea esté habilitado
+    userAnswer.disabled = false;
+    userAnswer.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-100');
+    userAnswer.classList.add('bg-white');
+  }
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Nueva función para ver detalles completos de una pregunta
+window.viewQuestionDetails = function(index) {
+  console.log('🔍 Viendo detalles de pregunta', index);
+  const q = questionsHistory[index];
+  if (!q) return;
+  
+  const chunk = q.best_match_chunk || {};
+  const chunkText = chunk.text || chunk.text_full || 'No disponible';
+  const chunkId = (chunk.chunk_id || 0) + 1;
+  const totalChunks = chunk.total_chunks || 0;
+  const estimatedPage = (chunk.estimated_page || 0) + 1;
+  const similarity = chunk.similarity ? (chunk.similarity * 100).toFixed(1) : q.score;
+  
+  // Crear modal con información completa
+  const modalHTML = `
+    <div id="question-details-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onclick="this.remove()">
+      <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-2xl">
+          <div class="flex items-start justify-between">
+            <div>
+              <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <span class="material-symbols-outlined text-3xl">quiz</span>
+                Pregunta #${index + 1}
+              </h2>
+              <p class="text-blue-100 text-sm">
+                ${new Date(q.timestamp).toLocaleDateString('es-ES', { 
+                  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
+                  hour: '2-digit', minute: '2-digit' 
+                })}
+              </p>
+            </div>
+            <button onclick="this.closest('#question-details-modal').remove()" 
+                    class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition">
+              <span class="material-symbols-outlined text-3xl">close</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="p-6 space-y-6">
+          
+          <!-- Pregunta -->
+          <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="material-symbols-outlined text-blue-600 text-2xl">help_outline</span>
+              <h3 class="text-lg font-bold text-blue-900">Tu Pregunta</h3>
+            </div>
+            <p class="text-gray-800 text-base leading-relaxed">${q.pregunta}</p>
+          </div>
+          
+          <!-- Respuesta -->
+          <div class="bg-green-50 border-2 border-green-200 rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="material-symbols-outlined text-green-600 text-2xl">edit_note</span>
+              <h3 class="text-lg font-bold text-green-900">Tu Respuesta</h3>
+            </div>
+            <p class="text-gray-800 text-base leading-relaxed whitespace-pre-line">${q.respuesta}</p>
+          </div>
+          
+          <!-- Score y Métricas -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-xl p-4 text-center">
+              <div class="text-4xl font-black text-purple-700">${q.score}%</div>
+              <div class="text-sm font-semibold text-purple-600 mt-1">Score</div>
+            </div>
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-4 text-center">
+              <div class="text-4xl font-black text-blue-700">${similarity}%</div>
+              <div class="text-sm font-semibold text-blue-600 mt-1">Similitud</div>
+            </div>
+            <div class="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-200 rounded-xl p-4 text-center">
+              <div class="text-2xl font-black text-amber-700">${q.is_correct ? '✅ Correcta' : '❌ Revisar'}</div>
+              <div class="text-sm font-semibold text-amber-600 mt-1">Estado</div>
+            </div>
+          </div>
+          
+          <!-- Fragmento del Material -->
+          ${chunk.text || chunk.text_full ? `
+            <div class="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-300 rounded-xl p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-indigo-900 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-2xl">auto_stories</span>
+                  📖 Fragmento del Material
+                </h3>
+                <div class="flex gap-2">
+                  <span class="text-xs bg-indigo-200 text-indigo-800 px-3 py-1 rounded-full font-semibold">
+                    ${similarity}% coincidencia
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Info del chunk -->
+              <div class="mb-3 flex flex-wrap gap-2 text-sm">
+                <div class="flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-indigo-200">
+                  <span class="material-symbols-outlined text-sm text-indigo-600">widgets</span>
+                  <span class="font-semibold text-gray-700">Chunk ${chunkId}/${totalChunks}</span>
+                </div>
+                <div class="flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-indigo-200">
+                  <span class="material-symbols-outlined text-sm text-indigo-600">description</span>
+                  <span class="font-semibold text-gray-700">~Página ${estimatedPage}</span>
+                </div>
+              </div>
+              
+              <!-- Texto del chunk -->
+              <div class="bg-white rounded-lg p-4 border-l-4 border-indigo-500 max-h-60 overflow-y-auto">
+                <blockquote class="text-base text-gray-800 leading-relaxed font-serif italic">
+                  "${chunkText}"
+                </blockquote>
+              </div>
+            </div>
+          ` : ''}
+          
+          <!-- Feedback de la IA -->
+          ${q.feedback ? `
+            <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-5">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-gray-600 text-2xl">psychology</span>
+                <h3 class="text-lg font-bold text-gray-900">Análisis de la IA</h3>
+              </div>
+              <div class="text-gray-700 text-sm leading-relaxed whitespace-pre-line">${q.feedback}</div>
+            </div>
+          ` : ''}
+          
+          <!-- Botones de acción -->
+          <div class="flex gap-3 pt-4 border-t-2 border-gray-200">
+            <button onclick="window.loadQuestion(${index}); this.closest('#question-details-modal').remove();" 
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined">edit</span>
+              Editar Pregunta
+            </button>
+            <button onclick="this.closest('#question-details-modal').remove()" 
+                    class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined">close</span>
+              Cerrar
+            </button>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Insertar modal en el DOM
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+};
+
+// ===================================================================
+// INICIALIZACIÓN DEL DOM
+// ===================================================================
+
+// Función para cargar información del material actual
+async function loadMaterialInfo(materialId) {
+  const banner = document.getElementById('current-material-banner');
+  const filenameEl = document.getElementById('material-filename');
+  const statsEl = document.getElementById('material-stats');
+  const locationEl = document.getElementById('material-location');
+  
+  try {
+    const response = await fetch('http://localhost:8000/api/materials');
+    const data = await response.json();
+    
+    if (data.success && data.materials.length > 0) {
+      // Buscar el material por ID
+      const material = data.materials.find(m => m.id == materialId);
+      
+      if (material) {
+        // Mostrar banner
+        banner.style.display = 'block';
+        
+        // Actualizar información básica
+        filenameEl.textContent = material.filename;
+        statsEl.textContent = `${material.total_chunks} chunks • ${material.estimated_pages || 'N/A'} páginas estimadas`;
+        
+        // ✨ OBTENER RUTA COMPLETA DESDE LOCALSTORAGE (SISTEMA JERÁRQUICO)
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentChunk = urlParams.get('chunk') || '1';
+        const totalChunks = material.total_chunks || 153;
+        const estimatedPage = Math.ceil(parseInt(currentChunk) / 3);
+        
+        // 🔥 LEER RUTA JERÁRQUICA DESDE recuiva_active_path
+        let rutaCarpetas = '';
+        
+        try {
+          const rutaActivaRaw = localStorage.getItem('recuiva_active_path');
+          if (rutaActivaRaw) {
+            const rutaActiva = JSON.parse(rutaActivaRaw);
+            const { carpetas } = rutaActiva;
+            
+            if (carpetas && carpetas.length > 0) {
+              // Construir ruta: "Odontología › Anatomía › Sistema Digestivo"
+              rutaCarpetas = carpetas.join(' › ');
+              console.log('📍 Ruta de carpetas cargada:', rutaCarpetas);
+            }
+          } else {
+            // Fallback: intentar desde recuiva_carpeta_activa (compatibilidad)
+            const carpetaActiva = localStorage.getItem('recuiva_carpeta_activa');
+            if (carpetaActiva) {
+              const { nombre, tipo } = JSON.parse(carpetaActiva);
+              rutaCarpetas = tipo ? `${nombre} (${tipo})` : nombre;
+            }
+          }
+        } catch (e) {
+          console.warn('⚠️ Error al cargar ruta de carpetas:', e);
+          // Fallback final: usar URL params
+          const carpetaNombre = urlParams.get('carpeta') || urlParams.get('nombre');
+          const carpetaTipo = urlParams.get('tipo');
+          if (carpetaNombre) {
+            rutaCarpetas = carpetaTipo ? `${carpetaNombre} (${carpetaTipo})` : carpetaNombre;
+          }
+        }
+        
+        // Construir ruta completa: Carpetas › Material › Chunk
+        let rutaCompleta = '';
+        if (rutaCarpetas) {
+          rutaCompleta = `${rutaCarpetas} › ${material.filename.replace('.pdf', '')}`;
+        } else {
+          rutaCompleta = material.filename.replace('.pdf', '');
+        }
+        
+        // Actualizar BREADCRUMB (arriba del cuadro)
+        const breadcrumbNombre = document.getElementById('breadcrumb-nombre');
+        if (breadcrumbNombre) {
+          breadcrumbNombre.textContent = rutaCompleta;
+          breadcrumbNombre.title = rutaCompleta;
+        }
+        
+        // Actualizar LOCATION (solo info del chunk)
+        const chunkInfo = `Chunk ${currentChunk}/${totalChunks} - Pág. ~${estimatedPage}`;
+        if (locationEl) {
+          locationEl.innerHTML = `
+            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            <span>${chunkInfo}</span>
+          `;
+        }
+        
+        console.log('✅ Material cargado:', material.filename);
+        console.log('📍 Ruta completa:', rutaCompleta);
+        addValidationLog(`📚 Material activo: ${material.filename}`, 'success');
+        addValidationLog(`📍 ${rutaCompleta}`, 'info');
+      } else {
+        console.warn(`⚠️ Material ID ${materialId} no encontrado`);
+        banner.style.display = 'none';
+      }
+    } else {
+      console.warn('⚠️ No hay materiales disponibles');
+      banner.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('❌ Error cargando material:', error);
+    banner.style.display = 'none';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Procesar logs pendientes que se generaron antes de que el DOM estuviera listo
+  if (window._pendingLogs && window._pendingLogs.length > 0) {
+    console.log(`📋 Procesando ${window._pendingLogs.length} logs pendientes...`);
+    window._pendingLogs.forEach(log => {
+      addValidationLog(log.message, log.type);
+    });
+    window._pendingLogs = [];
+  }
+  
+  // === 🔄 AUTO-MIGRACIÓN DE PREGUNTAS ANTIGUAS ===
+  (() => {
+    console.log('🔍 Buscando preguntas en formato antiguo...');
+    let migrated = 0;
+    
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      
+      // Detectar formato antiguo: questions_X (sin prefijo recuiva)
+      if (key && key.startsWith('questions_') && !key.startsWith('recuiva_questions')) {
+        const materialId = key.replace('questions_', '');
+        const newKey = `recuiva_questions_material_${materialId}`;
+        const oldData = localStorage.getItem(key);
+        
+        try {
+          // Solo migrar si la nueva clave NO existe
+          if (!localStorage.getItem(newKey) && oldData) {
+            localStorage.setItem(newKey, oldData);
+            console.log(`✅ Migrado: ${key} → ${newKey}`);
+            migrated++;
+          }
+          // Eliminar clave antigua
+          localStorage.removeItem(key);
+          console.log(`🗑️  Eliminada clave antigua: ${key}`);
+        } catch (e) {
+          console.error(`❌ Error migrando ${key}:`, e);
+        }
+      }
+    }
+    
+    if (migrated > 0) {
+      console.log(`✅ Migradas ${migrated} preguntas al formato nuevo`);
+    } else {
+      console.log('✅ No hay preguntas antiguas que migrar');
+    }
+  })();
+  
+  // Log inicial del sistema
+  addValidationLog('🎯 Sistema inicializado correctamente', 'success');
+  addValidationLog('⏳ Esperando input del usuario...', 'info');
+  
+  // === CARGAR INFORMACIÓN DEL MATERIAL ACTUAL ===
+  const urlParams = new URLSearchParams(window.location.search);
+  const materialId = urlParams.get('material') || urlParams.get('material_id') || '1';
+  
+  // Cargar preguntas guardadas del material actual
+  loadQuestionsFromStorage();
+  
+  // Cargar y mostrar información del material
+  loadMaterialInfo(materialId);
+  
+  // === MOSTRAR RUTA COMPLETA EN EL BREADCRUMB (CON CARPETAS JERÁRQUICAS) ===
+  const breadcrumbNombre = document.getElementById('breadcrumb-nombre');
+  
+  // 🔥 LEER RUTA ACTIVA DESDE LOCALSTORAGE (guardada en index.html)
+  const rutaActivaRaw = localStorage.getItem('recuiva_active_path');
+  
+  if (rutaActivaRaw) {
+    try {
+      const rutaActiva = JSON.parse(rutaActivaRaw);
+      const { carpetas } = rutaActiva;
+      
+      if (carpetas && carpetas.length > 0) {
+        // Construir breadcrumb: "Carpeta 1 › Carpeta 2 › Carpeta 3"
+        const rutaCompleta = carpetas.join(' › ');
+        
+        if (breadcrumbNombre) {
+          breadcrumbNombre.textContent = rutaCompleta;
+          breadcrumbNombre.title = rutaCompleta; // Tooltip con ruta completa
+          console.log('📍 Breadcrumb cargado:', rutaCompleta);
+        }
+      } else {
+        if (breadcrumbNombre) breadcrumbNombre.textContent = 'Sin carpeta';
+      }
+    } catch(e) {
+      console.error('❌ Error al cargar ruta activa:', e);
+      if (breadcrumbNombre) breadcrumbNombre.textContent = 'Sin carpeta';
+    }
+  } else {
+    // Fallback: intentar cargar desde URL params (compatibilidad)
+    const carpetaNombre = urlParams.get('carpeta') || urlParams.get('nombre');
+    const carpetaTipo = urlParams.get('tipo');
+    const materialNombre = urlParams.get('material_nombre');
+    
+    if (carpetaNombre || materialNombre) {
+      let rutaCompleta = '';
+      
+      if (carpetaNombre) {
+        if (carpetaTipo) {
+          rutaCompleta = `${decodeURIComponent(carpetaNombre)} (${decodeURIComponent(carpetaTipo)})`;
+        } else {
+          rutaCompleta = decodeURIComponent(carpetaNombre);
+        }
+      }
+      
+      if (materialNombre) {
+        const materialDecoded = decodeURIComponent(materialNombre);
+        rutaCompleta += carpetaNombre ? ` › ${materialDecoded}` : materialDecoded;
+      }
+      
+      if (breadcrumbNombre && rutaCompleta) {
+        breadcrumbNombre.textContent = rutaCompleta;
+        breadcrumbNombre.title = rutaCompleta;
+        console.log(`📂 Ruta desde URL: ${rutaCompleta}`);
+      }
+    } else {
+      if (breadcrumbNombre) breadcrumbNombre.textContent = 'Sin carpeta';
+    }
+  }
+  
+  // === CARGAR HISTORIAL DE PREGUNTAS ===
+  // NOTA: Las preguntas se cargan desde loadQuestionsFromStorage() 
+  // usando el formato: recuiva_questions_material_${materialId}
+  // NO cargar desde el formato antiguo questions_${materialId}
+  
+  console.log('📋 Historial de preguntas cargado desde localStorage con formato nuevo');
+  
+  // === FUNCIONES MODALES BACKEND MEJORADAS ===
+  window.showBackendModal = function(icon, title, description) {
+    showAdvancedModal(icon, title, description);
+  };
+  
+  // Modal avanzado con mejor UX
+  window.showAdvancedModal = function(icon, title, description) {
+    // Crear modal si no existe
+    let modal = document.getElementById('advanced-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'advanced-modal';
+      modal.className = 'notification-modal';
+      modal.innerHTML = `
+        <div class="notification-modal-content">
+          <div class="notification-icon-container">
+            <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">notifications</span>
+          </div>
+          <h3 id="modal-title">🔔 Notificaciones</h3>
+          <p id="modal-description">Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor. Por ahora puedes explorar la funcionalidad simulada. En la versión completa con backend, esto funcionará en tiempo real.</p>
+          <button onclick="closeAdvancedModal()" class="modal-button">
+            Aceptar
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // Cerrar con escape
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+          closeAdvancedModal();
+        }
+      });
+      
+      // Cerrar clickeando fuera
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          closeAdvancedModal();
+        }
+      });
+    }
+    
+    // Actualizar contenido
+    const iconMap = {
+      'notifications': '🔔',
+      'settings': '⚙️',
+      'dashboard': '📊',
+      'analytics': '📈'
+    };
+    
+    document.getElementById('modal-icon').textContent = icon;
+    document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
+    document.getElementById('modal-description').textContent = description;
+    
+    // Mostrar modal con animación
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  };
+  
+  window.closeAdvancedModal = function() {
+    const modal = document.getElementById('advanced-modal');
+    if (modal) {
+      modal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  };
+  
+  // === FUNCIONES NAVEGACIÓN ===
+  
+  // Función para limpiar datos locales
+  window.limpiarDatos = function() {
+    if (confirm('⚠️ ¿Estás seguro?\n\nSe borrarán todas tus carpetas, preguntas y progreso guardados.')) {
+      localStorage.clear();
+      alert('✅ Datos locales eliminados correctamente.');
+      window.location.href = '../index.html';
+    }
+  };
+  
+  // Función para mostrar configuración
+  window.mostrarConfiguracion = function() {
+    showAdvancedModal('settings', 'Configuración', 'Aquí podrás ajustar preferencias del sistema.');
+  };
+
+  // Menú móvil animación landing-page
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = menuBtn.querySelector('.material-symbols-outlined');
+  let isMenuOpen = false;
+
+  function toggleMenu() {
+    isMenuOpen = !isMenuOpen;
+    mobileMenu.classList.toggle('active');
+    document.body.classList.toggle('overflow-hidden');
+    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+    if (isMenuOpen) {
+      menuIcon.style.transform = 'rotate(90deg)';
+      menuIcon.style.opacity = '0';
+      setTimeout(() => {
+        menuIcon.textContent = 'close';
+        menuIcon.style.transform = 'rotate(0deg)';
+        menuIcon.style.opacity = '1';
+      }, 150);
+    } else {
+      menuIcon.style.transform = 'rotate(90deg)';
+      menuIcon.style.opacity = '0';
+      setTimeout(() => {
+        menuIcon.textContent = 'menu';
+        menuIcon.style.transform = 'rotate(0deg)';
+        menuIcon.style.opacity = '1';
+      }, 150);
+    }
+  }
+
+  menuBtn.addEventListener('click', toggleMenu);
+  // Cerrar menú cuando se hace clic en un enlace
+  const menuLinks = mobileMenu.querySelectorAll('a');
+  menuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (isMenuOpen) {
+        toggleMenu();
+      }
+    });
+  });
+
+  // Menú de perfil
+  const profileBtn = document.getElementById('profile-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  function toggleProfileMenu(e) {
+    e.stopPropagation();
+    profileDropdown.classList.toggle('active');
+  }
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener('click', toggleProfileMenu);
+    document.addEventListener('click', (e) => {
+      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+        profileDropdown.classList.remove('active');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        profileDropdown.classList.remove('active');
+      }
+    });
+  }
+
+  // === AUTENTICACIÓN DEMO (Ya no se usa mockAPI) ===
+  
+  // Auto-login con usuario demo para pruebas
+  const demoUser = {
+    id: 'u1',
+    email: 'demo@recuiva.com',
+    name: 'Usuario Demo',
+    token: 'demo_token_' + Date.now()
+  };
+  
+  if (!localStorage.getItem('recuiva_current_user')) {
+    localStorage.setItem('recuiva_current_user', JSON.stringify(demoUser));
+    console.log('🔐 Auto-login como usuario demo');
+  }
+
+  // Variables de sesión
+  let currentQuestions = [];
+  let currentIndex = 0;
+  let sessionResults = [];
+  let sessionStartTime = Date.now();
+
+  // Inicializar sesión de práctica
+  initializePracticeSession();
+
+  async function initializePracticeSession() {
+    // Cargar set actual o usar datos por defecto
+    const currentSet = JSON.parse(localStorage.getItem('recuiva_current_study_set') || 'null');
+    
+    if (currentSet && currentSet.questions && currentSet.questions.length > 0) {
+      currentQuestions = currentSet.questions;
+    } else {
+      // Sistema vacío - sin preguntas predeterminadas
+      currentQuestions = [];
+    }
+
+    // Limitar a 5 preguntas por sesión
+    currentQuestions = currentQuestions.slice(0, 5);
+    
+    // Si no hay preguntas, no hacer nada (la UI muestra el mensaje)
+    if (currentQuestions.length === 0) {
+      console.log('No hay preguntas disponibles');
+      return;
+    }
+    
+    // Iniciar primera pregunta
+    showCurrentQuestion();
+  }
+
+  function showCurrentQuestion() {
+    if (currentIndex >= currentQuestions.length) {
+      finishSession();
+      return;
+    }
+
+    const question = currentQuestions[currentIndex];
+    
+    // Actualizar UI (si existen los elementos)
+    const questionText = document.getElementById('question-text') || document.querySelector('h2');
+    const answerText = document.getElementById('answer-text') || document.querySelector('.answer-content');
+    const progressText = document.getElementById('progress-text') || document.querySelector('.progress-info');
+
+    if (questionText) questionText.textContent = question.question;
+    if (answerText) answerText.textContent = question.answer;
+    if (progressText) progressText.textContent = `Pregunta ${currentIndex + 1} de ${currentQuestions.length}`;
+
+    // Mostrar botón de revelar
+    showRevealButton();
+  }
+
+  function showRevealButton() {
+    // Crear botón de revelar si no existe
+    let revealBtn = document.getElementById('reveal-btn');
+    if (!revealBtn) {
+      revealBtn = document.createElement('button');
+      revealBtn.id = 'reveal-btn';
+      revealBtn.className = 'px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium';
+      revealBtn.textContent = '👁️ Mostrar Respuesta';
+      
+      const container = document.querySelector('main') || document.body;
+      container.appendChild(revealBtn);
+    }
+
+    revealBtn.style.display = 'block';
+    revealBtn.onclick = showAnswer;
+  }
+
+  function showAnswer() {
+    // Ocultar botón revelar
+    const revealBtn = document.getElementById('reveal-btn');
+    if (revealBtn) revealBtn.style.display = 'none';
+
+    // Mostrar respuesta y botones de puntuación
+    showScoreButtons();
+  }
+
+  function showScoreButtons() {
+    // Crear botones de puntuación si no existen
+    let scoreContainer = document.getElementById('score-container');
+    if (!scoreContainer) {
+      scoreContainer = document.createElement('div');
+      scoreContainer.id = 'score-container';
+      scoreContainer.className = 'mt-6 space-y-3';
+      scoreContainer.innerHTML = `
+        <h3 class="text-lg font-semibold text-center mb-4">¿Cómo respondiste?</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="scoreAnswer(1)" class="p-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium">
+            😔 Mala (1)
+          </button>
+          <button onclick="scoreAnswer(2)" class="p-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-medium">
+            😐 Regular (2)
+          </button>
+          <button onclick="scoreAnswer(3)" class="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium">
+            😊 Buena (3)
+          </button>
+          <button onclick="scoreAnswer(4)" class="p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium">
+            🎉 Excelente (4)
+          </button>
+        </div>
+      `;
+      
+      const container = document.querySelector('main') || document.body;
+      container.appendChild(scoreContainer);
+    }
+
+    scoreContainer.style.display = 'block';
+  }
+
+  // Función global para puntuar respuesta
+  window.scoreAnswer = async function(score) {
+    const question = currentQuestions[currentIndex];
+    
+    // Registrar resultado
+    const result = {
+      questionId: question.id,
+      score: score,
+      currentInterval: 1, // Mock interval
+      timestamp: new Date().toISOString()
+    };
+    
+    sessionResults.push(result);
+    
+    // Guardar resultado en localStorage (sin mockAPI)
+    console.log('💾 Resultado guardado:', result);
+    
+    // Mostrar feedback
+    const intervalText = getIntervalText(score);
+    alert(`Puntuación: ${score}/4\nPróximo repaso: ${intervalText}`);
+    
+    // Siguiente pregunta
+    currentIndex++;
+    showCurrentQuestion();
+  };
+
+  function getIntervalText(score) {
+    switch(score) {
+      case 1: return '1 día (resetear)';
+      case 2: return 'Reducido 50%';
+      case 3: return 'Mantener intervalo';
+      case 4: return 'Aumentar 30%';
+      default: return 'Sin cambios';
+    }
+  }
+
+  function finishSession() {
+    // Si no hay resultados, no mostrar nada
+    if (sessionResults.length === 0) {
+      window.location.href = 'repasos.html';
+      return;
+    }
+    
+    const avgScore = sessionResults.reduce((sum, r) => sum + r.score, 0) / sessionResults.length;
+    
+    // SIN ALERT - Silenciosamente redirigir
+    console.log(`Sesión completada - Preguntas: ${sessionResults.length}, Score promedio: ${avgScore.toFixed(2)}/4`);
+    
+    // Regresar a repasos
+    window.location.href = 'repasos.html';
+  }
+
+  // ===================================================================
+  // FUNCIONES PARA ACTIVE RECALL - SIMPLE Y FUNCIONAL
+  // ===================================================================
+  
+  // NOTA: questionsHistory ya está definida globalmente (línea ~651)
+  // NOTA: addValidationLog y clearValidationLog ya están definidas globalmente (línea ~874)
+  // NOTA: checkValidateButton ya está definida globalmente (línea ~509) ⚡
+  // No redefinir aquí para evitar conflictos
+  
+  // NOTA: checkValidateButton ya está definida globalmente en línea ~514
+  // NOTA: updateCharCount ya está definida globalmente en línea ~589
+  // NOTA: validateWithBackend ya está definida globalmente en línea ~681
+  // No redefinir aquí para evitar conflictos
+  
+  // ===================================================================
+  // CARGAR PREGUNTAS AL INICIAR
+  // ===================================================================
+  // NOTA: Las preguntas ya se cargan desde loadQuestionsFromStorage()
+  // No cargar duplicadamente aquí
+});
+</script>
+
+<!-- Animación para notificaciones -->
+<style>
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(400px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+  transition: all 0.3s ease-out;
+}
+</style>
+
+<!-- MODAL DE ERROR -->
+<div id="error-modal" class="notification-modal">
+  <div class="notification-modal-content">
+    <div class="notification-icon-container">
+      <span class="material-symbols-outlined text-white text-3xl">error</span>
+    </div>
+    <h3 id="error-modal-title">Error</h3>
+    <p id="error-modal-message">Ha ocurrido un error inesperado.</p>
+    <button class="modal-button" onclick="closeErrorModal()">Aceptar</button>
+  </div>
+</div>
+
+</body></html>
+

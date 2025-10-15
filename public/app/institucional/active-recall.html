@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <title>Active Recall - Recuiva</title>
+    <link rel="icon" type="image/x-icon" href="../../assets/img/Icon-Recuiva.ico"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      /* Estilo global para el logo Recuiva */
+      .recuiva-logo {
+        font-family: 'Manrope', sans-serif !important;
+        font-weight: 800 !important;
+        font-size: 1.5rem !important;
+      }
+    </style>
+</head>
+<body class="bg-[var(--base-gray)]" style='font-family: Manrope, "Noto Sans", sans-serif;'>
+
+<!-- Header -->
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <a href="../../index.html" class="flex items-center gap-2">
+      <img src="../../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  <nav class="hidden md:flex items-center gap-4">
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../../index.html">Inicio</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../materiales.html">Materiales</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../dashboard.html">Dashboard</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../repasos.html">Repasos</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../sesion-practica.html">Práctica</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <!-- Botón menú móvil (solo móvil) -->
+    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
+      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
+    </button>
+  </div>
+</div>
+</header>
+
+<!-- Main Content -->
+<main class="container mx-auto px-4 md:px-6 py-12 max-w-4xl">
+  <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-[var(--secondary-color)] mb-6">
+      🧠 Active Recall
+    </h1>
+    
+    <div class="prose max-w-none">
+      <h2 class="text-2xl font-bold text-[var(--primary-color)] mt-8 mb-4">¿Qué es Active Recall?</h2>
+      <p class="text-lg text-[var(--text-secondary)] mb-4">
+        Active Recall (Recordación Activa) es una técnica de estudio científicamente probada donde, en lugar de releer pasivamente el material, 
+        intentas activamente recordar la información desde tu memoria.
+      </p>
+
+      <h2 class="text-2xl font-bold text-[var(--primary-color)] mt-8 mb-4">¿Cómo funciona en Recuiva?</h2>
+      <div class="bg-[var(--base-gray)] p-6 rounded-xl mb-6">
+        <ol class="space-y-3 text-[var(--text-secondary)]">
+          <li class="flex items-start gap-3">
+            <span class="font-bold text-[var(--primary-color)] text-xl">1.</span>
+            <span><strong>Creas una pregunta</strong> basada en el material que acabas de estudiar</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="font-bold text-[var(--primary-color)] text-xl">2.</span>
+            <span><strong>Respondes SIN mirar</strong> el material, forzando a tu cerebro a recuperar la información</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="font-bold text-[var(--primary-color)] text-xl">3.</span>
+            <span><strong>Validas tu respuesta</strong> con nuestro sistema de inteligencia artificial</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <span class="font-bold text-[var(--primary-color)] text-xl">4.</span>
+            <span><strong>Recibes retroalimentación</strong> inmediata sobre la precisión de tu respuesta</span>
+          </li>
+        </ol>
+      </div>
+
+      <h2 class="text-2xl font-bold text-[var(--primary-color)] mt-8 mb-4">Beneficios Científicos</h2>
+      <div class="grid md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <h3 class="font-bold text-[var(--secondary-color)] mb-2">📈 Mejor Retención</h3>
+          <p class="text-sm text-[var(--text-secondary)]">Aumenta la retención de información a largo plazo hasta un 50%</p>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+          <h3 class="font-bold text-[var(--secondary-color)] mb-2">⚡ Aprendizaje Eficiente</h3>
+          <p class="text-sm text-[var(--text-secondary)]">Reduce el tiempo de estudio necesario para dominar un tema</p>
+        </div>
+        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+          <h3 class="font-bold text-[var(--secondary-color)] mb-2">🎯 Identifica Gaps</h3>
+          <p class="text-sm text-[var(--text-secondary)]">Detecta inmediatamente qué conceptos necesitas repasar</p>
+        </div>
+        <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+          <h3 class="font-bold text-[var(--secondary-color)] mb-2">🧬 Fortalece Sinapsis</h3>
+          <p class="text-sm text-[var(--text-secondary)]">Refuerza las conexiones neuronales con cada intento de recordar</p>
+        </div>
+      </div>
+
+      <h2 class="text-2xl font-bold text-[var(--primary-color)] mt-8 mb-4">Referencias Científicas</h2>
+      <ul class="space-y-2 text-sm text-[var(--text-secondary)]">
+        <li>• Karpicke, J. D., & Roediger, H. L. (2008). The critical importance of retrieval for learning. <em>Science</em>, 319(5865), 966-968.</li>
+        <li>• Dunlosky, J., et al. (2013). Improving students' learning with effective learning techniques. <em>Psychological Science in the Public Interest</em>, 14(1), 4-58.</li>
+        <li>• Roediger, H. L., & Butler, A. C. (2011). The critical role of retrieval practice in long-term retention. <em>Trends in Cognitive Sciences</em>, 15(1), 20-27.</li>
+      </ul>
+
+      <div class="mt-10 flex justify-center">
+        <a href="../sesion-practica.html" class="inline-block px-8 py-4 bg-[var(--primary-color)] text-white font-bold rounded-xl hover:bg-opacity-90 transition-all shadow-lg">
+          🚀 Empieza a Practicar Ahora
+        </a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
+<div class="container mx-auto text-center">
+<div class="flex justify-center items-center gap-2 mb-6">
+<img src="../../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<span class="recuiva-logo">Recuiva</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+<a class="hover:text-[var(--primary-color)] transition-colors" href="active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
+</div>
+<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
+</div>
+</footer>
+
+</body>
+</html>

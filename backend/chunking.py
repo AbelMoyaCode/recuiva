@@ -11,7 +11,7 @@ from typing import List
 import PyPDF2
 from io import BytesIO
 
-def extract_text_from_pdf(pdf_content: bytes) -> str:
+def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     """
     Extrae texto de un archivo PDF
     
@@ -19,7 +19,7 @@ def extract_text_from_pdf(pdf_content: bytes) -> str:
         pdf_content: Contenido del PDF en bytes
         
     Returns:
-        str: Texto extraído del PDF
+        tuple: (texto extraído, número total de páginas)
     """
     try:
         pdf_file = BytesIO(pdf_content)
@@ -35,8 +35,8 @@ def extract_text_from_pdf(pdf_content: bytes) -> str:
                 print(f"   Procesando página {i+1}/{total_pages}...")
             text += page.extract_text() + "\n"
         
-        print(f"✅ Texto extraído: {len(text)} caracteres")
-        return text.strip()
+        print(f"✅ Texto extraído: {len(text)} caracteres de {total_pages} páginas")
+        return text.strip(), total_pages
         
     except Exception as e:
         raise Exception(f"Error extrayendo texto del PDF: {str(e)}")
