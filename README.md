@@ -49,6 +49,7 @@ recuiva/
 │   ├── img/
 │   └── js/
 ├── config.yaml         # Configuración de la aplicación
+├── requirements.txt    # Dependencias Python unificadas
 ├── docker-compose.yml  # Orquestación de contenedores
 ├── Dockerfile          # Imagen Docker principal
 ├── nginx.conf          # Configuración del servidor web
@@ -57,6 +58,12 @@ recuiva/
 ```
 
 ## 🚀 Inicio Rápido
+
+### 0. Instalar Dependencias
+
+```bash
+pip install -r requirements.txt
+```
 
 ### 1. Iniciar Servidores
 
