@@ -31,6 +31,16 @@ services:
       interval: 30s
       timeout: 20s
       retries: 5
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.recuiva-backend-web.rule=Host(`api-recuiva.duckdns.org`)
+      - traefik.http.routers.recuiva-backend-web.entrypoints=web
+      - traefik.http.routers.recuiva-backend-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.recuiva-backend-websecure.rule=Host(`api-recuiva.duckdns.org`)
+      - traefik.http.routers.recuiva-backend-websecure.entrypoints=websecure
+      - traefik.http.routers.recuiva-backend-websecure.tls.certresolver=letsencrypt
+      - traefik.http.services.recuiva-backend.loadbalancer.server.port=8001
     networks:
       - dokploy-network
 
