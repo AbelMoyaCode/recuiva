@@ -47,6 +47,16 @@ services:
       - BACKEND_URL=https://api-recuiva.duckdns.org
     networks:
       - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.recuiva-frontend-web.rule=Host(`recuiva.duckdns.org`)
+      - traefik.http.routers.recuiva-frontend-web.entrypoints=web
+      - traefik.http.routers.recuiva-frontend-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.recuiva-frontend-websecure.rule=Host(`recuiva.duckdns.org`)
+      - traefik.http.routers.recuiva-frontend-websecure.entrypoints=websecure
+      - traefik.http.routers.recuiva-frontend-websecure.tls.certresolver=letsencrypt
+      - traefik.http.services.recuiva-frontend.loadbalancer.server.port=80
 
 volumes:
   embeddings-cache:
