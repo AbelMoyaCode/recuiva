@@ -31,6 +31,8 @@ services:
       interval: 30s
       timeout: 20s
       retries: 5
+    networks:
+      - dokploy-network
 
   # Frontend - Nginx serving static files
   frontend:
@@ -43,6 +45,12 @@ services:
       - backend
     environment:
       - BACKEND_URL=https://api-recuiva.duckdns.org
+    networks:
+      - dokploy-network
 
 volumes:
   embeddings-cache:
+
+networks:
+  dokploy-network:
+    external: true
