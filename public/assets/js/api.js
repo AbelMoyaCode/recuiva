@@ -9,7 +9,7 @@
 const API_CONFIG = {
     BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:8000'
-        : 'https://tu-dominio-backend.com', // Cambiar en producción
+        : 'https://api-recuiva.duckdns.org',
     ENDPOINTS: {
         ROOT: '/',
         UPLOAD_MATERIAL: '/api/materials/upload',
