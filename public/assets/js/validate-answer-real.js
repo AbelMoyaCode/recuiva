@@ -7,7 +7,7 @@
  */
 
 // Configuración del API
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'https://api-recuiva.duckdns.org';
 
 // Instancia del API
 const recuivaAPI = new RecuivaAPI(API_BASE);

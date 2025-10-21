@@ -323,7 +323,7 @@
 
     <script>
         // Configuración de API
-        const API_URL = 'http://localhost:8000';
+    const API_URL = 'https://api-recuiva.duckdns.org';
 
         // ==========================================
         // FUNCIÓN PRINCIPAL DE INICIALIZACIÓN
@@ -520,7 +520,7 @@
                 
             } catch (error) {
                 console.error('❌ Error al cargar materiales:', error);
-                console.log('💡 Verifica que el backend esté corriendo en http://localhost:8000');
+                console.log('💡 Verifica que el backend esté corriendo en https://api-recuiva.duckdns.org');
                 return [];
             }
         }

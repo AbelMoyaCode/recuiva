@@ -525,7 +525,7 @@ async function validateWithBackend() {
     const urlParams = new URLSearchParams(window.location.search);
     const carpetaId = 'sample_material'; // Forzar a usar sample_material que tiene datos
     
-    console.log('🚀 Llamando al backend REAL con Sentence Transformers...');
+  console.log('🚀 Llamando al backend REAL con Sentence Transformers (https://api-recuiva.duckdns.org)...');
     console.log('Carpeta:', carpetaId, '(forzado a sample_material para demo)');
     console.log('Pregunta:', questionInput.value.trim());
     console.log('Respuesta:', userAnswer.value.trim().substring(0, 100) + '...');
@@ -651,7 +651,7 @@ async function validateWithBackend() {
 
   } catch (error) {
     console.error('❌ Error validando respuesta:', error);
-    alert(`Error al validar la respuesta: ${error.message}\n\nAsegúrate de que:\n1. El servidor backend esté corriendo (puerto 8000)\n2. Hayas subido material primero\n3. El modelo Sentence Transformers esté disponible`);
+  alert(`Error al validar la respuesta: ${error.message}\n\nAsegúrate de que:\n1. El servidor backend esté accesible en https://api-recuiva.duckdns.org\n2. Hayas subido material primero\n3. El modelo Sentence Transformers esté disponible`);
     
     // Restaurar botón
     btnValidate.disabled = false;
@@ -1161,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Respuesta:', userAnswer.value.trim().substring(0, 100) + '...');
       
       // Llamar al backend REAL (NO MOCK)
-      const response = await fetch('http://localhost:8000/api/validate-answer', {
+  const response = await fetch('https://api-recuiva.duckdns.org/api/validate-answer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
