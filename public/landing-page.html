@@ -7,6 +7,20 @@
 <title>Recuiva: Domina tus estudios con Active Recall</title>
 <link rel="icon" type="image/x-icon" href="assets/img/Icon-Recuiva.ico"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Redirección automática si ya está logueado -->
+<script src="assets/js/mockApi.js"></script>
+<script>
+  // Verificar si el usuario ya está logueado
+  document.addEventListener('DOMContentLoaded', function() {
+    const isAuthenticated = localStorage.getItem('recuiva_isAuthenticated') === 'true';
+    const currentUser = localStorage.getItem('recuiva_user');
+    
+    // Si está autenticado, redirigir al dashboard
+    if (isAuthenticated && currentUser) {
+      window.location.href = 'app/home.html';
+    }
+  });
+</script>
 <style type="text/tailwindcss">
       :root {
         --primary-color: #FF6600;

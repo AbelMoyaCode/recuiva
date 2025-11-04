@@ -30,10 +30,11 @@ sys.path.insert(0, str(BACKEND_DIR))
 try:
     from embeddings_module import generate_embeddings, calculate_similarity, load_model
     from chunking import chunk_text, extract_text_from_pdf, get_text_stats
+    from semantic_validator import SemanticValidator
     MODULES_LOADED = True
 except ImportError as e:
     print(f"⚠️ Módulos locales no encontrados: {e}")
-    print("⚠️ Asegúrate de tener embeddings_module.py y chunking.py")
+    print("⚠️ Asegúrate de tener embeddings_module.py, chunking.py y semantic_validator.py")
     MODULES_LOADED = False
 
 # Cargar variables de entorno
@@ -48,14 +49,14 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configurar CORS desde variables de entorno
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8080").split(",")
+# Configurar CORS - Permitir todos los orígenes en desarrollo
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"],  # Permitir todos los orígenes
+    allow_credentials=False,  # Debe ser False cuando allow_origins es ["*"]
+    allow_methods=["*"],  # Permitir todos los métodos (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],  # Permitir todos los headers
+    expose_headers=["*"]  # Exponer todos los headers en la respuesta
 )
 
 # ==================== MODELOS PYDANTIC ====================
@@ -123,6 +124,13 @@ MIN_DOCUMENT_SIZE = int(os.getenv("MIN_DOCUMENT_SIZE", "200000"))
 # En producción, usar PostgreSQL o MongoDB
 materials_db = []
 questions_db = []
+
+# Inicializar validador semántico
+semantic_validator = SemanticValidator(
+    threshold_excellent=THRESHOLD_EXCELLENT,
+    threshold_good=THRESHOLD_GOOD,
+    threshold_acceptable=THRESHOLD_ACCEPTABLE
+)
 
 # ==================== ENDPOINTS ====================
 
@@ -336,211 +344,100 @@ async def validate_answer(answer: Answer):
         print(f"✍️  Respuesta: {answer.user_answer[:100]}...")
         print(f"📏 Longitud: {len(answer.user_answer)} caracteres")
         
-        # ===== VALIDACIONES PREVIAS =====
-        MIN_RESPONSE_LENGTH = 15
-        if len(answer.user_answer.strip()) < MIN_RESPONSE_LENGTH:
-            print(f"❌ Respuesta muy corta")
+        # ===== VALIDACIÓN CON SEMANTIC_VALIDATOR =====
+        # Usar el módulo SemanticValidator (algoritmo documentado)
+        
+        # Validar longitud mínima
+        try:
+            # Cargar material
+            embeddings_files = list(EMBEDDINGS_DIR.glob(f"material_{material_id}_*.json"))
+            
+            if not embeddings_files:
+                embeddings_files = list(EMBEDDINGS_DIR.glob("material_*.json"))
+                if not embeddings_files:
+                    raise HTTPException(
+                        status_code=404, 
+                        detail="No hay materiales procesados. Sube un material primero."
+                    )
+            
+            print(f"📂 Cargando: {embeddings_files[0].name}")
+            with open(embeddings_files[0], 'r', encoding='utf-8') as f:
+                material_embeddings = json.load(f)
+            
+            print(f"📚 {len(material_embeddings)} chunks disponibles")
+            
+            # Generar embedding de la respuesta (combinar pregunta + respuesta para contexto)
+            combined_text = f"Pregunta: {question_text}\nRespuesta: {answer.user_answer}"
+            user_embedding = generate_embeddings(combined_text)
+            print(f"🧠 Embedding generado (dim: {len(user_embedding)})")
+            
+            # Validar con SemanticValidator
+            classification, top_chunks, best_match = semantic_validator.validate_answer(
+                user_embedding=user_embedding,
+                material_chunks=material_embeddings,
+                user_answer=answer.user_answer,
+                question_text=question_text
+            )
+            
+            # Imprimir desglose del scoring
+            print(f"\n📊 DESGLOSE DEL SCORE:")
+            details = classification['scoring_details']
+            print(f"   Base (similitud):     {details['base_similarity']}%")
+            print(f"   + Contexto amplio:    {details['context_bonus']}%")
+            print(f"   + Palabras clave:     {details['keyword_bonus']}%")
+            print(f"   + Elaboración:        {details['length_bonus']}%")
+            print(f"   + Boost inteligencia: {details['intelligence_boost']}%")
+            print(f"   {'─'*40}")
+            print(f"   SCORE FINAL:          {classification['score_porcentaje']}%")
+            print(f"\n✅ Validación completada: {classification['score_porcentaje']}% {'✓' if classification['es_correcto'] else '✗'}")
+            print(f"{'='*70}\n")
+            
+            # Calcular posición del chunk
+            total_chunks = len(material_embeddings)
+            best_chunk_position = best_match["chunk_id"]
+            estimated_page = (best_chunk_position * 500) // 2500
+            
+            # Construir resultado
+            result = ValidationResult(
+                score=classification['score_porcentaje'],
+                is_correct=classification['es_correcto'],
+                similarity=float(best_match['similarity']),
+                feedback=classification['feedback'],
+                relevant_chunks=[
+                    {
+                        "text": chunk["text_short"],
+                        "text_full": chunk["text"],
+                        "similarity": chunk["similarity"],
+                        "position": chunk["chunk_id"],
+                        "total_chunks": total_chunks
+                    }
+                    for chunk in top_chunks
+                ],
+                best_match_chunk={
+                    "text": best_match["text"],
+                    "text_short": best_match["text_short"],
+                    "similarity": best_match["similarity"],
+                    "chunk_id": best_chunk_position,
+                    "total_chunks": total_chunks,
+                    "estimated_page": estimated_page
+                }
+            )
+            
+            print(f"📍 Chunk más relevante: {best_chunk_position + 1}/{total_chunks} (página ~{estimated_page})")
+            
+            return result
+            
+        except ValueError as ve:
+            # Error de validación (respuesta muy corta)
+            print(f"❌ Error de validación: {str(ve)}")
             return ValidationResult(
                 score=0.0,
                 is_correct=False,
                 similarity=0.0,
-                feedback=f"❌ Respuesta muy corta. Active Recall requiere que expliques el concepto con tus propias palabras (mínimo {MIN_RESPONSE_LENGTH} caracteres).",
+                feedback=f"❌ {str(ve)}",
                 relevant_chunks=[],
                 best_match_chunk=None
             )
-        
-        # ===== CARGAR MATERIAL =====
-        embeddings_files = list(EMBEDDINGS_DIR.glob(f"material_{material_id}_*.json"))
-        
-        if not embeddings_files:
-            embeddings_files = list(EMBEDDINGS_DIR.glob("material_*.json"))
-            if not embeddings_files:
-                raise HTTPException(
-                    status_code=404, 
-                    detail="No hay materiales procesados. Sube un material primero."
-                )
-        
-        print(f"📂 Cargando: {embeddings_files[0].name}")
-        with open(embeddings_files[0], 'r', encoding='utf-8') as f:
-            material_embeddings = json.load(f)
-        
-        print(f"📚 {len(material_embeddings)} chunks disponibles")
-        
-        # ===== GENERAR EMBEDDINGS =====
-        # Combinar pregunta + respuesta para mejor contexto
-        combined_text = f"Pregunta: {question_text}\nRespuesta: {answer.user_answer}"
-        user_embedding = generate_embeddings(combined_text)
-        print(f"� Embedding generado (dim: {len(user_embedding)})")
-        
-        # ===== CALCULAR SIMILARIDADES (TODOS LOS CHUNKS) =====
-        similarities = []
-        for idx, chunk_data in enumerate(material_embeddings):
-            chunk_embedding = chunk_data["embedding"]
-            chunk_text = chunk_data.get("text_full", chunk_data.get("text", ""))
-            similarity = calculate_similarity(user_embedding, chunk_embedding)
-            
-            similarities.append({
-                "chunk_id": chunk_data.get("chunk_id", idx),
-                "text": chunk_text,
-                "text_short": chunk_text[:200] + "..." if len(chunk_text) > 200 else chunk_text,
-                "similarity": float(similarity)
-            })
-        
-        # Ordenar por similaridad
-        similarities.sort(key=lambda x: x["similarity"], reverse=True)
-        
-        # ===== ANÁLISIS MULTI-CHUNK (TOP 5) =====
-        TOP_CHUNKS = min(5, len(similarities))
-        top_chunks = similarities[:TOP_CHUNKS]
-        
-        print(f"\n� TOP {TOP_CHUNKS} CHUNKS MÁS RELEVANTES:")
-        for i, chunk in enumerate(top_chunks, 1):
-            print(f"   {i}. Chunk {chunk['chunk_id']}: {chunk['similarity']:.4f} ({int(chunk['similarity']*100)}%)")
-        
-        best_match = similarities[0]
-        base_similarity = best_match["similarity"]
-        
-        # ===== SCORING INTELIGENTE =====
-        import re
-        
-        # FACTOR 1: Similitud base
-        similarity_score = base_similarity * 100
-        
-        # FACTOR 2: Contexto amplio (múltiples chunks relevantes)
-        context_bonus = 0
-        high_sim_chunks = [c for c in top_chunks if c['similarity'] > 0.5]
-        if len(high_sim_chunks) >= 3:
-            context_bonus = 10
-            print(f"   ✅ Bonus contexto: +{context_bonus}% ({len(high_sim_chunks)} chunks)")
-        elif len(high_sim_chunks) >= 2:
-            context_bonus = 5
-            print(f"   ✅ Bonus contexto: +{context_bonus}% ({len(high_sim_chunks)} chunks)")
-        
-        # FACTOR 3: Palabras clave compartidas
-        answer_keywords = set(re.findall(r'\b\w{4,}\b', answer.user_answer.lower()))
-        chunk_keywords = set(re.findall(r'\b\w{4,}\b', best_match["text"].lower()))
-        shared_keywords = answer_keywords.intersection(chunk_keywords)
-        
-        keyword_bonus = 0
-        if len(shared_keywords) >= 5:
-            keyword_bonus = 8
-            print(f"   ✅ Bonus keywords: +{keyword_bonus}% ({len(shared_keywords)} términos)")
-        elif len(shared_keywords) >= 3:
-            keyword_bonus = 5
-            print(f"   ✅ Bonus keywords: +{keyword_bonus}% ({len(shared_keywords)} términos)")
-        
-        # FACTOR 4: Elaboración de respuesta
-        length_bonus = 0
-        if len(answer.user_answer) > 200:
-            length_bonus = 5
-            print(f"   ✅ Bonus elaboración: +{length_bonus}% ({len(answer.user_answer)} chars)")
-        elif len(answer.user_answer) > 100:
-            length_bonus = 3
-            print(f"   ✅ Bonus elaboración: +{length_bonus}% ({len(answer.user_answer)} chars)")
-        
-        # FACTOR 5: Boost de inteligencia (concepto correcto, formulación diferente)
-        intelligence_boost = 0
-        if 0.50 <= base_similarity < 0.70:
-            if context_bonus > 0 or keyword_bonus >= 5:
-                intelligence_boost = 15
-                print(f"   🧠 BOOST INTELIGENCIA: +{intelligence_boost}% (concepto OK, forma diferente)")
-        elif 0.35 <= base_similarity < 0.50:
-            if context_bonus >= 5 and keyword_bonus >= 5:
-                intelligence_boost = 20
-                print(f"   🧠 BOOST INTELIGENCIA: +{intelligence_boost}% (contexto+keywords buenos)")
-        
-        # SCORE FINAL
-        raw_score = similarity_score + context_bonus + keyword_bonus + length_bonus + intelligence_boost
-        score_percentage = min(int(raw_score), 100)
-        
-        print(f"\n📊 DESGLOSE DEL SCORE:")
-        print(f"   Base (similitud):     {int(similarity_score)}%")
-        print(f"   + Contexto amplio:    {context_bonus}%")
-        print(f"   + Palabras clave:     {keyword_bonus}%")
-        print(f"   + Elaboración:        {length_bonus}%")
-        print(f"   + Boost inteligencia: {intelligence_boost}%")
-        print(f"   {'─'*40}")
-        print(f"   SCORE FINAL:          {score_percentage}%")
-        
-        # ===== GENERAR FEEDBACK =====
-        is_correct = score_percentage >= 55
-        
-        if score_percentage >= 85:
-            feedback = f"""🎉 ¡EXCELENTE! Tu respuesta demuestra comprensión profunda del concepto.
-
-📊 Score de comprensión: {score_percentage}%
-
-✅ Tu explicación coincide muy bien con el material. El sistema identificó {len(high_sim_chunks)} fragmentos relacionados en el libro.
-
-💡 Captaste correctamente la esencia del concepto. ¡Sigue así con Active Recall!"""
-
-        elif score_percentage >= 70:
-            feedback = f"""✅ ¡MUY BIEN! Tu respuesta muestra buen entendimiento del tema.
-
-📊 Score de comprensión: {score_percentage}%
-
-👍 Has captado los conceptos principales. Tu formulación puede ser diferente al libro, pero el contenido es correcto.
-
-💭 Sugerencia: Podrías profundizar un poco más, pero vas por buen camino."""
-
-        elif score_percentage >= 55:
-            feedback = f"""⚠️ RESPUESTA PARCIAL. Tienes la idea general, pero falta desarrollo.
-
-📊 Score de comprensión: {score_percentage}%
-
-🔍 Tu respuesta toca algunos puntos correctos, pero necesita más detalle o precisión.
-
-📖 Revisa el material y explica el concepto con más profundidad. Recuerda: Active Recall = ENTENDER, no memorizar."""
-
-        else:
-            feedback = f"""❌ NECESITA MEJORAR. La respuesta no refleja bien el contenido del material.
-
-📊 Score de comprensión: {score_percentage}%
-
-🔄 Intenta de nuevo:
-1. Relee el fragmento relevante
-2. Cierra el libro y explica CON TUS PROPIAS PALABRAS
-3. Enfócate en ENTENDER el concepto
-
-💡 Tip: Imagina que se lo explicas a un amigo."""
-        
-        print(f"\n✅ Validación completada: {score_percentage}% {'✓' if is_correct else '✗'}")
-        print(f"{'='*70}\n")
-        
-        # Calcular la posición del chunk en el material (estimada)
-        total_chunks = len(similarities)
-        best_chunk_position = best_match["chunk_id"]
-        estimated_page = (best_chunk_position * 500) // 2500  # Estimar página basada en caracteres
-        
-        # Resultado con información COMPLETA del chunk
-        result = ValidationResult(
-            score=score_percentage,
-            is_correct=is_correct,
-            similarity=float(base_similarity),
-            feedback=feedback,
-            relevant_chunks=[
-                {
-                    "text": chunk["text_short"],
-                    "text_full": chunk["text"],
-                    "similarity": chunk["similarity"],
-                    "position": chunk["chunk_id"],
-                    "total_chunks": total_chunks
-                }
-                for chunk in top_chunks[:3]
-            ],
-            best_match_chunk={
-                "text": best_match["text"],
-                "text_short": best_match["text_short"],
-                "similarity": best_match["similarity"],
-                "chunk_id": best_chunk_position,
-                "total_chunks": total_chunks,
-                "estimated_page": estimated_page
-            }
-        )
-        
-        print(f"📍 Chunk más relevante: {best_chunk_position + 1}/{total_chunks} (página ~{estimated_page})")
-        
-        return result
         
     except HTTPException:
         raise
@@ -837,8 +734,8 @@ if __name__ == "__main__":
                       help="Puerto para ejecutar el servidor")
     parser.add_argument("--host", type=str, default=os.getenv("HOST", "0.0.0.0"),
                       help="Host para ejecutar el servidor")
-    parser.add_argument("--debug", type=bool, default=os.getenv("DEBUG", "True").lower() == "true",
-                      help="Modo debug")
+    parser.add_argument("--debug", action='store_true', default=False,
+                      help="Modo debug con auto-reload")
     
     args = parser.parse_args()
     

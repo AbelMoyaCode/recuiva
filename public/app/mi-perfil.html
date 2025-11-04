@@ -9,6 +9,7 @@
     <title>Recuiva - Dashboard</title>
     <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../assets/js/header-footer-components.js"></script>
     <style type="text/tailwindcss">
       :root {
         --primary-color: #FF6600;
@@ -177,86 +178,8 @@
 </head>
 <body class="bg-[var(--base-gray)]" style='font-family: Manrope, "Noto Sans", sans-serif;'>
 <div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
-<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
-<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
-  <div class="flex items-center gap-3">
-    <a href="../index.html" class="flex items-center gap-2">
-      <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-      <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
-    </a>
-  </div>
-  <nav class="hidden md:flex items-center gap-4">
-    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../index.html">Inicio</a>
-    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="materiales.html">Materiales</a>
-    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../dashboard.html">Dashboard</a>
-    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="repasos.html">Repasos</a>
-    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="sesion-practica.html">Práctica</a>
-  </nav>
-  <div class="flex items-center gap-4">
-    <!-- Notifications (solo desktop) -->
-    <button class="hidden md:inline-block relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none">
-      <span class="material-symbols-outlined">notifications</span>
-      <span class="notification-badge">3</span>
-    </button>
-    <!-- Profile Dropdown (solo desktop) -->
-    <div class="hidden md:inline-block relative">
-      <button id="profile-btn" class="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus:outline-none">
-        <img alt="User profile picture" class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR"/>
-        <span class="material-symbols-outlined text-gray-500">expand_more</span>
-      </button>
-      <div id="profile-dropdown" class="profile-dropdown">
-        <div class="px-4 py-3 border-b border-gray-100">
-          <div class="flex items-center gap-3">
-            <img class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR" alt="Foto de perfil"/>
-            <div>
-              <div class="font-medium text-gray-900">Juan Pérez</div>
-              <div class="text-sm text-gray-500">juan@ejemplo.com</div>
-            </div>
-          </div>
-        </div>
-        <a href="mi-perfil.html" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
-          <span class="material-symbols-outlined mr-2">person</span>
-          Mi Perfil
-        </a>
-        <hr class="my-1 border-gray-200">
-        <button onclick="logout()" class="flex w-full items-center px-4 py-2 text-red-600 hover:bg-red-50">
-          <span class="material-symbols-outlined mr-2"><a href="landing-page.html">logout</a></span>
-          <a href="landing-page.html">Cerrar sesión</a>
-        </button>
-      </div>
-    </div>
-    <!-- Botón menú móvil (solo móvil) -->
-    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
-      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
-    </button>
-  </div>
-
-<!-- Mobile Menu -->
-<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
-<div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-8">
-  <!-- Perfil y configuración arriba de navegación -->
-  <div class="flex flex-col items-center w-full mb-2 py-2">
-    <a href="mi-perfil.html" class="flex flex-col items-center w-full px-6 py-2 hover:bg-gray-100 rounded-xl cursor-pointer transition-all">
-      <img src="img/profile.jpg" alt="Perfil" class="w-10 h-10 rounded-full border-2 border-blue-700 mx-auto" />
-      <span class="text-base font-semibold text-gray-800 mt-2 text-center">Mi perfil</span>
-    </a>
-  </div>
-  <hr class="w-2/3 border-gray-300 my-2" />
-  <!-- Navegación principal -->
-  <nav class="flex flex-col items-center gap-6 w-full">
-    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../index.html">Inicio</a>
-    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="materiales.html">Materiales</a>
-    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../dashboard.html">Dashboard</a>
-    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="repasos.html">Repasos</a>
-    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="sesion-practica.html">Práctica</a>
-  </nav>
-  <hr class="w-2/3 border-gray-300 my-2" />
-  <button onclick="logout()" class="flex items-center gap-2 text-base text-red-600 font-semibold">
-    <span class="material-symbols-outlined">logout</span>
-    <a href="landing-page.html">Cerrar sesión</a>
-  </button>
-</div>
-</header>
+<!-- Header Container - Managed by header-footer-components.js -->
+<div id="header-container"></div>
 
 
 
@@ -384,35 +307,13 @@
 
       <div class="flex justify-end px-2 py-4">
         <button class="flex min-w-[120px] items-center justify-center rounded-md h-11 px-6 bg-[var(--primary-color)] text-white text-base font-bold transition-colors hover:bg-opacity-90">
-          <span class="truncate"><a href="landing-page.html">Cerrar sesión</a></span>
+          <span class="truncate"><a href="/index.html">Cerrar sesión</a></span>
         </button>
       </div>
     </div>
   </div>
 </main>
 
-
-
-
-
-
-<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
-<div class="container mx-auto text-center">
-<div class="flex justify-center items-center gap-2 mb-6">
-<img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-<span class="text-2xl font-black">Recuiva</span>
-</div>
-<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
-<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/active-recall.html">Active Recall</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/validacion-semantica.html">Validación Semántica</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/diferencias.html">Diferencias</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
-</div>
-<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
-</div>
-</footer>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   // === FUNCIONES MODALES BACKEND MEJORADAS ===
@@ -1231,6 +1132,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Cargar datos guardados al inicializar la página
   loadSavedData();
+});
+</script>
+
+<!-- Footer Container - Managed by header-footer-components.js -->
+<div id="footer-container"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  initializeHeaderFooter('perfil');
 });
 </script>
 </body></html>

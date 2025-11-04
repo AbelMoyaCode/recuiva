@@ -7,9 +7,11 @@
     <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
     <title>Iniciar Sesión | Recuiva</title>
-    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+    <link rel="icon" type="image/x-icon" href="../../assets/img/Icon-Recuiva.ico"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script src="../assets/js/mockApi.js"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/supabase-config.js"></script>
     <style type="text/tailwindcss">
       :root {
         --primary-color: #FF6600;
@@ -40,13 +42,15 @@
         transform: scaleY(0);
         opacity: 0;
         pointer-events: none;
-        height: 100vh;
-        overflow-y: auto;
+        max-height: 0;
+        overflow: hidden;
       }
       .mobile-menu.active {
         transform: scaleY(1);
         opacity: 1;
         pointer-events: auto;
+        max-height: 100vh;
+        overflow-y: auto;
       }
       #menu-btn.active .menu-icon {
         transform: rotate(180deg);
@@ -69,49 +73,49 @@
       }
     </style>
 </head>
-<body class="bg-[var(--base-gray)]" style='font-family: Manrope, "Noto Sans", sans-serif;'>
-<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<body class="bg-[var(--base-gray)] min-h-screen flex flex-col" style='font-family: Manrope, "Noto Sans", sans-serif;'>
+
 <header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
 <div class="container mx-auto px-6 py-4 flex justify-between items-center">
     <!-- Logo -->
     <div class="flex items-center gap-2">
-      <a href="../landing-page.html" class="flex items-center gap-2">
-        <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-        <span class="text-2xl font-bold text-[var(--text-primary)]">Recuiva</span>
+      <a href="/index.html" class="flex items-center gap-2">
+        <img src="../../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+        <span class="text-2xl font-bold text-gray-900">Recuiva</span>
       </a>
     </div>
 <nav class="hidden md:flex items-center gap-8">
-<a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../landing-page.html">Inicio</a>
+<a class="text-gray-600 hover:text-orange-500 transition-colors" href="/index.html">Inicio</a>
 </nav>
 <div class="hidden md:flex items-center gap-4">
 <a href="iniciar-sesion.html" style="display:inline-block">
-  <button type="button" class="border border-[var(--secondary-color)] text-[var(--secondary-color)] font-bold py-2 px-6 rounded-full hover:bg-gray-100 transition-all cursor-pointer">
+  <button type="button" class="border-2 border-blue-700 text-blue-700 font-bold py-2 px-6 rounded-full hover:bg-blue-50 transition-all cursor-pointer">
     Iniciar sesión
   </button>
 </a>
 <a href="crear-cuenta.html" style="display:inline-block">
-  <button type="button" class="bg-[var(--secondary-color)] text-[var(--base-white)] font-bold py-2 px-6 rounded-full hover:bg-opacity-90 transition-all cursor-pointer">
+  <button type="button" class="bg-blue-700 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-800 transition-all cursor-pointer">
     Crear cuenta
   </button>
 </a>
 </div>
 <div class="md:hidden">
 <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100" id="menu-btn">
-<span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
+<span class="material-symbols-outlined text-3xl text-gray-900">menu</span>
 </button>
 </div>
 </div>
-<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
-<div class="flex flex-col items-center justify-center h-screen gap-8">
-<a class="text-2xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../landing-page.html">Inicio</a>
-<div class="flex flex-col gap-4 mt-8 w-full px-8">
-<a href="iniciar-sesion.html" style="display:block">
-  <button type="button" class="w-full text-[var(--secondary-color)] font-bold py-3 px-6 rounded-full border border-[var(--secondary-color)] hover:bg-gray-100 transition-all cursor-pointer">
+<div class="mobile-menu md:hidden absolute top-full left-0 w-full bg-white z-40 shadow-lg" id="mobile-menu">
+<div class="container mx-auto px-6 py-6 flex flex-col gap-4">
+<a class="text-xl text-gray-600 hover:text-orange-500 transition-colors" href="/index.html">Inicio</a>
+<hr class="border-gray-200"/>
+<a href="iniciar-sesion.html" class="w-full">
+  <button type="button" class="w-full border-2 border-blue-700 text-blue-700 font-bold py-3 px-6 rounded-full hover:bg-blue-50 transition-all">
     Iniciar sesión
   </button>
 </a>
-<a href="crear-cuenta.html" style="display:block">
-  <button type="button" class="w-full bg-[var(--secondary-color)] text-[var(--base-white)] font-bold py-3 px-6 rounded-full hover:bg-opacity-90 transition-all cursor-pointer">
+<a href="crear-cuenta.html" class="w-full">
+  <button type="button" class="w-full bg-blue-700 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-800 transition-all">
     Crear cuenta
   </button>
 </a>
@@ -120,32 +124,32 @@
 </div>
 </header>
 
-<main class="flex flex-1 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-<div class="w-full max-w-md space-y-8">
-<div class="bg-[var(--card-background-color)] shadow-lg rounded-2xl p-8 space-y-6">
+<main class="flex-grow py-8 px-4">
+<div class="container mx-auto max-w-md">
+<div class="bg-white shadow-lg rounded-2xl p-6 space-y-4">
 <div class="text-center">
-<h2 class="text-3xl font-bold tracking-tight text-[var(--text-color)]">Iniciar sesión</h2>
-<p class="mt-2 text-sm text-[var(--subtle-text-color)]">Accede a tu cuenta de Recuiva.</p>
+<h2 class="text-3xl font-bold tracking-tight text-gray-900">Iniciar sesión</h2>
+<p class="mt-2 text-sm text-gray-600">Accede a tu cuenta de Recuiva.</p>
 </div>
 
 <!-- Formulario principal -->
-<form action="#" class="space-y-6" method="POST" id="login-form">
+<form action="#" class="space-y-4" method="POST" id="login-form">
   <div>
     <label class="sr-only" for="email">Correo electrónico</label>
-    <input autocomplete="email" class="form-input block w-full rounded-lg border-2 border-[var(--input-border-color)] bg-[var(--input-background-color)] h-12 px-4 placeholder:text-[var(--subtle-text-color)] focus:outline-none focus:ring-2 focus:ring-[var(--input-focus-border-color)] focus:border-[var(--input-focus-border-color)] sm:text-sm" id="email" name="email" placeholder="Correo electrónico" required type="email"/>
+    <input autocomplete="email" class="form-input block w-full rounded-lg border-2 border-gray-300 bg-white h-12 px-4 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="email" name="email" placeholder="Correo electrónico" required type="email"/>
   </div>
   <div class="relative">
     <label class="sr-only" for="password">Contraseña</label>
-    <input autocomplete="current-password" class="form-input block w-full rounded-lg border-2 border-[var(--input-border-color)] bg-[var(--input-background-color)] h-12 px-4 pr-12 placeholder:text-[var(--subtle-text-color)] focus:outline-none focus:ring-2 focus:ring-[var(--input-focus-border-color)] focus:border-[var(--input-focus-border-color)] sm:text-sm" id="password" name="password" placeholder="Contraseña" required type="password"/>
-    <button type="button" id="toggle-password" tabindex="-1" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[var(--primary-color)] focus:outline-none">
+    <input autocomplete="current-password" class="form-input block w-full rounded-lg border-2 border-gray-300 bg-white h-12 px-4 pr-12 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" id="password" name="password" placeholder="Contraseña" required type="password"/>
+    <button type="button" id="toggle-password" tabindex="-1" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 focus:outline-none">
       <span class="material-symbols-outlined" id="icon-password">visibility_off</span>
     </button>
   </div>
   <div class="flex items-center justify-between">
-    <a href="#" id="forgot-link" class="text-sm text-[var(--primary-color)] hover:underline">¿Olvidaste tu contraseña?</a>
+    <a href="#" id="forgot-link" class="text-sm text-orange-500 hover:underline">¿Olvidaste tu contraseña?</a>
   </div>
   <div>
-    <button class="group relative flex w-full justify-center rounded-lg border border-transparent bg-[var(--primary-color)] py-3 px-4 text-sm font-bold text-white shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-300 ease-in-out" type="submit">
+    <button class="group relative flex w-full justify-center rounded-lg border border-transparent bg-orange-500 py-3 px-4 text-sm font-bold text-white shadow-md hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-300 ease-in-out" type="submit">
       Iniciar sesión
     </button>
   </div>
@@ -157,46 +161,56 @@
     <div class="w-full border-t border-gray-300"></div>
   </div>
   <div class="relative flex justify-center text-sm">
-    <span class="px-2 bg-[var(--card-background-color)] text-gray-500">o</span>
+    <span class="px-2 bg-white text-gray-500">o</span>
   </div>
 </div>
 
-<!-- Botón de Gmail -->
-<button onclick="signInWithGmail()" type="button" class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]">
-  <svg class="w-5 h-5" viewBox="0 0 24 24">
-    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-  </svg>
-  <span class="text-gray-700 font-medium">Continuar con Gmail</span>
-</button>
+<!-- Botones de OAuth -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+  <button onclick="signInWithGmail()" type="button" class="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500">
+    <svg class="w-5 h-5" viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+    </svg>
+    <span class="text-gray-700 font-medium">Gmail</span>
+  </button>
+  
+  <button onclick="signInWithGitHub()" type="button" class="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500">
+    <svg class="w-5 h-5" viewBox="0 0 24 24">
+      <path fill="#181717" d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+    </svg>
+    <span class="text-gray-700 font-medium">GitHub</span>
+  </button>
+</div>
 
-<p class="text-center text-sm text-[var(--subtle-text-color)]">
+<p class="text-center text-sm text-gray-600">
   ¿No tienes cuenta?
-  <a class="font-medium text-[var(--primary-color)] hover:text-orange-500" href="crear-cuenta.html">Crear cuenta</a>
+  <a class="font-medium text-orange-500 hover:text-orange-600" href="crear-cuenta.html">Crear cuenta</a>
 </p>
 </div>
 </div>
 </main>
 
-<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6">
+<footer class="text-gray-100 py-12 px-6" style="background-color: #004EAA;">
 <div class="container mx-auto text-center">
 <div class="flex justify-center items-center gap-2 mb-6">
-<img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<img src="../../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
 <span class="text-2xl font-bold">Recuiva</span>
 </div>
-<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
-<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/active-recall.html">Active Recall</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/validacion-semantica.html">Validación Semántica</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/diferencias.html">Diferencias</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mb-6 text-base">
+<a class="hover:text-orange-400 transition-colors whitespace-nowrap" href="../institucional/active-recall.html">Active Recall</a>
+<a class="hover:text-orange-400 transition-colors whitespace-nowrap" href="../institucional/validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-orange-400 transition-colors whitespace-nowrap" href="../institucional/diferencias.html">Diferencias</a>
+<a class="hover:text-orange-400 transition-colors whitespace-nowrap" href="#">Contacto</a>
+<a class="hover:text-orange-400 transition-colors whitespace-nowrap" href="#">Términos</a>
+<a class="hover:text-orange-400 transition-colors whitespace-nowrap" href="#">Privacidad</a>
 </div>
-<p class="text-sm">© 2024 Recuiva. Todos los derechos reservados.</p>
+<p class="text-sm opacity-75">© 2025 Recuiva. Todos los derechos reservados.</p>
 </div>
 </footer>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   // Menú móvil animación
@@ -268,21 +282,52 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.textContent = 'Iniciando sesión...';
       
       try {
-        if (typeof mockAPI !== 'undefined') {
-          const result = await mockAPI.apiLoginMock(email, password);
+        console.log('🔐 Intentando login con Supabase...');
+        console.log('📧 Email:', email);
+        
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+        
+        if (error) {
+          console.error('❌ Error de Supabase:', error);
           
-          if (result.ok) {
-            alert(`¡Bienvenido ${result.user.name}!`);
-            window.location.href = '../index.html';
+          // Mensajes de error más específicos
+          if (error.message.includes('Invalid login credentials')) {
+            throw new Error('Credenciales incorrectas. Verifica tu email y contraseña.');
+          } else if (error.message.includes('Email not confirmed') || error.message.includes('email_confirmed_at')) {
+            throw new Error('⚠️ Tu email no ha sido confirmado.\n\n' +
+                          'SOLUCIÓN TEMPORAL:\n' +
+                          '1. Ve a Supabase Dashboard → Authentication → Users\n' +
+                          '2. Haz clic en tu usuario\n' +
+                          '3. Activa "Email confirmed"\n\n' +
+                          'O desactiva "Confirm email" en Authentication → Providers → Email');
+          } else if (error.message.includes('User not found')) {
+            throw new Error('No existe una cuenta con este email. ¿Quieres crear una cuenta?');
           } else {
-            alert('Error: ' + result.error);
+            throw new Error(error.message || 'Error desconocido al iniciar sesión');
           }
-        } else {
-          alert('Demo: Login simulado exitoso');
-          window.location.href = '../index.html';
         }
+        
+        console.log('✅ Login exitoso:', data);
+        
+        // Guardar en localStorage
+        const user = {
+          name: data.user.user_metadata?.full_name || data.user.email,
+          email: data.user.email,
+          id: data.user.id
+        };
+        
+        localStorage.setItem('recuiva_user', JSON.stringify(user));
+        localStorage.setItem('recuiva_isAuthenticated', 'true');
+        
+        alert(`✅ ¡Bienvenido ${user.name}!`);
+        window.location.href = '../home.html';
+        
       } catch (error) {
-        alert('Error de conexión. Inténtalo de nuevo.');
+        console.error('❌ Error en login:', error);
+        alert(`❌ ${error.message || 'Error al iniciar sesión. Por favor, intenta de nuevo.'}`);
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
@@ -290,9 +335,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Función para Gmail (simulada)
-  window.signInWithGmail = function() {
-    alert('Gmail no disponible en Sprint 1. Usa demo@recuiva.com / demo123');
+  // Función para Gmail con Supabase
+  window.signInWithGmail = async function() {
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/app/home.html`
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error al iniciar sesión con Gmail:', error);
+      alert('Login con Gmail no disponible todavía. Por favor usa email y contraseña.');
+    }
+  };
+
+  // Función para GitHub con Supabase
+  window.signInWithGitHub = async function() {
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/app/home.html`
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error al iniciar sesión con GitHub:', error);
+      alert('Login con GitHub no disponible todavía. Por favor usa email y contraseña.');
+    }
   };
 
   // Mostrar/ocultar contraseña
@@ -317,22 +389,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (forgotLink) {
     forgotLink.addEventListener('click', function(e) {
       e.preventDefault();
-      alert('En Sprint 1 este es un demo. Usa: demo@recuiva.com / demo123');
+      const email = prompt('Ingresa tu email para recuperar tu contraseña:');
+      if (email) {
+        alert('Se ha enviado un correo para recuperar tu contraseña.');
+      }
     });
-  }
-
-  // Botón demo rápido
-  const demoBtn = document.createElement('button');
-  demoBtn.type = 'button';
-  demoBtn.className = 'w-full mt-4 px-4 py-2 border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition-all font-medium';
-  demoBtn.innerHTML = '🚀 Demo Rápido (demo@recuiva.com)';
-  demoBtn.addEventListener('click', () => {
-    document.getElementById('email').value = 'demo@recuiva.com';
-    document.getElementById('password').value = 'demo123';
-  });
-  
-  if (loginForm) {
-    loginForm.appendChild(demoBtn);
   }
 });
 </script>

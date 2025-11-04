@@ -9,6 +9,7 @@
     <title>Repasos Espaciados - Recuiva</title>
     <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../assets/js/header-footer-components.js"></script>
     <!-- Sistema de Repaso Espaciado -->
     <script src="spaced-repetition.js"></script>
     <script src="repetition-data.js"></script>
@@ -185,39 +186,8 @@
 </head>
 <body class="bg-[var(--base-gray)] min-h-screen">
 
-<header class="bg-[var(--base-white)] shadow-md">
-<div class="container mx-auto px-4 md:px-6 py-3">
-  <div class="flex justify-between items-center">
-    <div class="flex items-center gap-3">
-      <a href="../index.html" class="flex items-center gap-2">
-        <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-        <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
-      </a>
-    </div>
-    <nav class="hidden md:flex items-center gap-4 absolute left-1/2 transform -translate-x-1/2">
-      <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../index.html">Inicio</a>
-      <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="materiales.html">Materiales</a>
-      <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="dashboard.html">Dashboard</a>
-      <a class="text-[var(--primary-color)] font-semibold px-2 py-1 rounded-lg" href="repasos.html">Repasos</a>
-      <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="sesion-practica.html">Práctica</a>
-    </nav>
-    <!-- Mobile Menu Button -->
-    <button class="md:hidden menu-btn text-[var(--text-primary)]" id="menu-btn">
-      <span class="material-symbols-outlined text-3xl menu-icon">menu</span>
-    </button>
-  </div>
-</div>
-<!-- Mobile Menu -->
-<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
-  <div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-8">
-    <a class="text-2xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors font-semibold" href="../index.html">Inicio</a>
-    <a class="text-2xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors font-semibold" href="materiales.html">Materiales</a>
-    <a class="text-2xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors font-semibold" href="dashboard.html">Dashboard</a>
-    <a class="text-2xl text-[var(--primary-color)] transition-colors font-semibold" href="repasos.html">Repasos</a>
-    <a class="text-2xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors font-semibold" href="sesion-practica.html">Práctica</a>
-  </div>
-</div>
-</header>
+<!-- Header Container - Managed by header-footer-components.js -->
+<div id="header-container"></div>
 
 <main class="container mx-auto px-4 py-8 max-w-6xl">
   
@@ -398,24 +368,6 @@
   </div>
 
 </main>
-
-<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
-<div class="container mx-auto text-center">
-<div class="flex justify-center items-center gap-2 mb-6">
-<img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-<span class="recuiva-logo">Recuiva</span>
-</div>
-<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
-<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/active-recall.html">Active Recall</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/validacion-semantica.html">Validación Semántica</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/diferencias.html">Diferencias</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
-</div>
-<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
-</div>
-</footer>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -982,7 +934,7 @@ window.practiceToday = function() {
  */
 window.viewProgress = function() {
   console.log('📊 Redirigiendo al dashboard...');
-  window.location.href = 'dashboard.html';
+  window.location.href = 'home.html';
 };
 
 /**
@@ -996,6 +948,15 @@ function showInfoModal(title, message) {
   }
 }
 
+</script>
+
+<!-- Footer Container - Managed by header-footer-components.js -->
+<div id="footer-container"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  initializeHeaderFooter('repasos');
+});
 </script>
 
 </body>

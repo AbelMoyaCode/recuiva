@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -10,6 +11,7 @@
     <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../assets/js/header-footer-components.js"></script>
     
     <style type="text/tailwindcss">
       :root {
@@ -73,43 +75,8 @@
 
 <body class="bg-[var(--base-gray)]" style='font-family: Manrope, "Noto Sans", sans-serif;'>
 <div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
-<!-- Header -->
-<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
-<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
-  <div class="flex items-center gap-3">
-    <a href="../index.html" class="flex items-center gap-2">
-      <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-      <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
-    </a>
-  </div>
-  <nav class="hidden md:flex items-center gap-4">
-    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../index.html">Inicio</a>
-    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="materiales.html">Materiales</a>
-    <a class="text-[var(--primary-color)] font-semibold px-2 py-1 rounded-lg" href="dashboard.html">Dashboard</a>
-    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="repasos.html">Repasos</a>
-    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="sesion-practica.html">Práctica</a>
-  </nav>
-  <div class="flex items-center gap-4">
-    <!-- Botón menú móvil (solo móvil) -->
-    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
-      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)] menu-icon">menu</span>
-    </button>
-  </div>
-</div>
-<!-- Mobile Menu -->
-<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu" style="display: none;">
-<div class="flex flex-col h-auto items-center justify-center gap-8 py-6">
-  <!-- Navegación principal -->
-  <nav class="flex flex-col items-center gap-6 w-full">
-    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../index.html">Inicio</a>
-    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="materiales.html">Materiales</a>
-    <a class="text-xl text-[var(--primary-color)] font-semibold" href="dashboard.html">Dashboard</a>
-    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="repasos.html">Repasos</a>
-    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="sesion-practica.html">Práctica</a>
-  </nav>
-</div>
-</div>
-</header>
+<!-- Header Container - Managed by header-footer-components.js -->
+<div id="header-container"></div>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -254,24 +221,8 @@
         </div>
     </main>
 
-<!-- Footer -->
-<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
-<div class="container mx-auto text-center">
-<div class="flex justify-center items-center gap-2 mb-6">
-<img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-<span class="text-2xl font-black">Recuiva</span>
-</div>
-<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
-<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/active-recall.html">Active Recall</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/validacion-semantica.html">Validación Semántica</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/diferencias.html">Diferencias</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
-<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
-</div>
-<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
-</div>
-</footer>
+<!-- Footer Container - Managed by header-footer-components.js -->
+<div id="footer-container"></div>
 
 <!-- ========================================== -->
 <!-- MODALES -->
@@ -323,7 +274,7 @@
 
     <script>
         // Configuración de API
-    const API_URL = 'https://api-recuiva.duckdns.org';
+    const API_URL = 'http://localhost:8000';
 
         // ==========================================
         // FUNCIÓN PRINCIPAL DE INICIALIZACIÓN
@@ -520,7 +471,7 @@
                 
             } catch (error) {
                 console.error('❌ Error al cargar materiales:', error);
-                console.log('💡 Verifica que el backend esté corriendo en https://api-recuiva.duckdns.org');
+                console.log('💡 Verifica que el backend esté corriendo en http://localhost:8000');
                 return [];
             }
         }
@@ -1254,7 +1205,12 @@
         // ==========================================
         // INICIALIZAR AL CARGAR LA PÁGINA
         // ==========================================
-        document.addEventListener('DOMContentLoaded', initDashboard);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar componentes de header y footer
+            initializeHeaderFooter('dashboard');
+            // Inicializar dashboard
+            initDashboard();
+        });
         
         // ==========================================
         // AUTO-ACTUALIZACIÓN: Detectar cambios en localStorage
@@ -1482,3 +1438,4 @@
     </script>
 </body>
 </html>
+iona 
