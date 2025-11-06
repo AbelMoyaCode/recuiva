@@ -12,10 +12,11 @@
     <!-- Supabase Auth -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../assets/js/supabase-config.js"></script>
+    <script src="../assets/js/supabase-operations.js"></script>
     <!-- Header/Footer Components -->
     <script src="../assets/js/header-footer-components.js"></script>
     <!-- Protección de ruta: solo usuarios autenticados -->
-    <script src="../assets/js/mockApi.js"></script>
+    <!-- MockAPI deshabilitado - usando Supabase real -->
     <script>
       // Verificar si el usuario está logueado
       (function() {
@@ -1249,110 +1250,65 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     nombreInput.focus();
   }
-  // Menú móvil animación landing-page
-  const menuBtn = document.getElementById('menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
-  const menuIcon = menuBtn.querySelector('.material-symbols-outlined');
-  let isMenuOpen = false;
-  function toggleMenu() {
-    isMenuOpen = !isMenuOpen;
-    mobileMenu.classList.toggle('active');
-    document.body.classList.toggle('overflow-hidden');
-    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
-    if (isMenuOpen) {
-      menuIcon.style.transform = 'rotate(90deg)';
-      menuIcon.style.opacity = '0';
-      setTimeout(() => {
-        menuIcon.textContent = 'close';
-        menuIcon.style.transform = 'rotate(0deg)';
-        menuIcon.style.opacity = '1';
-      }, 150);
-    } else {
-      menuIcon.style.transform = 'rotate(90deg)';
-      menuIcon.style.opacity = '0';
-      setTimeout(() => {
-        menuIcon.textContent = 'menu';
-        menuIcon.style.transform = 'rotate(0deg)';
-        menuIcon.style.opacity = '1';
-      }, 150);
-    }
-  }
-  menuBtn.addEventListener('click', toggleMenu);
-  const menuLinks = mobileMenu.querySelectorAll('a');
-  menuLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      if (isMenuOpen) {
-        toggleMenu();
-      }
-    });
-  });
-  // Menú de perfil
-  const profileBtn = document.getElementById('profile-btn');
-  const profileDropdown = document.getElementById('profile-dropdown');
-  function toggleProfileMenu(e) {
-    e.stopPropagation();
-    profileDropdown.classList.toggle('active');
-  }
-  if (profileBtn && profileDropdown) {
-    profileBtn.addEventListener('click', toggleProfileMenu);
-    document.addEventListener('click', (e) => {
-      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
-        profileDropdown.classList.remove('active');
-      }
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        profileDropdown.classList.remove('active');
-      }
-    });
-  }
 
   // --- Onboarding jerárquico en un solo board CON PERSISTENCIA ---
   let carpetas = [];
   
-  // 🔥 CARGAR CARPETAS DESDE LOCALSTORAGE AL INICIO
-  function cargarCarpetasDesdeStorage() {
-    console.log('🔍 CARGANDO CARPETAS DESDE LOCALSTORAGE...');
-    const stored = localStorage.getItem('recuiva_organization');
-    console.log('   • Datos en storage:', stored ? stored.substring(0, 100) + '...' : 'null');
-    
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        carpetas = parsed.carpetas || [];
-        console.log('📂 Carpetas cargadas desde localStorage:', carpetas.length);
-        console.log('   • Carpetas:', carpetas);
-      } catch(e) {
-        console.error('❌ Error al cargar carpetas:', e);
-        carpetas = [];
-      }
-    } else {
-      console.log('📭 Sin carpetas guardadas, iniciando vacío');
+  // 🔥 CARGAR CARPETAS DESDE SUPABASE AL INICIO
+  async function cargarCarpetasDesdeSupabase() {
+    console.log('🔍 CARGANDO CARPETAS DESDE SUPABASE...');
+    try {
+      const folders = await SupabaseOperations.getFolders();
+      
+      // Convertir estructura de Supabase a estructura local
+      carpetas = folders.map(folder => ({
+        id: folder.id,
+        nombre: folder.name,
+        parent_id: folder.parent_folder_id,
+        subcarpetas: [],
+        _expand: false,
+        color: folder.color,
+        icon: folder.icon
+      }));
+      
+      // Organizar en estructura jerárquica
+      const carpetasMap = new Map();
+      carpetas.forEach(c => carpetasMap.set(c.id, c));
+      
+      const raices = [];
+      carpetas.forEach(c => {
+        if (c.parent_id) {
+          const parent = carpetasMap.get(c.parent_id);
+          if (parent) {
+            parent.subcarpetas.push(c);
+          }
+        } else {
+          raices.push(c);
+        }
+      });
+      
+      carpetas = raices;
+      console.log('� Carpetas cargadas desde Supabase:', carpetas.length);
+      renderTree();
+    } catch (error) {
+      console.error('❌ Error al cargar carpetas:', error);
       carpetas = [];
     }
   }
   
-  // 🔥 GUARDAR CARPETAS EN LOCALSTORAGE
-  function guardarCarpetasEnStorage() {
+  // 🔥 GUARDAR CARPETA EN SUPABASE
+  async function guardarCarpetaEnSupabase(nombre, parentId = null, options = {}) {
     try {
-      console.log('💾 GUARDANDO EN LOCALSTORAGE...');
-      console.log('   • Carpetas a guardar:', carpetas);
+      console.log('💾 GUARDANDO CARPETA EN SUPABASE...');
+      console.log('   • Nombre:', nombre);
+      console.log('   • Parent ID:', parentId);
       
-      const data = { carpetas };
-      const jsonString = JSON.stringify(data);
-      
-      console.log('   • JSON generado:', jsonString);
-      console.log('   • Tamaño:', jsonString.length, 'caracteres');
-      
-      localStorage.setItem('recuiva_organization', jsonString);
-      
-      // Verificar que se guardó correctamente
-      const verificacion = localStorage.getItem('recuiva_organization');
-      console.log('   • Verificación lectura:', verificacion ? 'OK' : 'ERROR');
-      
-      console.log('✅ Carpetas guardadas en localStorage:', carpetas.length);
-    } catch(e) {
-      console.error('❌ Error al guardar carpetas:', e);
+      const folder = await SupabaseOperations.createFolder(nombre, parentId, options);
+      console.log('✅ Carpeta guardada en Supabase:', folder);
+      return folder;
+    } catch (error) {
+      console.error('❌ Error al guardar carpeta:', error);
+      throw error;
     }
   }
   
@@ -1451,10 +1407,18 @@ document.addEventListener('DOMContentLoaded', () => {
     add.title = 'Agregar subcarpeta';
     add.innerHTML = `<span class="material-symbols-outlined mr-1" style="font-size:20px;">add</span><span class="material-symbols-outlined" style="font-size:20px;">folder</span>`;
     add.onclick = () => {
-      abrirModalAgregar(({ nombre }) => {
-        (carpeta.subcarpetas ||= []).push({ id: genId(), nombre, subcarpetas: [], _expand:false });
+      abrirModalAgregar(async ({ nombre }) => {
+        // Crear subcarpeta en Supabase
+        const newFolder = await guardarCarpetaEnSupabase(nombre, carpeta.id);
+        
+        // Actualizar estructura local
+        (carpeta.subcarpetas ||= []).push({ 
+          id: newFolder.id, 
+          nombre: newFolder.name, 
+          subcarpetas: [], 
+          _expand:false 
+        });
         carpeta._expand = true;
-        guardarCarpetasEnStorage(); // 🔥 PERSISTENCIA
         renderTree();
       }, false);
     };
@@ -1464,13 +1428,23 @@ document.addEventListener('DOMContentLoaded', () => {
     del.innerHTML = `<span class="material-symbols-outlined" style="font-size:20px;">delete</span>`;
     del.onclick = async () => {
       if (!await modal.confirm({ title: 'Eliminar', message: '¿Seguro que quieres eliminar esta carpeta?' })) return;
-      if (parentRef) {
-        parentRef.subcarpetas = parentRef.subcarpetas.filter(x => x !== carpeta);
-      } else {
-        carpetas = carpetas.filter(x => x !== carpeta);
+      
+      // Eliminar de Supabase
+      try {
+        await SupabaseOperations.deleteFolder(carpeta.id);
+        console.log('✅ Carpeta eliminada de Supabase');
+        
+        // Actualizar estructura local
+        if (parentRef) {
+          parentRef.subcarpetas = parentRef.subcarpetas.filter(x => x !== carpeta);
+        } else {
+          carpetas = carpetas.filter(x => x !== carpeta);
+        }
+        renderTree();
+      } catch (error) {
+        console.error('❌ Error al eliminar carpeta:', error);
+        await modal.alert({ message: 'Error al eliminar la carpeta' });
       }
-      guardarCarpetasEnStorage(); // 🔥 PERSISTENCIA
-      renderTree();
     };
     acciones.append(entrar, add, del);
     fila.append(nombreSpan, acciones);
@@ -1511,26 +1485,32 @@ document.addEventListener('DOMContentLoaded', () => {
     fila.addEventListener('dragleave', () => {
       fila.classList.remove('drop-line', 'drop-line-above', 'drop-line-below', 'drop-inside');
     });
-    fila.addEventListener('drop', (e) => {
+    fila.addEventListener('drop', async (e) => {
       e.preventDefault();
       fila.classList.remove('drop-line', 'drop-line-above', 'drop-line-below', 'drop-inside');
       const draggedId = e.dataTransfer.getData('text/plain');
       if (!draggedId || draggedId === carpeta.id) return;
       const draggedNode = findNodeById(draggedId, carpetas);
       if (!draggedNode) return;
-      if (dropIntent === 'above') {
-        const destParent = parentRef;
-        const destIdx = destParent ? destParent.subcarpetas.indexOf(carpeta) : carpetas.indexOf(carpeta);
-        moveNode(draggedId, destParent ? destParent.id : null, destIdx);
-      } else if (dropIntent === 'below') {
-        const destParent = parentRef;
-        const destIdx = (destParent ? destParent.subcarpetas.indexOf(carpeta) : carpetas.indexOf(carpeta)) + 1;
-        moveNode(draggedId, destParent ? destParent.id : null, destIdx);
-      } else if (dropIntent === 'inside') {
-        moveNode(draggedId, carpeta.id, carpeta.subcarpetas ? carpeta.subcarpetas.length : 0);
+      
+      try {
+        if (dropIntent === 'above') {
+          const destParent = parentRef;
+          const destIdx = destParent ? destParent.subcarpetas.indexOf(carpeta) : carpetas.indexOf(carpeta);
+          moveNode(draggedId, destParent ? destParent.id : null, destIdx);
+        } else if (dropIntent === 'below') {
+          const destParent = parentRef;
+          const destIdx = (destParent ? destParent.subcarpetas.indexOf(carpeta) : carpetas.indexOf(carpeta)) + 1;
+          moveNode(draggedId, destParent ? destParent.id : null, destIdx);
+        } else if (dropIntent === 'inside') {
+          moveNode(draggedId, carpeta.id, carpeta.subcarpetas ? carpeta.subcarpetas.length : 0);
+          // Actualizar parent_id en Supabase
+          await SupabaseOperations.updateFolder(draggedId, { parent_folder_id: carpeta.id });
+        }
+        renderTree();
+      } catch (error) {
+        console.error('❌ Error al mover carpeta:', error);
       }
-      guardarCarpetasEnStorage(); // 🔥 PERSISTENCIA DESPUÉS DE REORDENAR
-      renderTree();
     });
     fila.addEventListener('dragend', () => {
       fila.classList.remove('dragging', 'drop-line', 'drop-line-above', 'drop-line-below', 'drop-inside');
@@ -1540,7 +1520,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Evento para agregar carpeta raíz (SIMPLIFICADO - sin modalidad)
-  document.getElementById('agregar-carpeta-btn').addEventListener('click', () => {
+  document.getElementById('agregar-carpeta-btn').addEventListener('click', async () => {
     console.log('🔵 CLICK EN BOTÓN AGREGAR CARPETA');
     
     const nombre = modalidadInput.value.trim();
@@ -1550,22 +1530,34 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     
-    const nuevaCarpeta = { id: genId(), nombre, subcarpetas: [], _expand: false };
-    console.log('📁 Nueva carpeta creada:', nuevaCarpeta);
-    
-    carpetas.push(nuevaCarpeta);
-    console.log('📦 Array carpetas después de push:', carpetas);
-    
-    modalidadInput.value = '';
-    
-    guardarCarpetasEnStorage(); // 🔥 PERSISTENCIA
-    renderTree();
-    
-    console.log('✅ Carpeta agregada:', nombre);
+    try {
+      // Guardar en Supabase
+      const newFolder = await guardarCarpetaEnSupabase(nombre, null);
+      console.log('✅ Carpeta guardada en Supabase:', newFolder);
+      
+      // Actualizar estructura local
+      const nuevaCarpeta = { 
+        id: newFolder.id, 
+        nombre: newFolder.name, 
+        subcarpetas: [], 
+        _expand: false 
+      };
+      
+      carpetas.push(nuevaCarpeta);
+      console.log('📦 Array carpetas después de push:', carpetas);
+      
+      modalidadInput.value = '';
+      renderTree();
+      
+      console.log('✅ Carpeta agregada:', nombre);
+    } catch (error) {
+      console.error('❌ Error al crear carpeta:', error);
+      modal.alert({ message: 'Error al crear la carpeta' });
+    }
   });
 
   // 🔥 INICIALIZAR: Cargar carpetas guardadas
-  cargarCarpetasDesdeStorage();
+  cargarCarpetasDesdeSupabase();
   renderTree();
 
   // --- MODAL AGREGAR MATERIAL ---

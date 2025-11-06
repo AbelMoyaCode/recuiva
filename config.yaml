@@ -1,3 +1,41 @@
-sdk: gradio
-sdk_version: 4.19.2
-app_file: app.py
+# Configuración de despliegue - Recuiva
+# Sistema de Active Recall con IA
+
+# Información del proyecto
+name: recuiva
+description: "Plataforma educativa basada en técnicas de repaso activo (active recall) con análisis de progreso y gestión de materiales de estudio"
+
+# Configuración de despliegue
+deployment:
+  platform: dokploy
+  docker_compose: true
+  
+# Servicios
+services:
+  backend:
+    type: fastapi
+    port: 8001
+    dockerfile: Dockerfile
+    healthcheck: /api/health
+    
+  frontend:
+    type: nginx
+    port: 80
+    dockerfile: Dockerfile.frontend
+
+# Dominios
+domains:
+  frontend: recuiva.duckdns.org
+  backend: api-recuiva.duckdns.org
+
+# Variables de entorno (referencia)
+environment:
+  production:
+    DEBUG: false
+    LOG_LEVEL: INFO
+    ALLOWED_ORIGINS: "https://recuiva.duckdns.org,https://api-recuiva.duckdns.org"
+  
+  development:
+    DEBUG: true
+    LOG_LEVEL: DEBUG
+    ALLOWED_ORIGINS: "http://localhost:3000,http://localhost:8080"

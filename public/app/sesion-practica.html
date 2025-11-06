@@ -9,7 +9,13 @@
 <title>Recuiva - Sesión Práctica</title>
 <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
 <script src="https://cdn.tailwindcss.com"></script>
+<!-- Supabase Auth -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/js/supabase-config.js"></script>
+<script src="../assets/js/supabase-operations.js"></script>
 <script src="../assets/js/header-footer-components.js"></script>
+<!-- Funciones críticas que deben cargar ANTES del HTML -->
+<script src="sesion-practica-helpers.js"></script>
 <!-- Sistema de Repaso Espaciado -->
 <script src="spaced-repetition.js"></script>
 <script src="repetition-data.js"></script>
@@ -456,130 +462,9 @@ Ejemplo: Porque vivía en el mismo edificio, tenía acceso visual al patio y a l
 
 <script>
 // ===================================================================
-// ⚡ FUNCIÓN CRÍTICA: window.checkValidateButton - DEBE ESTAR PRIMERA
-// Se define ANTES de todo para que esté disponible en los oninput
+// NOTA: Las funciones checkValidateButton y updateCharCount están 
+// ahora en sesion-practica-helpers.js para que se carguen ANTES del HTML
 // ===================================================================
-window.checkValidateButton = function() {
-  const questionInput = document.getElementById('user-question');
-  const userAnswer = document.getElementById('user-answer');
-  const btnValidate = document.getElementById('btn-validate-answer');
-  const statusDiv = document.getElementById('button-status');
-  
-  // Registrar en log si está disponible
-  if (typeof window.addValidationLog === 'function') {
-    window.addValidationLog('🔍 checkValidateButton() llamada', 'info');
-  }
-  
-  console.log('🔍 checkValidateButton ejecutada');
-  
-  if (!questionInput || !userAnswer || !btnValidate) {
-    console.warn('⚠️ Elementos no encontrados');
-    if (typeof window.addValidationLog === 'function') {
-      window.addValidationLog('⚠️ ERROR: Elementos no encontrados', 'error');
-    }
-    return;
-  }
-  
-  // LÓGICA SIMPLE: Solo requiere 1 carácter mínimo en cada campo
-  const questionLength = questionInput.value.trim().length;
-  const answerLength = userAnswer.value.trim().length;
-  const hasQuestion = questionLength >= 1;
-  const hasAnswer = answerLength >= 1;
-  
-  console.log('📝 Pregunta:', questionLength, 'chars');
-  console.log('✍️ Respuesta:', answerLength, 'chars');
-  console.log('🔍 hasQuestion (>=1):', hasQuestion);
-  console.log('🔍 hasAnswer (>=1):', hasAnswer);
-  
-  // ✅ HABILITAR/DESHABILITAR TEXTAREA DE RESPUESTA según si hay pregunta
-  if (hasQuestion) {
-    if (userAnswer.disabled) {
-      console.log('✅ Habilitando textarea de respuesta (hay pregunta)');
-      userAnswer.disabled = false;
-      userAnswer.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-100');
-      userAnswer.classList.add('bg-white');
-      if (typeof window.addValidationLog === 'function') {
-        window.addValidationLog('✅ Campo de respuesta habilitado - Puedes escribir', 'success');
-      }
-    }
-  } else {
-    if (!userAnswer.disabled) {
-      console.log('❌ Deshabilitando textarea de respuesta (no hay pregunta)');
-      userAnswer.disabled = true;
-      userAnswer.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-100');
-      userAnswer.classList.remove('bg-white');
-      if (typeof window.addValidationLog === 'function') {
-        window.addValidationLog('⚠️ Campo de respuesta deshabilitado - Escribe una pregunta primero', 'warning');
-      }
-    }
-  }
-  
-  if (typeof window.addValidationLog === 'function') {
-    window.addValidationLog(`📝 Pregunta: ${questionLength} chars (${hasQuestion ? 'OK' : 'Vacío'})`, hasQuestion ? 'success' : 'error');
-    window.addValidationLog(`✍️ Respuesta: ${answerLength} chars (${hasAnswer ? 'OK' : 'Vacío'})`, hasAnswer ? 'success' : 'error');
-  }
-  
-  if (hasQuestion && hasAnswer) {
-    console.log('✅ HABILITANDO BOTÓN');
-    if (typeof window.addValidationLog === 'function') {
-      window.addValidationLog('✅ HABILITANDO BOTÓN - Ambos campos OK', 'success');
-    }
-    
-    btnValidate.disabled = false;
-    btnValidate.classList.remove('opacity-50', 'cursor-not-allowed');
-    btnValidate.classList.add('hover:bg-green-700', 'hover:shadow-xl', 'hover:-translate-y-0.5');
-    
-    // Actualizar estado visual
-    if (statusDiv) {
-      statusDiv.className = 'mt-3 px-4 py-2 rounded-lg border-2 bg-green-50 border-green-200 text-green-700 font-semibold text-sm flex items-center gap-2';
-      statusDiv.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span><span>✅ Botón HABILITADO (puedes validar)</span>';
-    }
-  } else {
-    console.log('❌ DESHABILITANDO BOTÓN');
-    if (typeof window.addValidationLog === 'function') {
-      window.addValidationLog('❌ DESHABILITANDO BOTÓN - Faltan datos', 'error');
-    }
-    
-    btnValidate.disabled = true;
-    btnValidate.classList.add('opacity-50', 'cursor-not-allowed');
-    btnValidate.classList.remove('hover:bg-green-700', 'hover:shadow-xl', 'hover:-translate-y-0.5');
-    
-    // Actualizar estado visual
-    if (statusDiv) {
-      statusDiv.className = 'mt-3 px-4 py-2 rounded-lg border-2 bg-red-50 border-red-200 text-red-700 font-semibold text-sm flex items-center gap-2';
-      statusDiv.innerHTML = '<span class="material-symbols-outlined text-lg">cancel</span><span>❌ Botón DESHABILITADO (escribe en ambos campos)</span>';
-    }
-  }
-};
-
-console.log('✅ window.checkValidateButton definida y lista');
-
-// ===================================================================
-// ⚡ FUNCIÓN: window.updateCharCount - Contador de caracteres
-// ===================================================================
-window.updateCharCount = function(textarea) {
-  const charCount = textarea.value.trim().length;
-  const charCountEl = document.getElementById('char-count');
-  
-  if (charCountEl) {
-    charCountEl.textContent = `${charCount} caracteres`;
-    
-    if (charCount >= 30) {
-      charCountEl.classList.remove('text-gray-500');
-      charCountEl.classList.add('text-green-600', 'font-semibold');
-    } else {
-      charCountEl.classList.remove('text-green-600', 'font-semibold');
-      charCountEl.classList.add('text-gray-500');
-    }
-  }
-  
-  // También llamar a checkValidateButton
-  if (typeof window.checkValidateButton === 'function') {
-    window.checkValidateButton();
-  }
-};
-
-console.log('✅ window.updateCharCount definida y lista');
 
 // ===================================================================
 // FUNCIONES GLOBALES PARA ACTIVE RECALL (FUERA DEL DOM READY)
@@ -884,9 +769,28 @@ async function validateWithBackend() {
   window.addValidationLog('⏳ Enviando petición al backend...', 'info');
 
   try {
-    // Obtener material_id de la URL (soporta ambos parámetros: material o material_id)
+    // ✅ Obtener material_id REAL desde Supabase
     const urlParams = new URLSearchParams(window.location.search);
-    const materialId = urlParams.get('material') || urlParams.get('material_id') || '1';
+    let materialId = urlParams.get('material') || urlParams.get('material_id');
+    
+    // 🔄 Si no hay en URL, obtener el primer material del usuario
+    if (!materialId) {
+      console.log('🔄 No hay material_id en URL, obteniendo desde Supabase...');
+      const materials = await SupabaseOperations.getMaterials();
+      
+      if (materials && materials.length > 0) {
+        materialId = materials[0].id;  // ✅ UUID real del primer material
+        console.log('✅ Usando material UUID:', materialId);
+      } else {
+        showErrorModal('Error', 'No tienes materiales cargados. Por favor, sube un PDF primero.');
+        btnValidate.disabled = false;
+        btnValidate.innerHTML = `
+          <span class="material-symbols-outlined">check_circle</span>
+          <span>VALIDAR RESPUESTA</span>
+        `;
+        return;
+      }
+    }
     
     console.log('🚀 Llamando al backend REAL con Sentence Transformers...');
     console.log('Material ID:', materialId);
@@ -909,7 +813,7 @@ async function validateWithBackend() {
       },
       body: JSON.stringify({
         question_text: questionInput.value.trim(),
-        material_id: parseInt(materialId),
+        material_id: materialId,
         user_answer: userAnswer.value.trim()
       }),
       signal: controller.signal
@@ -1279,7 +1183,7 @@ function showSuccessNotification(message) {
 // ===================================================================
 // FUNCIONES GLOBALES PARA BOTONES (DEBEN ESTAR FUERA DE DOMCONTENTLOADED)
 // ===================================================================
-window.saveCurrentQuestion = function() {
+window.saveCurrentQuestion = async function() {
   console.log('🔥💾 FUNCIÓN saveCurrentQuestion LLAMADA');
   
   // Verificar que hay una pregunta validada
@@ -1294,48 +1198,134 @@ window.saveCurrentQuestion = function() {
     return;
   }
   
-  // Obtener material ID y nombre de la URL
+  // Obtener material ID de la URL o desde Supabase
   const urlParams = new URLSearchParams(window.location.search);
-  const materialId = urlParams.get('material') || urlParams.get('material_id') || '1';
+  let materialIdFromUrl = urlParams.get('material') || urlParams.get('material_id');
   const folderName = urlParams.get('folder') || null;
   
-  // Agregar metadata de carpeta/material
-  window.currentValidatedQuestion.folder = folderName;
-  window.currentValidatedQuestion.materialId = materialId;
-  window.currentValidatedQuestion.saved = true;
-  
-  // ✅ NUEVO: Inicializar datos de repaso espaciado
-  if (window.RepetitionData) {
-    window.currentValidatedQuestion = window.RepetitionData.initializeReviewData(window.currentValidatedQuestion);
-    console.log('📅 Datos de repaso inicializados. Próximo repaso:', new Date(window.currentValidatedQuestion.nextReviewDate).toLocaleDateString('es-ES'));
+  // 🔄 Si no hay en URL, obtener el primer material automáticamente
+  if (!materialIdFromUrl) {
+    console.log('🔄 No hay material_id en URL, obteniendo desde Supabase...');
+    const materials = await SupabaseOperations.getMaterials();
+    
+    if (materials && materials.length > 0) {
+      materialIdFromUrl = materials[0].id;  // ✅ UUID del primer material
+      console.log('✅ Usando material UUID:', materialIdFromUrl);
+    } else {
+      showErrorModal('Error', 'No tienes materiales cargados. Por favor, sube un PDF primero.');
+      return;
+    }
   }
   
-  // Agregar al historial
-  questionsHistory.push(window.currentValidatedQuestion);
-  
-  // Guardar en localStorage con nueva función
-  saveQuestionsToStorage();
-  
-  console.log('✅ Pregunta guardada exitosamente:', window.currentValidatedQuestion);
-  console.log('📊 Total preguntas guardadas:', questionsHistory.length);
-  
-  // Actualizar lista de preguntas en sidebar
-  if (typeof window.updateQuestionsList === 'function') {
-    window.updateQuestionsList();
-  }
-  
-  // Mostrar notificación de éxito
-  showSuccessNotification('Pregunta guardada correctamente');
-  
-  // Deshabilitar botón de guardar (ya fue guardada)
-  const btnSave = document.getElementById('btn-save-question');
-  if (btnSave) {
-    btnSave.disabled = true;
-    btnSave.classList.add('opacity-50', 'cursor-not-allowed');
-    btnSave.innerHTML = `
-      <span class="material-symbols-outlined text-xl">check</span>
-      <span>YA GUARDADA</span>
-    `;
+  try {
+    console.log('💾 Guardando pregunta en Supabase...');
+    console.log('   • Material ID de URL:', materialIdFromUrl);
+    
+    // ✅ CONVERTIR ID de URL a UUID de Supabase
+    // Si el ID es numérico, buscar el material correspondiente
+    let materialId = materialIdFromUrl;
+    
+    // Si no es UUID (formato: 8-4-4-4-12 caracteres hexadecimales)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(materialIdFromUrl)) {
+      console.log('🔄 ID no es UUID, buscando material en Supabase...');
+      const materials = await SupabaseOperations.getMaterials();
+      
+      if (materials && materials.length > 0) {
+        // Tomar el primer material (o buscar por algún criterio)
+        // Por ahora, asumimos que el usuario tiene solo un material
+        materialId = materials[0].id;
+        console.log('✅ UUID del material encontrado:', materialId);
+      } else {
+        showErrorModal('Error', 'No se encontró el material en la base de datos.');
+        return;
+      }
+    }
+    
+    console.log('   • Material UUID:', materialId);
+    console.log('   • Pregunta:', window.currentValidatedQuestion.pregunta);
+    console.log('   • Score:', window.currentValidatedQuestion.score);
+    
+    // 1. Crear pregunta en Supabase
+    const question = await SupabaseOperations.createQuestion(
+      materialId,
+      window.currentValidatedQuestion.pregunta,
+      {
+        topic: folderName,
+        difficulty: 'medium'
+      }
+    );
+    
+    console.log('✅ Pregunta creada en Supabase:', question);
+    
+    // 2. Guardar respuesta con validación
+    const answer = await SupabaseOperations.createAnswer(
+      question.id,
+      window.currentValidatedQuestion.respuesta,
+      window.currentValidatedQuestion.score,
+      {
+        similarity: window.currentValidatedQuestion.similarity || 0,
+        is_correct: window.currentValidatedQuestion.score >= 55,
+        classification: window.currentValidatedQuestion.classification,
+        feedback: window.currentValidatedQuestion.feedback,
+        best_match_chunk: window.currentValidatedQuestion.best_match_chunk,
+        relevant_chunks: window.currentValidatedQuestion.relevant_chunks
+      }
+    );
+    
+    console.log('✅ Respuesta guardada en Supabase:', answer);
+    
+    // 3. Inicializar repetición espaciada
+    const nextReviewDate = new Date();
+    nextReviewDate.setDate(nextReviewDate.getDate() + 1); // Mañana
+    
+    const reviewData = await SupabaseOperations.upsertSpacedRepetition(
+      question.id,
+      nextReviewDate,
+      1, // Intervalo inicial: 1 día
+      2.5, // Ease factor inicial (SM-2)
+      {
+        repetitions: 0,
+        lastScore: window.currentValidatedQuestion.score,
+        lastReview: new Date()
+      }
+    );
+    
+    console.log('✅ Repetición espaciada inicializada:', reviewData);
+    console.log('📅 Próximo repaso:', nextReviewDate.toLocaleDateString('es-ES'));
+    
+    // Marcar como guardada
+    window.currentValidatedQuestion.saved = true;
+    window.currentValidatedQuestion.supabase_id = question.id;
+    
+    // Agregar al historial local (solo para UI)
+    questionsHistory.push(window.currentValidatedQuestion);
+    
+    // Actualizar lista de preguntas en sidebar
+    if (typeof window.updateQuestionsList === 'function') {
+      window.updateQuestionsList();
+    }
+    
+    // Mostrar notificación de éxito
+    showSuccessNotification('✅ Pregunta guardada en Supabase correctamente');
+    
+    // Deshabilitar botón de guardar
+    const btnSave = document.getElementById('btn-save-question');
+    if (btnSave) {
+      btnSave.disabled = true;
+      btnSave.classList.add('opacity-50', 'cursor-not-allowed');
+      btnSave.innerHTML = `
+        <span class="material-symbols-outlined text-xl">check</span>
+        <span>YA GUARDADA</span>
+      `;
+    }
+    
+    console.log('✅ Pregunta guardada exitosamente en Supabase');
+    console.log('📊 Total preguntas guardadas:', questionsHistory.length);
+    
+  } catch (error) {
+    console.error('❌ Error guardando pregunta en Supabase:', error);
+    showErrorModal('Error', 'No se pudo guardar la pregunta en Supabase: ' + error.message);
   }
 };
 
@@ -1343,21 +1333,34 @@ window.saveCurrentQuestion = function() {
 // FUNCIONES DE EDICIÓN Y ELIMINACIÓN DE PREGUNTAS
 // ===================================================================
 
-window.editQuestion = function(index) {
+window.editQuestion = async function(index) {
   console.log('✏️ Editando pregunta', index);
   const q = questionsHistory[index];
   if (!q) return;
   
   const newText = prompt('Editar pregunta:', q.pregunta);
   if (newText && newText.trim() !== '') {
-    questionsHistory[index].pregunta = newText.trim();
-    saveQuestionsToStorage();
-    window.updateQuestionsList();
-    showSuccessNotification('✏️ Pregunta editada correctamente');
+    try {
+      if (q.supabase_id) {
+        // Actualizar en Supabase
+        await SupabaseOperations.updateQuestion(q.supabase_id, {
+          question_text: newText.trim()
+        });
+        console.log('✅ Pregunta actualizada en Supabase');
+      }
+      
+      // Actualizar en local
+      questionsHistory[index].pregunta = newText.trim();
+      window.updateQuestionsList();
+      showSuccessNotification('✏️ Pregunta editada correctamente');
+    } catch (error) {
+      console.error('❌ Error editando pregunta:', error);
+      showErrorModal('Error', 'No se pudo editar la pregunta: ' + error.message);
+    }
   }
 };
 
-window.deleteQuestion = function(index) {
+window.deleteQuestion = async function(index) {
   console.log('🗑️ Eliminando pregunta', index);
   const q = questionsHistory[index];
   if (!q) return;
@@ -1365,22 +1368,30 @@ window.deleteQuestion = function(index) {
   const questionPreview = q.pregunta?.substring(0, 50) || 'Sin título';
   
   if (confirm(`¿Estás seguro de eliminar la pregunta "${questionPreview}..."?`)) {
-    // Eliminar pregunta del array
-    questionsHistory.splice(index, 1);
-    
-    // ✅ Guardar cambios (sincroniza con Dashboard automáticamente)
-    saveQuestionsToStorage();
-    
-    // Actualizar UI
-    window.updateQuestionsList();
-    
-    // Mensaje de confirmación
-    if (questionsHistory.length === 0) {
-      console.log('📭 Material sin preguntas - Dashboard mostrará 0');
-      showSuccessNotification('🗑️ Pregunta eliminada. No quedan preguntas en este material.');
-    } else {
-      console.log(`📊 Quedan ${questionsHistory.length} preguntas en el material`);
-      showSuccessNotification(`🗑️ Pregunta eliminada. Quedan ${questionsHistory.length} preguntas.`);
+    try {
+      if (q.supabase_id) {
+        // Eliminar de Supabase
+        await SupabaseOperations.deleteQuestion(q.supabase_id);
+        console.log('✅ Pregunta eliminada de Supabase');
+      }
+      
+      // Eliminar del array local
+      questionsHistory.splice(index, 1);
+      
+      // Actualizar UI
+      window.updateQuestionsList();
+      
+      // Mensaje de confirmación
+      if (questionsHistory.length === 0) {
+        console.log('📭 Material sin preguntas');
+        showSuccessNotification('🗑️ Pregunta eliminada. No quedan preguntas en este material.');
+      } else {
+        console.log(`📊 Quedan ${questionsHistory.length} preguntas en el material`);
+        showSuccessNotification(`🗑️ Pregunta eliminada. Quedan ${questionsHistory.length} preguntas.`);
+      }
+    } catch (error) {
+      console.error('❌ Error eliminando pregunta:', error);
+      showErrorModal('Error', 'No se pudo eliminar la pregunta: ' + error.message);
     }
   }
 };
@@ -1391,67 +1402,191 @@ function saveQuestionsToStorage() {
     const urlParams = new URLSearchParams(window.location.search);
     const materialId = urlParams.get('material') || urlParams.get('material_id') || '1';
     
-    // ✅ PASO 1: Guardar material activo para sincronización con Dashboard
-    localStorage.setItem('active_material_id', materialId);
-    console.log(`🔑 Material activo establecido: ${materialId}`);
-    
-    // ✅ PASO 2: Guardar preguntas con clave única por material
-    const storageKey = `recuiva_questions_material_${materialId}`;
-    localStorage.setItem(storageKey, JSON.stringify(questionsHistory));
-    console.log(`💾 ${questionsHistory.length} preguntas guardadas en ${storageKey}`);
-    
-    // ✅ PASO 3: Log para verificar sincronización
+    // ❌ YA NO USAMOS localStorage - Solo Supabase
+    console.log(`💾 ${questionsHistory.length} preguntas ya guardadas en Supabase`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('✅ SINCRONIZACIÓN COMPLETADA:');
-    console.log(`   • Material Activo: ${materialId}`);
+    console.log('✅ DATOS EN SUPABASE:');
+    console.log(`   • Material: ${materialId}`);
     console.log(`   • Total Preguntas: ${questionsHistory.length}`);
-    console.log(`   • Storage Key: ${storageKey}`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   } catch (e) {
-    console.error('❌ Error guardando preguntas:', e);
+    console.error('❌ Error sincronizando:', e);
   }
 }
 
-// Cargar preguntas desde localStorage
-function loadQuestionsFromStorage() {
+// Cargar preguntas desde Supabase
+async function loadQuestionsFromSupabase() {
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    let materialIdFromUrl = urlParams.get('material') || urlParams.get('material_id');
+    
+    // 🔄 SI NO HAY EN URL, intentar desde localStorage
+    if (!materialIdFromUrl) {
+      const lastMaterial = localStorage.getItem('last_active_material');
+      if (lastMaterial) {
+        console.log('🔄 Usando último material activo desde localStorage:', lastMaterial);
+        materialIdFromUrl = lastMaterial;
+      }
+    }
+    
+    // 🔄 SI TODAVÍA NO HAY, cargar TODAS las preguntas del usuario
+    if (!materialIdFromUrl) {
+      console.log('📚 No hay material específico, cargando TODAS las preguntas del usuario...');
+      
+      // Obtener TODOS los materiales del usuario
+      const allMaterials = await SupabaseOperations.getMaterials();
+      console.log(`📦 ${allMaterials.length} materiales encontrados`);
+      
+      questionsHistory = [];
+      
+      // Cargar preguntas de TODOS los materiales
+      for (const material of allMaterials) {
+        const questions = await SupabaseOperations.getQuestionsByMaterial(material.id);
+        
+        for (const question of questions) {
+          const answers = await SupabaseOperations.getAnswersByQuestion(question.id);
+          const lastAnswer = answers.length > 0 ? answers[0] : null;
+          
+          if (lastAnswer) {
+            let bestMatchChunk = null;
+            try {
+              if (lastAnswer.best_match_chunk && typeof lastAnswer.best_match_chunk === 'string') {
+                bestMatchChunk = JSON.parse(lastAnswer.best_match_chunk);
+              } else if (lastAnswer.best_match_chunk && typeof lastAnswer.best_match_chunk === 'object') {
+                bestMatchChunk = lastAnswer.best_match_chunk;
+              }
+            } catch (e) {
+              console.warn('⚠️ Error parseando best_match_chunk:', e);
+            }
+            
+            const questionData = {
+              id: Date.now() + Math.random(),
+              supabase_id: question.id,
+              carpeta_id: question.material_id,
+              material_name: material.title, // ✅ Agregar nombre del material
+              pregunta: question.question_text,
+              respuesta: lastAnswer.answer_text,
+              score: parseFloat(lastAnswer.score),
+              similarity: parseFloat(lastAnswer.similarity || 0),
+              classification: lastAnswer.classification,
+              feedback: lastAnswer.feedback,
+              best_match_chunk: bestMatchChunk,
+              relevant_chunks: lastAnswer.relevant_chunks || [],
+              saved: true,
+              timestamp: new Date(question.created_at).getTime()
+            };
+            
+            questionsHistory.push(questionData);
+          }
+        }
+      }
+      
+      console.log(`✅ ${questionsHistory.length} preguntas cargadas (TODOS los materiales)`);
+      
+      // Actualizar UI
+      if (typeof window.updateQuestionsList === 'function') {
+        window.updateQuestionsList();
+      }
+      
+      return; // ✅ Salir aquí
+    }
+    
+    // ✅ CONVERTIR ID de URL a UUID de Supabase
+    let materialId = materialIdFromUrl;
+    
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(materialIdFromUrl)) {
+      console.log('🔄 ID no es UUID, buscando material en Supabase...');
+      const materials = await SupabaseOperations.getMaterials();
+      
+      if (materials && materials.length > 0) {
+        materialId = materials[0].id; // Tomar el primer material
+        console.log('✅ UUID del material encontrado:', materialId);
+      } else {
+        console.warn('⚠️ No se encontró material en Supabase');
+        questionsHistory = [];
+        return;
+      }
+    }
+    
+    console.log(`🔍 Cargando preguntas desde Supabase para material UUID: ${materialId}`);
+    
+    // ✅ Obtener información del material
+    const materials = await SupabaseOperations.getMaterials();
+    const currentMaterial = materials.find(m => m.id === materialId);
+    const materialName = currentMaterial ? currentMaterial.title : 'Material desconocido';
+    
+    console.log(`📚 Material: ${materialName}`);
+    
+    // Cargar preguntas con sus respuestas
+    const questions = await SupabaseOperations.getQuestionsByMaterial(materialId);
+    
+    // Convertir a formato del frontend
+    questionsHistory = [];
+    
+    for (const question of questions) {
+      // Obtener la última respuesta de esta pregunta
+      const answers = await SupabaseOperations.getAnswersByQuestion(question.id);
+      const lastAnswer = answers.length > 0 ? answers[0] : null;
+      
+      if (lastAnswer) {
+        // Convertir a formato local para UI
+        let bestMatchChunk = null;
+        try {
+          if (lastAnswer.best_match_chunk && typeof lastAnswer.best_match_chunk === 'string') {
+            bestMatchChunk = JSON.parse(lastAnswer.best_match_chunk);
+          } else if (lastAnswer.best_match_chunk && typeof lastAnswer.best_match_chunk === 'object') {
+            bestMatchChunk = lastAnswer.best_match_chunk;
+          }
+        } catch (e) {
+          console.warn('⚠️ Error parseando best_match_chunk:', e);
+        }
+        
+        const questionData = {
+          id: Date.now() + Math.random(), // ID temporal para UI
+          supabase_id: question.id,
+          carpeta_id: question.material_id,
+          material_name: materialName, // ✅ Agregar nombre del material
+          pregunta: question.question_text,
+          respuesta: lastAnswer.answer_text,
+          score: parseFloat(lastAnswer.score),
+          similarity: parseFloat(lastAnswer.similarity || 0),
+          classification: lastAnswer.classification,
+          feedback: lastAnswer.feedback,
+          best_match_chunk: bestMatchChunk,
+          relevant_chunks: lastAnswer.relevant_chunks || [],
+          saved: true,
+          timestamp: new Date(question.created_at).getTime()
+        };
+        
+        questionsHistory.push(questionData);
+      }
+    }
+    
+    console.log(`✅ ${questionsHistory.length} preguntas cargadas desde Supabase`);
+    
+    // Actualizar UI
+    if (typeof window.updateQuestionsList === 'function') {
+      window.updateQuestionsList();
+    }
+    
+  } catch (error) {
+    console.error('❌ Error cargando preguntas desde Supabase:', error);
+    questionsHistory = [];
+  }
+}
+
+// DEPRECATED: Función antigua de localStorage - AHORA SOLO CARGA DESDE SUPABASE
+async function loadQuestionsFromStorage() {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const materialId = urlParams.get('material') || urlParams.get('material_id') || '1';
     
-    // ✅ PASO 1: Establecer material activo al cargar
-    localStorage.setItem('active_material_id', materialId);
-    console.log(`🔑 Material activo establecido al cargar: ${materialId}`);
+    console.log(`🔑 Material activo: ${materialId}`);
     
-    const storageKey = `recuiva_questions_material_${materialId}`;
-    const stored = localStorage.getItem(storageKey);
-    
-    if (stored) {
-      questionsHistory = JSON.parse(stored);
-      
-      // ✅ NORMALIZAR SCORES: Asegurar que todos estén en escala 0-100
-      let needsSave = false;
-      questionsHistory = questionsHistory.map(q => {
-        if (q.score !== undefined && q.score >= 0 && q.score <= 1) {
-          // Si está en escala decimal (0.69), convertir a porcentaje (69)
-          console.log(`🔄 Normalizando score: ${q.score} → ${Math.round(q.score * 100)}`);
-          q.score = Math.round(q.score * 100);
-          needsSave = true;
-        }
-        return q;
-      });
-      
-      // Guardar si se hicieron cambios
-      if (needsSave) {
-        console.log('💾 Guardando preguntas normalizadas...');
-        localStorage.setItem(storageKey, JSON.stringify(questionsHistory));
-      }
-      
-      console.log(`📂 ${questionsHistory.length} preguntas cargadas desde ${storageKey}`);
-      window.updateQuestionsList();
-    } else {
-      console.log(`📭 No hay preguntas guardadas para material ${materialId}`);
-      questionsHistory = [];
-    }
+    // ❌ YA NO USAMOS localStorage - Solo Supabase
+    console.log('⏳ Cargando preguntas desde Supabase...');
+    await loadQuestionsFromSupabase();  // ✅ Ahora función es async
   } catch (e) {
     console.error('❌ Error cargando preguntas:', e);
     questionsHistory = [];
@@ -1534,6 +1669,8 @@ window.updateQuestionsList = function() {
                        displayScore >= 40 ? 'bg-yellow-50 border-yellow-200' : 
                        'bg-red-50 border-red-200';
     
+    // ✅ Mostrar nombre del material si está disponible
+    const materialTag = q.material_name ? `<span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full mb-1 inline-block">📚 ${q.material_name}</span>` : '';
     const folderTag = q.folder ? `<span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">${q.folder}</span>` : '';
     
     // Información del chunk si existe
@@ -1567,6 +1704,9 @@ window.updateQuestionsList = function() {
             </button>
           </div>
         </div>
+        ${materialTag}
+        ${folderTag}
+        <p class="text-sm text-gray-700 line-clamp-2 mb-2 cursor-pointer" onclick="window.loadQuestion(${idx})">${q.pregunta}</p>
         ${folderTag}
         <p class="text-sm text-gray-700 line-clamp-2 mb-2 cursor-pointer" onclick="window.loadQuestion(${idx})">${q.pregunta}</p>
         <div class="flex justify-between items-center text-xs text-gray-500">
@@ -1780,20 +1920,29 @@ async function loadMaterialInfo(materialId) {
   const locationEl = document.getElementById('material-location');
   
   try {
-    const response = await fetch('http://localhost:8000/api/materials');
-    const data = await response.json();
+    // ✅ OBTENER MATERIALES DESDE SUPABASE
+    const materials = await SupabaseOperations.getMaterials();
     
-    if (data.success && data.materials.length > 0) {
-      // Buscar el material por ID
-      const material = data.materials.find(m => m.id == materialId);
+    if (materials && materials.length > 0) {
+      // Buscar el material por UUID (comparación estricta)
+      const material = materials.find(m => m.id === materialId);
       
       if (material) {
+        console.log('✅ Material encontrado:', material.title);
+        
         // Mostrar banner
-        banner.style.display = 'block';
+        if (banner) banner.style.display = 'block';
+        
+        // Obtener nombre del archivo
+        const materialFileName = material.title || material.file_name || material.filename || 'Material sin nombre';
         
         // Actualizar información básica
-        filenameEl.textContent = material.filename;
-        statsEl.textContent = `${material.total_chunks} chunks • ${material.estimated_pages || 'N/A'} páginas estimadas`;
+        if (filenameEl) filenameEl.textContent = materialFileName;
+        if (statsEl) {
+          const chunks = material.total_chunks || material.chunk_count || 0;
+          const pages = material.total_pages || material.estimated_pages || 'N/A';
+          statsEl.textContent = `${chunks} chunks • ${pages} páginas`;
+        }
         
         // ✨ OBTENER RUTA COMPLETA DESDE LOCALSTORAGE (SISTEMA JERÁRQUICO)
         const urlParams = new URLSearchParams(window.location.search);
@@ -1833,12 +1982,13 @@ async function loadMaterialInfo(materialId) {
           }
         }
         
-        // Construir ruta completa: Carpetas › Material › Chunk
-        let rutaCompleta = '';
+        // Construir ruta completa: Material name
+        const materialBaseName = materialFileName.replace('.pdf', '').replace('.txt', '');
+        let rutaCompleta = materialBaseName;
+        
+        // ✅ Si hay carpetas, agregar al breadcrumb
         if (rutaCarpetas) {
-          rutaCompleta = `${rutaCarpetas} › ${material.filename.replace('.pdf', '')}`;
-        } else {
-          rutaCompleta = material.filename.replace('.pdf', '');
+          rutaCompleta = `${rutaCarpetas} › ${materialBaseName}`;
         }
         
         // Actualizar BREADCRUMB (arriba del cuadro)
@@ -1846,36 +1996,40 @@ async function loadMaterialInfo(materialId) {
         if (breadcrumbNombre) {
           breadcrumbNombre.textContent = rutaCompleta;
           breadcrumbNombre.title = rutaCompleta;
+          console.log('📍 Breadcrumb cargado:', rutaCompleta);
         }
         
-        // Actualizar LOCATION (solo info del chunk)
-        const chunkInfo = `Chunk ${currentChunk}/${totalChunks} - Pág. ~${estimatedPage}`;
+        // Actualizar LOCATION (info adicional del material)
+        const chunks = material.total_chunks || material.chunk_count || 0;
+        const pages = material.total_pages || material.estimated_pages || 'N/A';
         if (locationEl) {
           locationEl.innerHTML = `
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-            <span>${chunkInfo}</span>
+            <span class="material-symbols-outlined text-sm">description</span>
+            <span>${chunks} chunks • ${pages} páginas</span>
           `;
         }
         
-        console.log('✅ Material cargado:', material.filename);
+        console.log('✅ Material cargado:', materialFileName);
         console.log('📍 Ruta completa:', rutaCompleta);
-        addValidationLog(`📚 Material activo: ${material.filename}`, 'success');
-        addValidationLog(`📍 ${rutaCompleta}`, 'info');
+        if (typeof window.addValidationLog === 'function') {
+          window.addValidationLog(`📚 Material activo: ${materialFileName}`, 'success');
+          window.addValidationLog(`📍 ${rutaCompleta}`, 'info');
+        }
       } else {
-        console.warn(`⚠️ Material ID ${materialId} no encontrado`);
-        banner.style.display = 'none';
+        console.warn(`⚠️ Material UUID ${materialId} no encontrado en Supabase`);
+        if (banner) banner.style.display = 'none';
       }
     } else {
-      console.warn('⚠️ No hay materiales disponibles');
-      banner.style.display = 'none';
+      console.warn('⚠️ No hay materiales disponibles en Supabase');
+      if (banner) banner.style.display = 'none';
     }
   } catch (error) {
-    console.error('❌ Error cargando material:', error);
-    banner.style.display = 'none';
+    console.error('❌ Error cargando información del material:', error);
+    if (banner) banner.style.display = 'none';
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Procesar logs pendientes que se generaron antes de que el DOM estuviera listo
   if (window._pendingLogs && window._pendingLogs.length > 0) {
     console.log(`📋 Procesando ${window._pendingLogs.length} logs pendientes...`);
@@ -1927,14 +2081,31 @@ document.addEventListener('DOMContentLoaded', () => {
   addValidationLog('⏳ Esperando input del usuario...', 'info');
   
   // === CARGAR INFORMACIÓN DEL MATERIAL ACTUAL ===
+  // 🔄 Obtener material_id REAL (UUID desde Supabase)
   const urlParams = new URLSearchParams(window.location.search);
-  const materialId = urlParams.get('material') || urlParams.get('material_id') || '1';
+  let materialId = urlParams.get('material') || urlParams.get('material_id');
+  
+  // Si no hay en URL, obtener el primer material del usuario
+  if (!materialId) {
+    const materials = await SupabaseOperations.getMaterials();
+    if (materials && materials.length > 0) {
+      materialId = materials[0].id;  // ✅ UUID real
+      console.log('✅ Material UUID para breadcrumb:', materialId);
+    } else {
+      materialId = null;  // No hay materiales
+    }
+  }
   
   // Cargar preguntas guardadas del material actual
-  loadQuestionsFromStorage();
+  // Cargar preguntas desde Supabase
+  loadQuestionsFromSupabase();
   
   // Cargar y mostrar información del material
-  loadMaterialInfo(materialId);
+  if (materialId) {
+    loadMaterialInfo(materialId);
+  } else {
+    console.warn('⚠️ No hay material para cargar breadcrumb');
+  }
   
   // === MOSTRAR RUTA COMPLETA EN EL BREADCRUMB (CON CARPETAS JERÁRQUICAS) ===
   const breadcrumbNombre = document.getElementById('breadcrumb-nombre');

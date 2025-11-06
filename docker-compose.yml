@@ -1,9 +1,9 @@
-
+version: '3.8'
 
 services:
   # Backend - FastAPI con embeddings semánticos
   backend:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     ports:
@@ -12,7 +12,8 @@ services:
       - HOST=0.0.0.0
       - PORT=8001
       - DEBUG=False
-      - ALLOWED_ORIGINS=https://recuiva.duckdns.org,https://api-recuiva.duckdns.org
+      # ✅ CORREGIDO: DuckDNS en vez de traefik.me
+      - ALLOWED_ORIGINS=http://localhost:3000,https://recuiva.duckdns.org,https://api-recuiva.duckdns.org
       - MODEL_NAME=all-MiniLM-L6-v2
       - SIMILARITY_THRESHOLD_EXCELLENT=0.9
       - SIMILARITY_THRESHOLD_GOOD=0.7
@@ -34,9 +35,11 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
+      # Backend HTTP (redirect a HTTPS)
       - traefik.http.routers.recuiva-backend-web.rule=Host(`api-recuiva.duckdns.org`)
       - traefik.http.routers.recuiva-backend-web.entrypoints=web
       - traefik.http.routers.recuiva-backend-web.middlewares=redirect-to-https@file
+      # Backend HTTPS
       - traefik.http.routers.recuiva-backend-websecure.rule=Host(`api-recuiva.duckdns.org`)
       - traefik.http.routers.recuiva-backend-websecure.entrypoints=websecure
       - traefik.http.routers.recuiva-backend-websecure.tls.certresolver=letsencrypt
@@ -60,9 +63,11 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
+      # Frontend HTTP (redirect a HTTPS)
       - traefik.http.routers.recuiva-frontend-web.rule=Host(`recuiva.duckdns.org`)
       - traefik.http.routers.recuiva-frontend-web.entrypoints=web
       - traefik.http.routers.recuiva-frontend-web.middlewares=redirect-to-https@file
+      # Frontend HTTPS
       - traefik.http.routers.recuiva-frontend-websecure.rule=Host(`recuiva.duckdns.org`)
       - traefik.http.routers.recuiva-frontend-websecure.entrypoints=websecure
       - traefik.http.routers.recuiva-frontend-websecure.tls.certresolver=letsencrypt

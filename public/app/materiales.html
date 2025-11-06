@@ -9,8 +9,13 @@
     <title>Gestión de Materiales - Recuiva</title>
     <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-config.js"></script>
+    <script src="../assets/js/supabase-operations.js"></script>
     <script src="../assets/js/header-footer-components.js"></script>
-    <script src="../assets/js/mockApi.js"></script>
+    <!-- MockAPI deshabilitado - usando Supabase -->
+    <!-- <script src="../assets/js/mockApi.js"></script> -->
     <style type="text/tailwindcss">
       :root {
         --primary-color: #FF6600;
@@ -22,12 +27,6 @@
         --text-secondary: #575757;
       }
       
-      /* Estilo global para el logo Recuiva */
-      .recuiva-logo {
-        font-family: 'Manrope', sans-serif !important;
-        font-weight: 800 !important;
-        font-size: 1.5rem !important;
-      }
       .material-card {
         background: white;
         border-radius: 12px;
@@ -228,10 +227,150 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     };
 
-    // Simulación de datos de materiales desde localStorage
-    const materiales = JSON.parse(localStorage.getItem('recuiva_materiales') || '[]');
+    // ✅ Cargar materiales desde Supabase (NO localStorage)
+    async function cargarMateriales() {
+        try {
+            const materiales = await SupabaseOperations.getMaterials();
+            console.log('✅ Materiales cargados desde Supabase:', materiales);
+            renderizarMateriales(materiales);
+        } catch (error) {
+            console.error('❌ Error cargando materiales:', error);
+        }
+    }
     
-    console.log('Materiales cargados:', materiales);
+    function renderizarMateriales(materials) {
+        console.log(`📄 Total materiales: ${materials.length}`);
+        
+        const container = document.getElementById('materials-container');
+        if (!container) {
+            console.error('❌ Contenedor de materiales no encontrado');
+            return;
+        }
+        
+        // Actualizar contadores
+        const totalCount = materials.length;
+        const totalChunks = materials.reduce((sum, m) => sum + (m.total_chunks || 0), 0);
+        
+        const totalMaterialesEl = document.getElementById('total-materiales-count');
+        const totalChunksEl = document.getElementById('total-chunks-count');
+        
+        if (totalMaterialesEl) totalMaterialesEl.textContent = totalCount;
+        if (totalChunksEl) totalChunksEl.textContent = totalChunks.toLocaleString();
+        
+        // Si no hay materiales, mostrar mensaje
+        if (materials.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-12 bg-gray-50 rounded-lg">
+                    <span class="material-symbols-outlined text-5xl text-orange-500 mb-4">inbox</span>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">No hay materiales aún</h3>
+                    <p class="text-gray-600 mb-6">
+                        Sube tu primer PDF para empezar a estudiar con Active Recall
+                    </p>
+                    <a href="subir-material.html" 
+                       class="inline-block px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-semibold">
+                        <span class="material-symbols-outlined align-middle mr-2">upload_file</span>
+                        Subir Material
+                    </a>
+                </div>
+            `;
+            return;
+        }
+        
+        // Renderizar materiales
+        let html = '';
+        materials.forEach(material => {
+            // Parsear fecha desde Supabase (ISO 8601 format)
+            let uploadDate = 'Fecha desconocida';
+            try {
+                if (material.created_at) {
+                    uploadDate = new Date(material.created_at).toLocaleDateString('es-ES', { 
+                        day: 'numeric', 
+                        month: 'long', 
+                        year: 'numeric' 
+                    });
+                }
+            } catch (e) {
+                console.warn('Error parseando fecha:', e);
+            }
+            
+            // Nombre del archivo con fallbacks
+            const materialFileName = material.title || material.file_name || material.filename || 'Material sin nombre';
+            
+            const fileStatus = material.processing_status === 'completed' ? 'ACTIVO' : 'PAUSADO';
+            const statusClass = material.processing_status === 'completed' ? 'status-activo' : 'status-pausado';
+            
+            // Mostrar páginas reales si están disponibles
+            const pageCount = material.estimated_pages 
+                ? `${material.estimated_pages} páginas` 
+                : 'N/A páginas';
+            
+            html += `
+                <div class="material-card p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-red-600">picture_as_pdf</span>
+                        </div>
+                        
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-bold text-gray-900 text-lg">${materialFileName}</h3>
+                                    <p class="text-sm text-gray-600">
+                                        PDF • ${material.total_chunks || 0} chunks • ${pageCount} • Subido el ${uploadDate}
+                                    </p>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusClass}">${fileStatus}</span>
+                            </div>
+                            
+                            <div class="flex gap-3 mt-4">
+                                <a href="sesion-practica.html?material=${material.id}" 
+                                   class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                                    <span class="material-symbols-outlined align-middle mr-1 text-sm">play_arrow</span>
+                                    Iniciar Sesión
+                                </a>
+                                <button onclick="eliminarMaterial('${material.id}')" 
+                                        class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
+                                    <span class="material-symbols-outlined align-middle mr-1 text-sm">delete</span>
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    // Cargar materiales al iniciar
+    cargarMateriales();
+    
+    // Función para eliminar material
+    window.eliminarMaterial = async function(materialId) {
+        if (!confirm('¿Estás seguro de eliminar este material? Esta acción no se puede deshacer.')) {
+            return;
+        }
+        
+        try {
+            // Eliminar de Supabase
+            const response = await fetch(`http://localhost:8000/api/materials/${materialId}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Error eliminando material del backend');
+            }
+            
+            console.log('✅ Material eliminado');
+            
+            // Recargar lista
+            await cargarMateriales();
+        } catch (error) {
+            console.error('❌ Error eliminando material:', error);
+            alert('Error eliminando material. Verifica la consola.');
+        }
+    };
     
     // Funcionalidad de búsqueda
     const searchInput = document.querySelector('input[placeholder="Buscar materiales..."]');
@@ -422,14 +561,25 @@ document.addEventListener('DOMContentLoaded', function() {
       // Renderizar materiales
       let html = '';
       materials.forEach(material => {
-        const uploadDate = new Date(
-          material.uploaded_at.slice(0,4), 
-          parseInt(material.uploaded_at.slice(4,6))-1, 
-          material.uploaded_at.slice(6,8)
-        ).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+        // Parsear fecha desde Supabase (ISO 8601 format)
+        let uploadDate = 'Fecha desconocida';
+        try {
+          if (material.created_at) {
+            uploadDate = new Date(material.created_at).toLocaleDateString('es-ES', { 
+              day: 'numeric', 
+              month: 'long', 
+              year: 'numeric' 
+            });
+          }
+        } catch (e) {
+          console.warn('Error parseando fecha:', e);
+        }
         
-        const fileStatus = material.file_exists ? 'ACTIVO' : 'PAUSADO';
-        const statusClass = material.file_exists ? 'status-activo' : 'status-pausado';
+        // Nombre del archivo con fallbacks
+        const materialFileName = material.title || material.file_name || material.filename || 'Material sin nombre';
+        
+        const fileStatus = material.processing_status === 'completed' ? 'ACTIVO' : 'PAUSADO';
+        const statusClass = material.processing_status === 'completed' ? 'status-activo' : 'status-pausado';
         
         // Mostrar páginas reales si están disponibles, si no usar estimación
         const pageCount = material.real_pages 
@@ -447,7 +597,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <div class="flex-1">
                 <div class="flex items-start justify-between mb-2">
                   <div>
-                    <h3 class="font-bold text-[var(--text-primary)] text-lg">${material.filename}</h3>
+                    <h3 class="font-bold text-[var(--text-primary)] text-lg">${materialFileName}</h3>
                     <p class="text-sm text-[var(--text-secondary)]">
                       PDF • <span title="Un chunk es un fragmento de texto de ~500 caracteres. El sistema divide tu material en chunks para analizar semánticamente cada sección. ${material.total_chunks} chunks = ${material.total_chunks * 500} caracteres aprox." class="cursor-help underline decoration-dotted">${material.total_chunks} chunks</span> • ${pageCount} • Subido el ${uploadDate}
                     </p>
@@ -455,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   <div class="flex items-center gap-2">
                     <span class="status-badge ${statusClass}">${fileStatus}</span>
                     <button 
-                      onclick="eliminarMaterialCompleto(${material.id}, '${material.filename}')" 
+                      onclick="eliminarMaterialCompleto('${material.id}', '${materialFileName}')" 
                       class="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50"
                       title="Eliminar material">
                       <span class="material-symbols-outlined">delete</span>

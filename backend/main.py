@@ -8,7 +8,7 @@ Fecha: 7 de octubre de 2025
 Proyecto: Taller Integrador I - UPAO
 """
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 import argparse
 import sys
 from pathlib import Path
+import numpy as np
 
 # Agregar el directorio backend al path para imports locales
 BACKEND_DIR = Path(__file__).parent
@@ -31,11 +32,14 @@ try:
     from embeddings_module import generate_embeddings, calculate_similarity, load_model
     from chunking import chunk_text, extract_text_from_pdf, get_text_stats
     from semantic_validator import SemanticValidator
+    from supabase_client import get_supabase_client, test_connection
     MODULES_LOADED = True
+    SUPABASE_ENABLED = True
 except ImportError as e:
     print(f"⚠️ Módulos locales no encontrados: {e}")
     print("⚠️ Asegúrate de tener embeddings_module.py, chunking.py y semantic_validator.py")
     MODULES_LOADED = False
+    SUPABASE_ENABLED = False
 
 # Cargar variables de entorno
 load_dotenv()
@@ -71,7 +75,7 @@ class Question(BaseModel):
 class Answer(BaseModel):
     question_id: Optional[int] = None  # Para preguntas guardadas
     question_text: Optional[str] = None  # Para preguntas dinámicas
-    material_id: Optional[int] = None  # Para especificar material directamente
+    material_id: Optional[str] = None  # UUID del material en Supabase
     user_answer: str
 
 class Material(BaseModel):
@@ -115,9 +119,9 @@ THRESHOLD_EXCELLENT = float(os.getenv("SIMILARITY_THRESHOLD_EXCELLENT", "0.9"))
 THRESHOLD_GOOD = float(os.getenv("SIMILARITY_THRESHOLD_GOOD", "0.7"))
 THRESHOLD_ACCEPTABLE = float(os.getenv("SIMILARITY_THRESHOLD_ACCEPTABLE", "0.5"))
 
-# Configuración de chunking
-DEFAULT_CHUNK_SIZE = int(os.getenv("DEFAULT_CHUNK_SIZE", "500"))
-DEFAULT_CHUNK_OVERLAP = int(os.getenv("DEFAULT_CHUNK_OVERLAP", "50"))
+# Configuración de chunking - OPTIMIZADO PARA PDFs DE 25-100+ PÁGINAS
+DEFAULT_CHUNK_SIZE = int(os.getenv("DEFAULT_CHUNK_SIZE", "1000"))  # ✅ Aumentado para mejor contexto
+DEFAULT_CHUNK_OVERLAP = int(os.getenv("DEFAULT_CHUNK_OVERLAP", "200"))  # ✅ Mayor overlap
 MIN_DOCUMENT_SIZE = int(os.getenv("MIN_DOCUMENT_SIZE", "200000"))
 
 # Base de datos en memoria (para desarrollo)
@@ -142,6 +146,14 @@ async def startup_event():
     print(f"📊 Directorio de embeddings: {EMBEDDINGS_DIR}")
     print(f"📂 Directorio de materiales: {MATERIALS_DIR}")
     
+    # Probar conexión a Supabase
+    if SUPABASE_ENABLED:
+        print("\n🔌 Conectando a Supabase...")
+        if test_connection():
+            print("✅ Base de datos Supabase conectada")
+        else:
+            print("⚠️ No se pudo conectar a Supabase - usando almacenamiento local")
+    
     # Cargar índice de materiales
     load_materials_index()
     
@@ -158,6 +170,8 @@ async def startup_event():
     # Ya no necesitamos load_existing_materials() porque usamos índice persistente
     # load_existing_materials()
     print(f"📚 Materiales en índice: {len(materials_db)}")
+    print("\n✅ Backend listo y escuchando en http://localhost:8000")
+    print("📖 Documentación disponible en http://localhost:8000/docs\n")
 
 @app.get("/")
 async def root():
@@ -181,18 +195,33 @@ async def root():
     }
 
 @app.post("/api/materials/upload")
-async def upload_material(file: UploadFile = File(...)):
+async def upload_material(
+    file: UploadFile = File(...),
+    user_id: Optional[str] = Header(None, alias="X-User-ID")
+):
     """
     Endpoint para subir materiales (PDF o TXT)
-    Procesa, chunkinea y vectoriza el contenido
+    Procesa, chunkinea, vectoriza y guarda en Supabase
     
     Args:
         file: Archivo PDF o TXT (mínimo 80 páginas recomendado)
+        user_id: ID del usuario autenticado (desde header X-User-ID)
         
     Returns:
         Información del material procesado
     """
     try:
+        # IMPORTANTE: Requiere autenticación real
+        # El user_id DEBE venir del header X-User-ID enviado por el frontend
+        # después de que el usuario se autentique con Supabase Auth
+        if SUPABASE_ENABLED and not user_id:
+            print("⚠️ ADVERTENCIA: No se recibió user_id en el header X-User-ID")
+            print("   Asegúrate de que el usuario esté autenticado en el frontend")
+            raise HTTPException(
+                status_code=401,
+                detail="No autenticado. Debes iniciar sesión primero."
+            )
+        
         # Validar tipo de archivo
         if not file.filename.endswith(('.pdf', '.txt')):
             raise HTTPException(
@@ -213,16 +242,16 @@ async def upload_material(file: UploadFile = File(...)):
             print(f"📄 PDF con {pdf_page_count} páginas reales")
         else:
             text = content.decode('utf-8')
+            pdf_page_count = None
         
-        # Obtener estadísticas del texto
-        stats = get_text_stats(text)
+        # Obtener estadísticas del texto (pasando el conteo real de páginas del PDF)
+        stats = get_text_stats(text, real_pages=pdf_page_count)
         
-        # Usar conteo real de páginas del PDF si está disponible
-        if pdf_page_count is not None:
-            stats["estimated_pages"] = pdf_page_count
-            stats["real_pages"] = pdf_page_count
-        
-        print(f"📊 Estadísticas: {stats}")
+        print(f"📊 Estadísticas del documento:")
+        print(f"   📄 Páginas: {stats['real_pages']}")
+        print(f"   📝 Caracteres: {stats['characters']:,}")
+        print(f"   📚 Palabras: {stats['words']:,}")
+        print(f"   ✂️ Chunk size: {DEFAULT_CHUNK_SIZE} | Overlap: {DEFAULT_CHUNK_OVERLAP}")
         
         # Validar tamaño mínimo (aprox 80 páginas = ~200,000 caracteres)
         if len(text) < MIN_DOCUMENT_SIZE:
@@ -252,7 +281,85 @@ async def upload_material(file: UploadFile = File(...)):
         
         print(f"✅ Embeddings generados: {len(embeddings_data)}")
         
-        # Guardar material y embeddings
+        # ===== GUARDAR EN SUPABASE (SI ESTÁ HABILITADO) =====
+        if SUPABASE_ENABLED and user_id:
+            print(f"\n💾 Guardando en Supabase para usuario: {user_id}")
+            try:
+                supabase = get_supabase_client()
+                
+                # Preparar datos para Supabase
+                title = file.filename.replace('.pdf', '').replace('.txt', '').replace('_', ' ').title()
+                file_type = 'pdf' if file.filename.endswith('.pdf') else 'txt'
+                
+                # Insertar en tabla materials
+                material_insert = {
+                    "user_id": user_id,
+                    "title": title,
+                    "file_name": file.filename,
+                    "file_type": file_type,
+                    "total_chunks": len(chunks),
+                    "total_characters": len(text),
+                    "estimated_pages": stats["real_pages"],  # Usar páginas reales del PDF
+                    "processing_status": "completed"
+                    # file_path y storage_path los dejamos NULL por ahora
+                }
+                
+                result = supabase.table('materials').insert(material_insert).execute()
+                
+                if result.data and len(result.data) > 0:
+                    material_uuid = result.data[0]['id']
+                    print(f"✅ Material guardado en Supabase con UUID: {material_uuid}")
+                    
+                    # ===== GUARDAR EMBEDDINGS EN SUPABASE CON PGVECTOR =====
+                    print(f"💾 Guardando {len(embeddings_data)} embeddings en Supabase...")
+                    
+                    # Preparar datos para inserción batch
+                    embeddings_to_insert = []
+                    for i, emb_data in enumerate(embeddings_data):
+                        embeddings_to_insert.append({
+                            "material_id": material_uuid,
+                            "chunk_index": i,
+                            "chunk_text": emb_data["text_full"],
+                            "embedding": emb_data["embedding"]  # pgvector acepta arrays directamente
+                        })
+                        
+                        # Insertar en batches de 100 para evitar timeouts
+                        if len(embeddings_to_insert) == 100 or i == len(embeddings_data) - 1:
+                            batch_result = supabase.table('material_embeddings').insert(embeddings_to_insert).execute()
+                            if batch_result.data:
+                                print(f"   ✅ Batch {(i // 100) + 1}: {len(embeddings_to_insert)} embeddings guardados")
+                            embeddings_to_insert = []
+                    
+                    print(f"✅ Todos los embeddings guardados en Supabase (pgvector)")
+                    
+                    # Retornar respuesta con UUID de Supabase
+                    return {
+                        "success": True,
+                        "material_id": material_uuid,
+                        "message": f"Material procesado y guardado en Supabase: {len(chunks)} chunks generados",
+                        "data": {
+                            "id": material_uuid,
+                            "user_id": user_id,
+                            "title": title,
+                            "filename": file.filename,
+                            "file_type": file_type,
+                            "total_chunks": len(chunks),
+                            "total_characters": len(text),
+                            "estimated_pages": stats["estimated_pages"],
+                            "real_pages": stats.get("real_pages", None),
+                            "created_at": result.data[0].get('created_at')
+                        }
+                    }
+                else:
+                    raise Exception("No se recibió respuesta de Supabase")
+                    
+            except Exception as db_error:
+                print(f"❌ Error guardando en Supabase: {db_error}")
+                print("⚠️ Continuando con almacenamiento local...")
+                # Si falla Supabase, continuar con método local
+        
+        # ===== FALLBACK: GUARDAR LOCAL (SI SUPABASE NO ESTÁ DISPONIBLE) =====
+        print(f"\n💾 Guardando localmente (Supabase no disponible)")
         material_id = get_next_material_id()
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
@@ -324,7 +431,7 @@ async def validate_answer(answer: Answer):
         
         # ===== DETERMINAR PREGUNTA Y MATERIAL =====
         question_text = None
-        material_id = answer.material_id or 1
+        material_id = answer.material_id  # UUID de Supabase
         
         if answer.question_id:
             # Pregunta guardada
@@ -349,22 +456,81 @@ async def validate_answer(answer: Answer):
         
         # Validar longitud mínima
         try:
-            # Cargar material
-            embeddings_files = list(EMBEDDINGS_DIR.glob(f"material_{material_id}_*.json"))
-            
-            if not embeddings_files:
-                embeddings_files = list(EMBEDDINGS_DIR.glob("material_*.json"))
-                if not embeddings_files:
+            # ===== CARGAR EMBEDDINGS DESDE SUPABASE CON PGVECTOR =====
+            if SUPABASE_ENABLED:
+                print(f"📂 Cargando embeddings desde Supabase para material: {material_id}")
+                supabase = get_supabase_client()
+                
+                # 1. Obtener información del material (para saber las páginas reales)
+                material_info = supabase.table('materials')\
+                    .select('estimated_pages, total_chunks')\
+                    .eq('id', material_id)\
+                    .single()\
+                    .execute()
+                
+                if not material_info.data:
                     raise HTTPException(
-                        status_code=404, 
-                        detail="No hay materiales procesados. Sube un material primero."
+                        status_code=404,
+                        detail=f"Material {material_id} no encontrado"
                     )
-            
-            print(f"📂 Cargando: {embeddings_files[0].name}")
-            with open(embeddings_files[0], 'r', encoding='utf-8') as f:
-                material_embeddings = json.load(f)
-            
-            print(f"📚 {len(material_embeddings)} chunks disponibles")
+                
+                real_pages = material_info.data.get('estimated_pages', 1)
+                total_chunks_db = material_info.data.get('total_chunks', 0)
+                
+                print(f"📄 Material tiene {real_pages} páginas y {total_chunks_db} chunks")
+                
+                # 2. Obtener embeddings desde Supabase
+                embeddings_result = supabase.table('material_embeddings')\
+                    .select('chunk_index, chunk_text, embedding')\
+                    .eq('material_id', material_id)\
+                    .order('chunk_index')\
+                    .execute()
+                
+                if not embeddings_result.data or len(embeddings_result.data) == 0:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"No se encontraron embeddings para el material {material_id}"
+                    )
+                
+                # Convertir a formato esperado por SemanticValidator
+                material_embeddings = []
+                for emb in embeddings_result.data:
+                    chunk_text = emb['chunk_text']
+                    # IMPORTANTE: Convertir el embedding de string a numpy array
+                    embedding_vector = emb['embedding']
+                    if isinstance(embedding_vector, str):
+                        # Si es string, convertir a lista
+                        embedding_vector = json.loads(embedding_vector)
+                    if isinstance(embedding_vector, list):
+                        # Convertir lista a numpy array
+                        embedding_vector = np.array(embedding_vector, dtype=np.float32)
+                    
+                    material_embeddings.append({
+                        "chunk_id": emb['chunk_index'],
+                        "text": chunk_text[:200] + "..." if len(chunk_text) > 200 else chunk_text,
+                        "text_full": chunk_text,
+                        "embedding": embedding_vector
+                    })
+                
+                print(f"📚 {len(material_embeddings)} chunks cargados desde Supabase")
+                
+            else:
+                # Fallback: cargar desde archivos JSON locales
+                embeddings_files = list(EMBEDDINGS_DIR.glob(f"material_{material_id}_*.json"))
+                
+                if not embeddings_files:
+                    embeddings_files = list(EMBEDDINGS_DIR.glob("material_*.json"))
+                    if not embeddings_files:
+                        raise HTTPException(
+                            status_code=404, 
+                            detail="No hay materiales procesados. Sube un material primero."
+                        )
+                
+                print(f"📂 Cargando: {embeddings_files[0].name}")
+                with open(embeddings_files[0], 'r', encoding='utf-8') as f:
+                    material_embeddings = json.load(f)
+                
+                print(f"📚 {len(material_embeddings)} chunks disponibles")
             
             # Generar embedding de la respuesta (combinar pregunta + respuesta para contexto)
             combined_text = f"Pregunta: {question_text}\nRespuesta: {answer.user_answer}"
@@ -395,7 +561,13 @@ async def validate_answer(answer: Answer):
             # Calcular posición del chunk
             total_chunks = len(material_embeddings)
             best_chunk_position = best_match["chunk_id"]
-            estimated_page = (best_chunk_position * 500) // 2500
+            
+            # Calcular página estimada correctamente:
+            # Si tenemos 397 chunks en 25 páginas, cada página tiene ~15.88 chunks
+            # Página estimada = (chunk_index / total_chunks) * total_pages
+            estimated_page = int((best_chunk_position / max(total_chunks, 1)) * real_pages) + 1
+            
+            print(f"📍 Chunk más relevante: {best_chunk_position + 1}/{total_chunks} → Página ~{estimated_page}/{real_pages}")
             
             # Construir resultado
             result = ValidationResult(
@@ -419,11 +591,10 @@ async def validate_answer(answer: Answer):
                     "similarity": best_match["similarity"],
                     "chunk_id": best_chunk_position,
                     "total_chunks": total_chunks,
-                    "estimated_page": estimated_page
+                    "estimated_page": estimated_page,
+                    "total_pages": real_pages
                 }
             )
-            
-            print(f"📍 Chunk más relevante: {best_chunk_position + 1}/{total_chunks} (página ~{estimated_page})")
             
             return result
             
@@ -457,52 +628,128 @@ async def validate_answer(answer: Answer):
 
 @app.get("/api/materials")
 async def get_materials():
-    """Obtiene la lista de todos los materiales subidos"""
-    return {
-        "success": True,
-        "total": len(materials_db),
-        "materials": materials_db
-    }
+    """Obtiene la lista de todos los materiales subidos desde Supabase"""
+    try:
+        if SUPABASE_ENABLED:
+            supabase = get_supabase_client()
+            
+            # Obtener todos los materiales de Supabase
+            result = supabase.table('materials')\
+                .select('*')\
+                .order('created_at', desc=True)\
+                .execute()
+            
+            materials = result.data if result.data else []
+            
+            print(f"📚 Materiales obtenidos de Supabase: {len(materials)}")
+            
+            return {
+                "success": True,
+                "total": len(materials),
+                "materials": materials
+            }
+        else:
+            # Fallback a materials_db local
+            return {
+                "success": True,
+                "total": len(materials_db),
+                "materials": materials_db
+            }
+    except Exception as e:
+        print(f"❌ Error obteniendo materiales: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/materials/{material_id}")
-async def get_material(material_id: int):
-    """Obtiene los detalles de un material específico"""
-    material = next((m for m in materials_db if m["id"] == material_id), None)
-    if not material:
-        raise HTTPException(status_code=404, detail="Material no encontrado")
-    return {
-        "success": True,
-        "material": material
-    }
+async def get_material(material_id: str):
+    """Obtiene los detalles de un material específico desde Supabase"""
+    try:
+        if SUPABASE_ENABLED:
+            supabase = get_supabase_client()
+            result = supabase.table('materials')\
+                .select('*')\
+                .eq('id', material_id)\
+                .single()\
+                .execute()
+            
+            if result.data:
+                return {
+                    "success": True,
+                    "material": result.data
+                }
+            else:
+                raise HTTPException(status_code=404, detail="Material no encontrado")
+        else:
+            # Fallback local
+            material = next((m for m in materials_db if m["id"] == material_id), None)
+            if not material:
+                raise HTTPException(status_code=404, detail="Material no encontrado")
+            return {
+                "success": True,
+                "material": material
+            }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error obteniendo material: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/api/materials/{material_id}")
-async def delete_material(material_id: int):
+async def delete_material(material_id: str):
     """
-    Elimina un material y todos sus archivos asociados
-    - Elimina embeddings del material
-    - Elimina archivos PDF originales
-    - Elimina entrada de la base de datos
+    Elimina un material y todos sus registros asociados de Supabase
+    - Elimina embeddings (CASCADE desde material_embeddings)
+    - Elimina preguntas y respuestas (CASCADE)
+    - Elimina registro del material
     """
-    global materials_db
-    
-    # Verificar que el material existe
-    material = next((m for m in materials_db if m["id"] == material_id), None)
-    if not material:
-        raise HTTPException(status_code=404, detail=f"Material con ID {material_id} no encontrado")
-    
-    deleted_files = []
-    errors = []
-    
     try:
-        # 1. Eliminar archivos de embeddings
-        embeddings_files = list(EMBEDDINGS_DIR.glob(f"material_{material_id}_*.json"))
-        for emb_file in embeddings_files:
-            try:
-                emb_file.unlink()
-                deleted_files.append(str(emb_file.name))
-                print(f"🗑️ Embedding eliminado: {emb_file.name}")
-            except Exception as e:
-                errors.append(f"Error eliminando {emb_file.name}: {str(e)}")
+        if SUPABASE_ENABLED:
+            supabase = get_supabase_client()
+            
+            # Verificar que existe
+            material = supabase.table('materials')\
+                .select('id, title, file_name')\
+                .eq('id', material_id)\
+                .single()\
+                .execute()
+            
+            if not material.data:
+                raise HTTPException(status_code=404, detail=f"Material {material_id} no encontrado")
+            
+            print(f"🗑️ Eliminando material: {material.data.get('title') or material.data.get('file_name')}")
+            
+            # Eliminar material (CASCADE eliminará embeddings automáticamente)
+            delete_result = supabase.table('materials')\
+                .delete()\
+                .eq('id', material_id)\
+                .execute()
+            
+            print(f"✅ Material eliminado exitosamente de Supabase")
+            
+            return {
+                "success": True,
+                "message": "Material eliminado correctamente",
+                "material_id": material_id
+            }
+        else:
+            # Fallback: eliminar de materials_db local
+            global materials_db
+            material = next((m for m in materials_db if m["id"] == material_id), None)
+            if not material:
+                raise HTTPException(status_code=404, detail=f"Material {material_id} no encontrado")
+            
+            materials_db = [m for m in materials_db if m["id"] != material_id]
+            
+            return {
+                "success": True,
+                "message": "Material eliminado",
+                "material_id": material_id
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error eliminando material: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
         
         # 2. Eliminar archivo original si existe
         if material.get("file_path"):

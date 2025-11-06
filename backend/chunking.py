@@ -41,14 +41,18 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     except Exception as e:
         raise Exception(f"Error extrayendo texto del PDF: {str(e)}")
 
-def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> List[str]:
+def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> List[str]:
     """
     Divide el texto en chunks con overlap para mantener contexto
     
+    OPTIMIZADO PARA PDFs DE 25-100+ PÁGINAS:
+    - chunk_size=1000: Contexto completo (5-7 oraciones)
+    - overlap=200: Mayor continuidad entre chunks
+    
     Args:
         text: Texto a dividir
-        chunk_size: Tamaño aproximado de cada chunk (en caracteres)
-        overlap: Cantidad de caracteres que se solapan entre chunks
+        chunk_size: Tamaño aproximado de cada chunk (en caracteres) [default: 1000]
+        overlap: Cantidad de caracteres que se solapan entre chunks [default: 200]
         
     Returns:
         List[str]: Lista de chunks de texto
@@ -102,12 +106,13 @@ def clean_text(text: str) -> str:
     
     return text.strip()
 
-def get_text_stats(text: str) -> dict:
+def get_text_stats(text: str, real_pages: int = None) -> dict:
     """
     Obtiene estadísticas del texto
     
     Args:
         text: Texto a analizar
+        real_pages: Número real de páginas del PDF (si está disponible)
         
     Returns:
         dict: Diccionario con estadísticas
@@ -115,6 +120,9 @@ def get_text_stats(text: str) -> dict:
     words = text.split()
     sentences = re.split(r'[.!?]+', text)
     paragraphs = text.split('\n\n')
+    
+    # Calcular páginas estimadas basándose en caracteres (1300 chars/página es más realista)
+    estimated_pages = len(text) // 1300 if not real_pages else real_pages
     
     return {
         "characters": len(text),
@@ -124,7 +132,8 @@ def get_text_stats(text: str) -> dict:
         "paragraphs": len([p for p in paragraphs if p.strip()]),
         "avg_word_length": round(sum(len(word) for word in words) / len(words), 2) if words else 0,
         "avg_sentence_length": round(len(words) / len([s for s in sentences if s.strip()]), 2) if sentences else 0,
-        "estimated_pages": len(text) // 2500  # Aprox 2500 caracteres por página
+        "estimated_pages": estimated_pages,
+        "real_pages": real_pages if real_pages else estimated_pages  # Devolver el conteo real si existe
     }
 
 def chunk_by_paragraphs(text: str, max_chunk_size: int = 1000) -> List[str]:

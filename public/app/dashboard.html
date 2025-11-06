@@ -11,6 +11,10 @@
     <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-config.js"></script>
+    <script src="../assets/js/supabase-operations.js"></script>
     <script src="../assets/js/header-footer-components.js"></script>
     
     <style type="text/tailwindcss">
@@ -283,138 +287,140 @@
             console.log('📊 INICIALIZANDO DASHBOARD');
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             
-            // Obtener todas las preguntas del localStorage
-            console.log('🔍 Buscando preguntas en localStorage...');
-            const questions = getAllQuestions();
-            console.log(`📝 Preguntas encontradas: ${questions.length}`);
-            
-            if (questions.length > 0) {
-                console.log('📋 Primeras 3 preguntas:', questions.slice(0, 3));
-                console.log('🗂️ Keys de localStorage con preguntas:');
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('recuiva_questions_material_')) {
-                        const qs = JSON.parse(localStorage.getItem(key) || '[]');
-                        console.log(`  ✓ ${key}: ${qs.length} preguntas`);
-                    }
+            try {
+                // 🔥 CARGAR DATOS DESDE SUPABASE
+                console.log('🔍 Cargando datos desde Supabase...');
+                
+                // Obtener materiales
+                const materials = await SupabaseOperations.getMaterials();
+                console.log(`📦 Materiales encontrados: ${materials.length}`);
+                
+                // ✅ USAR LA FUNCIÓN getAllQuestions() QUE YA NORMALIZA TODO CORRECTAMENTE
+                const allQuestions = await getAllQuestions();
+                
+                console.log(`📋 Preguntas totales encontradas: ${allQuestions.length}`);
+                
+                if (allQuestions.length === 0) {
+                    console.warn('⚠️ No hay preguntas guardadas en Supabase');
+                    console.log('💡 Para ver datos en el dashboard:');
+                    console.log('   1. Ve a Sesión Práctica');
+                    console.log('   2. Crea y valida algunas preguntas');
+                    console.log('   3. Vuelve al dashboard para ver las métricas');
                 }
-            } else {
-                console.warn('⚠️ No hay preguntas guardadas en localStorage');
-                console.log('💡 Para ver datos en el dashboard:');
-                console.log('   1. Ve a Sesión Práctica');
-                console.log('   2. Crea y valida algunas preguntas');
-                console.log('   3. Las preguntas se guardarán automáticamente');
-                console.log('   4. Vuelve al dashboard para ver las métricas');
+                
+                // Renderizar todos los componentes
+                console.log('\n🎨 Renderizando componentes del dashboard...');
+                renderMetrics(allQuestions, materials);
+                renderScoreChart(allQuestions);
+                renderRecentMaterials(materials);
+                renderRecentQuestions(allQuestions);
+                renderWeakTopics(allQuestions, materials);
+                renderStudyPlan(allQuestions, materials);
+                
+                console.log('\n✅ DASHBOARD CARGADO CORRECTAMENTE DESDE SUPABASE');
+                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            } catch (error) {
+                console.error('❌ Error al cargar dashboard:', error);
+                alert('Error al cargar datos del dashboard');
             }
-            
-            // Obtener materiales del backend
-            console.log('\n🌐 Conectando con backend para obtener materiales...');
-            const materials = await getMaterials();
-            
-            // Validar que materials sea un array
-            const materialsArray = Array.isArray(materials) ? materials : [];
-            
-            console.log(`📚 Materiales encontrados: ${materialsArray.length}`);
-            
-            if (materialsArray.length > 0) {
-                console.log('📦 Materiales:', materialsArray.map(m => `${m.id}: ${m.name}`));
-            } else {
-                console.warn('⚠️ No hay materiales en el backend');
-                console.log('💡 Para agregar materiales:');
-                console.log('   1. Ve a Subir Material');
-                console.log('   2. Sube un PDF');
-                console.log('   3. El sistema lo procesará automáticamente');
-            }
-            
-            // Renderizar todos los componentes
-            console.log('\n🎨 Renderizando componentes del dashboard...');
-            renderMetrics(questions, materialsArray);
-            renderScoreChart(questions);
-            renderRecentMaterials(materialsArray);
-            renderRecentQuestions(questions);
-            renderWeakTopics(questions, materialsArray);
-            renderStudyPlan(questions, materialsArray);
-            
-            console.log('\n✅ DASHBOARD CARGADO CORRECTAMENTE');
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         }
 
         // ==========================================
-        // OBTENER PREGUNTAS DEL MATERIAL ACTIVO (SIN BORRAR NADA)
+        // OBTENER PREGUNTAS DE TODOS LOS MATERIALES (DESDE SUPABASE)
         // ==========================================
-        function getAllQuestions() {
-            console.log('🔍 CARGANDO PREGUNTAS DEL MATERIAL ACTIVO...');
+        async function getAllQuestions() {
+            console.log('🔍 CARGANDO PREGUNTAS DESDE SUPABASE...');
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             
-            // 📦 PASO 1: OBTENER MATERIAL ACTIVO DE SESIÓN PRÁCTICA
-            console.log('📦 Obteniendo material activo de Sesión Práctica...');
-            const activeMaterialId = localStorage.getItem('active_material_id');
+            // 📦 PASO 1: CARGAR TODOS LOS MATERIALES DEL USUARIO DESDE SUPABASE
+            console.log('📦 Cargando materiales desde Supabase...');
+            const materials = await SupabaseOperations.getMaterials();
             
-            if (!activeMaterialId) {
-                console.warn('  ⚠️ NO HAY MATERIAL ACTIVO en Sesión Práctica');
-                console.log('  💡 Ve a Sesión Práctica y selecciona un material primero');
+            if (!materials || materials.length === 0) {
+                console.warn('  ⚠️ NO HAY MATERIALES en Supabase');
+                console.log('  💡 Sube materiales primero');
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 return [];
             }
             
-            console.log(`  ✓ Material activo: ${activeMaterialId}`);
+            console.log(`  ✓ ${materials.length} material(es) encontrado(s)`);
             
-            // 📝 PASO 2: CARGAR PREGUNTAS DEL MATERIAL ACTIVO (SIN BORRAR)
-            const activeKey = `recuiva_questions_material_${activeMaterialId}`;
-            console.log(`\n📝 Buscando preguntas en: ${activeKey}`);
-            
+            // 📝 PASO 2: CARGAR PREGUNTAS Y RESPUESTAS DE TODOS LOS MATERIALES DESDE SUPABASE
             let allQuestions = [];
             const seenQuestions = new Set();
             
             try {
-                const questions = JSON.parse(localStorage.getItem(activeKey) || '[]');
-                
-                if (!Array.isArray(questions) || questions.length === 0) {
-                    console.warn('  ⚠️ El material activo NO tiene preguntas guardadas');
-                    console.log('  � Crea preguntas en Sesión Práctica para verlas aquí');
-                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-                    return [];
-                }
-                
-                console.log(`  ✓ ${questions.length} pregunta(s) encontradas en material activo`);
-                
-                // Normalizar scores y eliminar duplicados
-                questions.forEach(q => {
-                    // Normalizar score
-                    let score = q.score || 0;
-                    if (score > 0 && score <= 1) {
-                        score = Math.round(score * 100);
-                        console.log(`    📊 Score normalizado: ${q.score} → ${score}%`);
-                    } else {
-                        score = Math.round(score);
+                for (const material of materials) {
+                    console.log(`\n📝 Cargando preguntas del material: ${material.title}`);
+                    
+                    // Cargar preguntas del material desde Supabase
+                    const questions = await SupabaseOperations.getQuestionsByMaterial(material.id);
+                    
+                    if (!questions || questions.length === 0) {
+                        console.log(`  ⚠️ Sin preguntas para ${material.title}`);
+                        continue; // Continuar con el siguiente material
                     }
                     
-                    // Crear copia normalizada
-                    const normalizedQ = { ...q, score };
+                    console.log(`  ✓ ${questions.length} pregunta(s) encontradas`);
                     
-                    // Detectar duplicados
-                    const questionText = (q.pregunta || q.question || q.userQuestion || '').toLowerCase().replace(/\s+/g, ' ').trim();
-                    const answerText = (q.respuesta || q.answer || q.userAnswer || '').toLowerCase().replace(/\s+/g, ' ').trim();
-                    
-                    if (questionText) {
-                        const uniqueId = `${questionText}_${answerText}`;
+                    // Para cada pregunta, obtener su última respuesta
+                    for (const question of questions) {
+                        console.log(`      🔍 Pregunta obtenida (RAW):`, JSON.stringify(question, null, 2));
+                        console.log(`      🔍 Pregunta obtenida (OBJECT):`, question);
+                        const answers = await SupabaseOperations.getAnswersByQuestion(question.id);
+                        console.log(`      📝 Respuestas obtenidas (${answers.length}):`, answers);
                         
-                        if (!seenQuestions.has(uniqueId)) {
-                            seenQuestions.add(uniqueId);
-                            allQuestions.push(normalizedQ);
-                        } else {
-                            console.log(`    ⚠️ Duplicado omitido: "${questionText.substring(0, 30)}..."`);
+                        if (answers && answers.length > 0) {
+                            const lastAnswer = answers[0]; // La más reciente
+                            console.log(`      ✅ Última respuesta:`, lastAnswer);
+                            
+                            // Normalizar score
+                            let score = parseFloat(lastAnswer.score) || 0;
+                            if (score > 100) score = 100;
+                            if (score < 0) score = 0;
+                            
+                            // Crear objeto normalizado para el dashboard
+                            const normalizedQ = {
+                                id: question.id,
+                                pregunta: question.question_text,
+                                respuesta: lastAnswer.answer_text,
+                                score: Math.round(score),
+                                classification: lastAnswer.classification,
+                                feedback: lastAnswer.feedback,
+                                similarity: lastAnswer.similarity,
+                                timestamp: new Date(question.created_at).getTime(),
+                                material_id: material.id,
+                                material_title: material.title
+                            };
+                            
+                            console.log(`      📊 Pregunta normalizada:`, normalizedQ);
+                            console.log(`      🔍 VALORES CRÍTICOS:`);
+                            console.log(`         • question.question_text = "${question.question_text}"`);
+                            console.log(`         • lastAnswer.answer_text = "${lastAnswer.answer_text}"`);
+                            console.log(`         • normalizedQ.pregunta = "${normalizedQ.pregunta}"`);
+                            console.log(`         • normalizedQ.respuesta = "${normalizedQ.respuesta}"`);
+                            
+                            // Detectar duplicados
+                            const questionText = question.question_text.toLowerCase().trim();
+                            const uniqueId = `${questionText}_${material.id}`;
+                            
+                            if (!seenQuestions.has(uniqueId)) {
+                                seenQuestions.add(uniqueId);
+                                allQuestions.push(normalizedQ);
+                            }
                         }
                     }
-                });
+                }
                 
                 console.log(`\n📊 RESULTADO FINAL:`);
                 console.log(`  • Total ÚNICO: ${allQuestions.length} pregunta(s)`);
-                console.log(`  • Scores: [${allQuestions.map(q => q.score + '%').join(', ')}]`);
+                if (allQuestions.length > 0) {
+                    console.log(`  • Scores: [${allQuestions.map(q => q.score + '%').join(', ')}]`);
+                }
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 
             } catch (e) {
-                console.error(`❌ Error al cargar preguntas del material activo:`, e);
+                console.error(`❌ Error al cargar preguntas desde Supabase:`, e);
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 return [];
             }
@@ -463,7 +469,7 @@
                 } else {
                     console.log('📚 Materiales cargados:');
                     materialsArray.forEach((m, i) => {
-                        console.log(`  ${i + 1}. ${m.name || m.filename || 'Sin nombre'} (ID: ${m.id})`);
+                        console.log(`  ${i + 1}. ${m.title || m.file_name || m.filename || m.name || 'Sin nombre'} (ID: ${m.id})`);
                     });
                 }
                 
@@ -912,12 +918,12 @@
             console.log(`  ✓ Mostrando ${recent.length} materiales más recientes`);
             
             recent.forEach((m, i) => {
-                console.log(`    ${i + 1}. ${m.name || m.filename || 'Sin nombre'} (ID: ${m.id})`);
+                console.log(`    ${i + 1}. ${m.title || m.file_name || m.filename || m.name || 'Sin nombre'} (ID: ${m.id})`);
             });
             
             container.innerHTML = recent.map(material => {
-                const materialName = material.name || material.filename || 'Sin nombre';
-                const uploadDate = material.uploadedAt || material.uploaded_at || material.createdAt || material.created_at || Date.now();
+                const materialName = material.title || material.file_name || material.filename || material.name || 'Material sin nombre';
+                const uploadDate = material.created_at || material.createdAt || material.uploaded_at || material.uploadedAt || Date.now();
                 
                 return `
                 <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
@@ -1269,8 +1275,8 @@
             content.innerHTML = `
                 <div class="space-y-3">
                     ${materials.map(material => {
-                        const materialName = material.name || material.filename || 'Sin nombre';
-                        const uploadDate = material.uploadedAt || material.uploaded_at || material.createdAt || material.created_at || Date.now();
+                        const materialName = material.title || material.file_name || material.filename || material.name || 'Material sin nombre';
+                        const uploadDate = material.created_at || material.createdAt || material.uploaded_at || material.uploadedAt || Date.now();
                         const totalChunks = material.total_chunks || material.totalChunks || 0;
                         const totalPages = material.real_pages || material.realPages || material.estimated_pages || 0;
                         
@@ -1309,7 +1315,7 @@
         };
         
         // Abrir modal de preguntas
-        window.openQuestionsModal = function() {
+        window.openQuestionsModal = async function() {
             const modal = document.getElementById('questions-modal');
             const content = document.getElementById('questions-modal-content');
             
@@ -1317,7 +1323,7 @@
             modal.classList.add('flex');
             
             // Cargar todas las preguntas
-            const questions = getAllQuestions();
+            const questions = await getAllQuestions();
             
             if (!questions || questions.length === 0) {
                 content.innerHTML = `

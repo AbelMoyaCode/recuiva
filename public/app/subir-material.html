@@ -9,6 +9,10 @@
     <title>Subir Material - Recuiva</title>
     <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-config.js"></script>
+    <script src="../assets/js/supabase-operations.js"></script>
     <script src="../assets/js/header-footer-components.js"></script>
     <style type="text/tailwindcss">
       :root {
@@ -525,8 +529,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const formData = new FormData();
       formData.append('file', file);
       
-  const response = await fetch('http://localhost:8000/api/materials/upload', {
+      // Obtener user_id del usuario autenticado
+      const user = await SupabaseOperations.getCurrentUser();
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
+      
+      const response = await fetch('http://localhost:8000/api/materials/upload', {
         method: 'POST',
+        headers: {
+          'X-User-ID': user.id  // Enviar user_id en el header
+        },
         body: formData
       });
       
@@ -550,21 +563,29 @@ document.addEventListener('DOMContentLoaded', function() {
       progressText.textContent = '¡Completado!';
       await sleep(800);
       
-      // Guardar asociación material-carpeta
-      const carpetaActiva = JSON.parse(localStorage.getItem('recuiva_carpeta_activa') || '{}');
-      if (carpetaActiva.nombre && data.material_id) {
-        const asociaciones = JSON.parse(localStorage.getItem('recuiva_material_carpetas') || '{}');
-        asociaciones[data.material_id] = {
-          carpeta: carpetaActiva.nombre,
-          tipo: carpetaActiva.tipo,
-          fecha: new Date().toISOString()
-        };
-        localStorage.setItem('recuiva_material_carpetas', JSON.stringify(asociaciones));
-        console.log(`📂 Material ${data.material_id} asociado a carpeta:`, carpetaActiva);
+      // ✅ Material ya guardado en Supabase por el backend
+      // El backend retorna el UUID del material creado
+      const supabaseMaterialId = data.material_id;
+      console.log('✅ Material guardado en Supabase con UUID:', supabaseMaterialId);
+      
+      try {
+        // Asociar a carpeta si existe
+        const carpetaActiva = JSON.parse(localStorage.getItem('recuiva_carpeta_activa') || '{}');
+        if (carpetaActiva.id && supabaseMaterialId) {
+          await SupabaseOperations.linkMaterialToFolder(supabaseMaterialId, carpetaActiva.id);
+          console.log(`📂 Material asociado a carpeta en Supabase:`, carpetaActiva);
+        }
+        
+      } catch (supabaseError) {
+        console.error('⚠️ Error guardando en Supabase:', supabaseError);
+        // No bloqueamos el flujo, el material ya está en el backend
       }
       
-      // Guardar el ID del último material subido para la navegación
-      if (data.material_id) {
+      // Guardar el ID del material de Supabase para navegación
+      if (supabaseMaterialId) {
+        localStorage.setItem('recuiva_last_uploaded_material_id', supabaseMaterialId);
+      } else if (data.material_id) {
+        // Fallback al ID del backend
         localStorage.setItem('recuiva_last_uploaded_material_id', data.material_id);
       }
       
@@ -676,23 +697,35 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
       
       data.materials.forEach(material => {
-        const uploadDate = new Date(
-          material.uploaded_at.slice(0,4), 
-          parseInt(material.uploaded_at.slice(4,6))-1, 
-          material.uploaded_at.slice(6,8)
-        ).toLocaleDateString('es-ES');
+        // Formatear fecha desde Supabase (ISO 8601)
+        let uploadDate = 'N/A';
+        try {
+          if (material.created_at) {
+            uploadDate = new Date(material.created_at).toLocaleDateString('es-ES');
+          } else if (material.uploaded_at) {
+            // Fallback para formato antiguo YYYYMMDD
+            uploadDate = new Date(
+              material.uploaded_at.slice(0,4), 
+              parseInt(material.uploaded_at.slice(4,6))-1, 
+              material.uploaded_at.slice(6,8)
+            ).toLocaleDateString('es-ES');
+          }
+        } catch (e) {
+          console.warn('Error parseando fecha:', e);
+          uploadDate = 'N/A';
+        }
         
-        const fileStatus = material.file_exists ? 
-          '<span class="text-green-600">✓ Disponible</span>' :
-          '<span class="text-yellow-600">⚠ Solo embeddings</span>';
+        const fileStatus = material.processing_status === 'completed' ? 
+          '<span class="text-green-600">✓ Procesado</span>' :
+          '<span class="text-yellow-600">⚠ Procesando</span>';
         
         tableHTML += `
           <tr class="border-b border-gray-200 hover:bg-white transition-colors">
-            <td class="py-2 px-3 font-mono text-xs">${material.id}</td>
+            <td class="py-2 px-3 font-mono text-xs">${material.id.substring(0, 8)}...</td>
             <td class="py-2 px-3">
               <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-lg text-[var(--primary-color)]">picture_as_pdf</span>
-                <span class="font-medium">${material.filename}</span>
+                <span class="font-medium">${material.title || material.file_name}</span>
               </div>
             </td>
             <td class="py-2 px-3 text-center">${material.total_chunks}</td>
@@ -702,13 +735,13 @@ document.addEventListener('DOMContentLoaded', function() {
             <td class="py-2 px-3 text-center">
               <div class="flex items-center justify-center gap-2">
                 <button 
-                  onclick="useMaterial(${material.id})" 
+                  onclick="useMaterial('${material.id}')" 
                   class="text-[var(--primary-color)] hover:text-[var(--secondary-color)] font-semibold text-xs px-2 py-1 rounded hover:bg-gray-100"
                   title="Usar este material">
                   Usar
                 </button>
                 <button 
-                  onclick="eliminarMaterial(${material.id}, '${material.filename}')" 
+                  onclick="eliminarMaterial('${material.id}', '${material.title || material.file_name}')" 
                   class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
                   title="Eliminar material">
                   <span class="material-symbols-outlined text-lg">delete</span>
@@ -788,8 +821,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- Scripts del Backend API -->
-<script src="../../assets/js/api.js"></script>
-<script src="../../assets/js/upload-material.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/upload-material.js"></script>
 
 <!-- Footer Container - Managed by header-footer-components.js -->
 <div id="footer-container"></div>

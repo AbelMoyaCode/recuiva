@@ -9,6 +9,10 @@
     <title>Repasos Espaciados - Recuiva</title>
     <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../assets/js/supabase-config.js"></script>
+    <script src="../assets/js/supabase-operations.js"></script>
     <script src="../assets/js/header-footer-components.js"></script>
     <!-- Sistema de Repaso Espaciado -->
     <script src="spaced-repetition.js"></script>
@@ -24,12 +28,6 @@
         --text-secondary: #575757;
       }
       
-      /* Estilo global para el logo Recuiva */
-      .recuiva-logo {
-        font-family: 'Manrope', sans-serif !important;
-        font-weight: 800 !important;
-        font-size: 1.5rem !important;
-      }
       .calendar-day {
         transition: all 0.2s ease;
       }

@@ -143,6 +143,7 @@ class RecuivaAPI {
      * Genera embeddings y chunking automático
      * 
      * @param {File} file - Archivo a subir (PDF o TXT)
+     * @param {string} [userId=null] - ID del usuario (opcional, se obtiene de Supabase si no se provee)
      * @param {Function} [onProgress=null] - Callback de progreso (opcional)
      * @returns {Promise<APIResponse & {data: MaterialData}>} Información del material procesado
      * 
@@ -151,12 +152,49 @@ class RecuivaAPI {
      * const result = await api.uploadMaterial(file);
      * console.log(`Material ID: ${result.data.id}`);
      */
-    async uploadMaterial(file, onProgress = null) {
+    async uploadMaterial(file, userId = null, onProgress = null) {
         const formData = new FormData();
         formData.append('file', file);
 
+        // Obtener user_id de Supabase si no se provee
+        let finalUserId = userId;
+        
+        // Intentar obtener usuario de Supabase o SupabaseOperations
+        if (!finalUserId) {
+            try {
+                // Método 1: Usar SupabaseOperations si está disponible
+                if (typeof SupabaseOperations !== 'undefined') {
+                    const user = await SupabaseOperations.getCurrentUser();
+                    if (user && user.id) {
+                        finalUserId = user.id;
+                        console.log('✅ User ID obtenido de SupabaseOperations:', finalUserId);
+                    }
+                }
+                // Método 2: Fallback a supabaseClient directo
+                else if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                    const { data: { user } } = await supabaseClient.auth.getUser();
+                    if (user) {
+                        finalUserId = user.id;
+                        console.log('✅ User ID obtenido de Supabase Auth:', finalUserId);
+                    }
+                }
+            } catch (error) {
+                console.warn('⚠️ Error obteniendo user_id:', error);
+            }
+        }
+
+        // Headers con user_id (siempre debe estar presente gracias al mock)
+        const headers = {};
+        if (finalUserId) {
+            headers['X-User-ID'] = finalUserId;
+            console.log('📤 Enviando material con User-ID:', finalUserId);
+        } else {
+            console.error('❌ CRÍTICO: No se pudo obtener user_id. Verifica SupabaseOperations.');
+        }
+
         return await this.request(API_CONFIG.ENDPOINTS.UPLOAD_MATERIAL, {
             method: 'POST',
+            headers: headers,
             body: formData,
             // No incluir Content-Type header, el navegador lo establece automáticamente con boundary
         });

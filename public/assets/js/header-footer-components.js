@@ -62,7 +62,7 @@ function renderPublicHeader() {
           <a href="/index.html" class="flex items-center gap-2">
             <img src="/assets/img/Icon-Recuiva.png" alt="${RECUIVA_CONFIG.logoAlt}" 
                  class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-            <span class="text-2xl font-black text-gray-900">${RECUIVA_CONFIG.brandName}</span>
+            <span class="text-2xl font-extrabold text-gray-900">${RECUIVA_CONFIG.brandName}</span>
           </a>
         </div>
 
@@ -141,7 +141,7 @@ function renderAuthenticatedHeader(currentPage = '') {
           <a href="${routes.inicio}" class="flex items-center gap-2">
             <img src="/assets/img/Icon-Recuiva.png" alt="${RECUIVA_CONFIG.logoAlt}" 
                  class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-            <span class="text-2xl font-black text-gray-900 hidden sm:inline">${RECUIVA_CONFIG.brandName}</span>
+            <span class="text-2xl font-extrabold text-gray-900 hidden sm:inline">${RECUIVA_CONFIG.brandName}</span>
           </a>
         </div>
 
@@ -258,7 +258,7 @@ function renderFooter() {
         <div class="flex justify-center items-center gap-2 mb-6">
           <img src="/assets/img/Icon-Recuiva.png" alt="${RECUIVA_CONFIG.logoAlt}" 
                class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-          <span class="text-2xl font-black">${RECUIVA_CONFIG.brandName}</span>
+          <span class="text-2xl font-extrabold">${RECUIVA_CONFIG.brandName}</span>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
           <a class="hover:text-orange-400 transition-colors" href="/app/institucional/active-recall.html">Active Recall</a>

@@ -52,3 +52,7 @@ desktop.ini
 # Temporal
 *.tmp
 *.temp
+
+# Data files (solo incluir estructura, no archivos grandes)
+data/materials/*.pdf
+data/embeddings/*.json

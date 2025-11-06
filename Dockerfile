@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu 
 # Instalar resto de dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código
+# Copiar código del backend
 COPY backend/ .
 
 # Crear directorios y establecer permisos

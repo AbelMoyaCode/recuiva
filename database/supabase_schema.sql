@@ -5,6 +5,45 @@
 -- Ir a: Dashboard > SQL Editor > New Query > Pegar este código > Run
 
 -- ========================================
+-- 🔥 MIGRACIONES (EJECUTAR PRIMERO SI LAS TABLAS YA EXISTEN)
+-- ========================================
+-- Copiar desde aquí y ejecutar en Supabase SQL Editor
+
+-- ========================================
+-- PASO 1: Habilitar extensión pgvector para embeddings
+-- ========================================
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- ========================================
+-- PASO 2: Permitir que file_path sea NULL
+-- ========================================
+ALTER TABLE public.materials 
+ALTER COLUMN file_path DROP NOT NULL;
+
+-- ========================================
+-- PASO 3: Agregar columnas faltantes a tabla questions
+-- ========================================
+ALTER TABLE public.questions 
+ADD COLUMN IF NOT EXISTS topic TEXT,
+ADD COLUMN IF NOT EXISTS difficulty TEXT DEFAULT 'medium',
+ADD COLUMN IF NOT EXISTS expected_answer TEXT;
+
+-- ========================================
+-- PASO 4: Agregar columnas faltantes a tabla materials
+-- ========================================
+ALTER TABLE public.materials 
+ADD COLUMN IF NOT EXISTS total_chunks INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_characters INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS estimated_pages INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS storage_bucket TEXT DEFAULT 'materials',
+ADD COLUMN IF NOT EXISTS storage_path TEXT,
+ADD COLUMN IF NOT EXISTS processing_status TEXT DEFAULT 'pending';
+
+-- ========================================
+-- FIN DE MIGRACIONES
+-- ========================================
+
+-- ========================================
 -- TABLA: materials
 -- Almacena los PDFs/TXTs subidos por cada usuario
 -- ========================================
@@ -28,6 +67,32 @@ CREATE TABLE IF NOT EXISTS public.materials (
 -- Índice para búsquedas rápidas por usuario
 CREATE INDEX IF NOT EXISTS idx_materials_user_id ON public.materials(user_id);
 CREATE INDEX IF NOT EXISTS idx_materials_status ON public.materials(processing_status);
+
+-- ========================================
+-- TABLA: material_embeddings (VECTORES CON PGVECTOR)
+-- Almacena los embeddings (vectores) de cada chunk de texto
+-- ========================================
+CREATE TABLE IF NOT EXISTS public.material_embeddings (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    material_id UUID NOT NULL REFERENCES public.materials(id) ON DELETE CASCADE,
+    chunk_index INTEGER NOT NULL,
+    chunk_text TEXT NOT NULL,
+    embedding vector(384) NOT NULL, -- Dimensión del modelo all-MiniLM-L6-v2
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(material_id, chunk_index) -- Un chunk por material
+);
+
+-- Índice para búsquedas vectoriales (similitud coseno)
+-- OPTIMIZADO: lists calculado para 100-1000 chunks por material
+-- Fórmula: lists = sqrt(total_rows_esperados)
+-- Para 100 materiales × 300 chunks = 30,000 embeddings → sqrt(30000) ≈ 173
+CREATE INDEX IF NOT EXISTS idx_embeddings_ivfflat
+ON public.material_embeddings 
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);  -- Ajustar a 200-300 si tienes > 50,000 embeddings
+
+-- Índice para búsquedas por material
+CREATE INDEX IF NOT EXISTS idx_embeddings_material_id ON public.material_embeddings(material_id);
 
 -- ========================================
 -- TABLA: folders (ORGANIZACIÓN DE CARPETAS)
@@ -153,6 +218,7 @@ CREATE INDEX IF NOT EXISTS idx_spaced_next_review ON public.spaced_repetition(ne
 
 -- Habilitar RLS en todas las tablas
 ALTER TABLE public.materials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.material_embeddings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.folders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.material_folders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.questions ENABLE ROW LEVEL SECURITY;
@@ -176,6 +242,34 @@ CREATE POLICY "Users can update own materials"
 CREATE POLICY "Users can delete own materials" 
     ON public.materials FOR DELETE 
     USING (auth.uid() = user_id);
+
+-- Políticas para MATERIAL_EMBEDDINGS
+CREATE POLICY "Users can view own embeddings" 
+    ON public.material_embeddings FOR SELECT 
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.materials m 
+            WHERE m.id = material_id AND m.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can insert own embeddings" 
+    ON public.material_embeddings FOR INSERT 
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.materials m 
+            WHERE m.id = material_id AND m.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can delete own embeddings" 
+    ON public.material_embeddings FOR DELETE 
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.materials m 
+            WHERE m.id = material_id AND m.user_id = auth.uid()
+        )
+    );
 
 -- Políticas para FOLDERS
 CREATE POLICY "Users can view own folders" 
@@ -278,6 +372,33 @@ CREATE POLICY "Users can delete own spaced repetition"
 -- FUNCIONES ÚTILES
 -- ========================================
 
+-- Función para búsqueda vectorial optimizada (PGVECTOR)
+-- Encuentra los chunks más similares a un embedding dado
+CREATE OR REPLACE FUNCTION search_similar_chunks(
+    query_embedding vector(384),
+    target_material_id UUID,
+    similarity_threshold FLOAT DEFAULT 0.3,
+    max_results INT DEFAULT 10
+)
+RETURNS TABLE (
+    chunk_text TEXT,
+    chunk_index INTEGER,
+    similarity FLOAT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        me.chunk_text,
+        me.chunk_index,
+        1 - (me.embedding <=> query_embedding) AS similarity
+    FROM material_embeddings me
+    WHERE me.material_id = target_material_id
+        AND (1 - (me.embedding <=> query_embedding)) >= similarity_threshold
+    ORDER BY me.embedding <=> query_embedding
+    LIMIT max_results;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
 -- Función para actualizar updated_at automáticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -334,6 +455,21 @@ LEFT JOIN public.questions q ON u.id = q.user_id
 LEFT JOIN public.answers a ON u.id = a.user_id
 GROUP BY u.id, u.email;
 
+-- Vista para estadísticas de embeddings (pgvector)
+CREATE OR REPLACE VIEW public.material_embeddings_stats AS
+SELECT 
+    m.id as material_id,
+    m.title,
+    m.user_id,
+    COUNT(me.id) as total_embeddings,
+    AVG(LENGTH(me.chunk_text)) as avg_chunk_length,
+    m.total_chunks,
+    m.total_characters,
+    m.estimated_pages
+FROM public.materials m
+LEFT JOIN public.material_embeddings me ON m.id = me.material_id
+GROUP BY m.id, m.title, m.user_id, m.total_chunks, m.total_characters, m.estimated_pages;
+
 -- Vista para preguntas pendientes de repaso (repetición espaciada)
 CREATE OR REPLACE VIEW public.questions_due_for_review AS
 SELECT 
@@ -371,5 +507,417 @@ ORDER BY sr.next_review ASC;
 -- ========================================
 -- Ejecuta estas queries para verificar que todo se creó correctamente:
 
+-- Ver todas las tablas creadas
 -- SELECT * FROM information_schema.tables WHERE table_schema = 'public';
+
+-- Ver todas las políticas RLS
 -- SELECT * FROM pg_policies WHERE schemaname = 'public';
+
+-- Verificar que pgvector está habilitado
+SELECT * FROM pg_extension WHERE extname = 'vector';
+
+-- Ver columnas de material_embeddings
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'material_embeddings';
+
+-- Ver políticas RLS
+SELECT policyname 
+FROM pg_policies 
+WHERE tablename = 'material_embeddings';
+
+-- Ver estadísticas de embeddings
+-- SELECT * FROM material_embeddings_stats;
+
+-- ========================================
+-- EJEMPLOS DE USO DE BÚSQUEDA VECTORIAL
+-- ========================================
+
+-- Ejemplo 1: Buscar chunks similares a un embedding
+-- (Reemplaza el array con un embedding real de 384 dimensiones)
+/*
+SELECT * FROM search_similar_chunks(
+    '[0.1, 0.2, 0.3, ...]'::vector(384),  -- Embedding de la pregunta
+    'uuid-del-material'::UUID,             -- ID del material
+    0.5,                                   -- Umbral de similitud mínima (0-1)
+    5                                      -- Top 5 resultados
+);
+*/
+
+-- Ejemplo 2: Búsqueda manual con operador de distancia
+/*
+SELECT 
+    chunk_text,
+    chunk_index,
+    1 - (embedding <=> '[0.1, 0.2, ...]'::vector(384)) AS similarity
+FROM material_embeddings
+WHERE material_id = 'uuid-del-material'
+ORDER BY embedding <=> '[0.1, 0.2, ...]'::vector(384)
+LIMIT 10;
+*/
+
+-- Ejemplo 3: Ver todos los embeddings de un material
+/*
+SELECT 
+    chunk_index,
+    LEFT(chunk_text, 100) as preview,
+    created_at
+FROM material_embeddings
+WHERE material_id = 'uuid-del-material'
+ORDER BY chunk_index;
+*/
+
+-- Ejemplo 4: Contar embeddings por material
+/*
+SELECT 
+    m.title,
+    COUNT(me.id) as total_embeddings,
+    m.total_chunks
+FROM materials m
+LEFT JOIN material_embeddings me ON m.id = me.material_id
+WHERE m.user_id = auth.uid()
+GROUP BY m.id, m.title, m.total_chunks;
+*/
+-- ============================================================
+-- FIX: Políticas RLS faltantes para tabla materials
+-- ============================================================
+-- Problema: La tabla materials tiene RLS habilitado pero no tiene
+-- políticas, por lo que rechaza todas las inserciones.
+-- Solución: Agregar políticas CRUD para usuarios autenticados
+-- ============================================================
+
+
+-- ============================================================
+-- FIX DEFINITIVO: Eliminar políticas antiguas y crear nuevas
+-- ============================================================
+
+-- PASO 1: ELIMINAR TODAS LAS POLÍTICAS ANTIGUAS DE LA TABLA MATERIALS
+DROP POLICY IF EXISTS "Users can view own materials" ON public.materials;
+DROP POLICY IF EXISTS "Users can insert own materials" ON public.materials;
+DROP POLICY IF EXISTS "Users can update own materials" ON public.materials;
+DROP POLICY IF EXISTS "Users can delete own materials" ON public.materials;
+DROP POLICY IF EXISTS "Users can view their own materials" ON public.materials;
+DROP POLICY IF EXISTS "Users can insert their own materials" ON public.materials;
+DROP POLICY IF EXISTS "Users can update their own materials" ON public.materials;
+DROP POLICY IF EXISTS "Users can delete their own materials" ON public.materials;
+
+-- PASO 2: CREAR POLÍTICAS NUEVAS CON TO authenticated
+CREATE POLICY "Users can view own materials" 
+    ON public.materials FOR SELECT 
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own materials" 
+    ON public.materials FOR INSERT 
+    TO authenticated
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own materials" 
+    ON public.materials FOR UPDATE 
+    TO authenticated
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own materials" 
+    ON public.materials FOR DELETE 
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+-- PASO 3: VERIFICAR QUE SOLO EXISTEN 4 POLÍTICAS
+SELECT 
+    policyname,
+    cmd,
+    roles
+FROM pg_policies
+WHERE tablename = 'materials'
+ORDER BY policyname;
+
+-- Deberías ver exactamente 4 filas:
+-- 1. Users can delete own materials | DELETE | {authenticated}
+-- 2. Users can insert own materials | INSERT | {authenticated}
+-- 3. Users can update own materials | UPDATE | {authenticated}
+-- 4. Users can view own materials   | SELECT | {authenticated}
+
+
+SELECT policyname FROM pg_policies WHERE tablename = 'materials';
+
+SELECT policyname, cmd, roles FROM pg_policies WHERE tablename = 'materials' ORDER BY cmd;
+
+
+
+
+
+
+
+
+-- ============================================
+-- FIX: Agregar columnas faltantes en tabla answers
+-- Ejecutar en Supabase SQL Editor
+-- ============================================
+
+-- PASO 1: Verificar columnas actuales
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'answers' 
+ORDER BY ordinal_position;
+
+-- PASO 2: Agregar columnas faltantes (si no existen)
+
+-- Columna: similarity (similitud semántica)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'answers' AND column_name = 'similarity'
+    ) THEN
+        ALTER TABLE public.answers 
+        ADD COLUMN similarity DECIMAL(5,4);
+        
+        RAISE NOTICE '✅ Columna similarity agregada';
+    ELSE
+        RAISE NOTICE '⚠️ Columna similarity ya existe';
+    END IF;
+END $$;
+
+-- Columna: is_correct (si pasó el umbral)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'answers' AND column_name = 'is_correct'
+    ) THEN
+        ALTER TABLE public.answers 
+        ADD COLUMN is_correct BOOLEAN DEFAULT FALSE;
+        
+        RAISE NOTICE '✅ Columna is_correct agregada';
+    ELSE
+        RAISE NOTICE '⚠️ Columna is_correct ya existe';
+    END IF;
+END $$;
+
+-- Columna: feedback (feedback textual)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'answers' AND column_name = 'feedback'
+    ) THEN
+        ALTER TABLE public.answers 
+        ADD COLUMN feedback TEXT;
+        
+        RAISE NOTICE '✅ Columna feedback agregada';
+    ELSE
+        RAISE NOTICE '⚠️ Columna feedback ya existe';
+    END IF;
+END $$;
+
+-- Columna: best_match_chunk (chunk más relevante)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'answers' AND column_name = 'best_match_chunk'
+    ) THEN
+        ALTER TABLE public.answers 
+        ADD COLUMN best_match_chunk TEXT;
+        
+        RAISE NOTICE '✅ Columna best_match_chunk agregada';
+    ELSE
+        RAISE NOTICE '⚠️ Columna best_match_chunk ya existe';
+    END IF;
+END $$;
+
+-- Columna: relevant_chunks (top chunks relevantes)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'answers' AND column_name = 'relevant_chunks'
+    ) THEN
+        ALTER TABLE public.answers 
+        ADD COLUMN relevant_chunks JSONB;
+        
+        RAISE NOTICE '✅ Columna relevant_chunks agregada';
+    ELSE
+        RAISE NOTICE '⚠️ Columna relevant_chunks ya existe';
+    END IF;
+END $$;
+
+-- PASO 3: Verificar columnas después de agregar
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns 
+WHERE table_name = 'answers' 
+ORDER BY ordinal_position;
+
+-- ============================================
+-- RESULTADO ESPERADO:
+-- ============================================
+-- id                  | uuid              | NO
+-- user_id             | uuid              | NO
+-- question_id         | uuid              | NO
+-- answer_text         | text              | NO
+-- score               | numeric           | NO
+-- similarity          | numeric           | YES  ✅ NUEVA
+-- is_correct          | boolean           | YES  ✅ NUEVA
+-- classification      | text              | NO
+-- feedback            | text              | YES  ✅ NUEVA
+-- best_match_chunk    | text              | YES  ✅ NUEVA
+-- relevant_chunks     | jsonb             | YES  ✅ NUEVA
+-- created_at          | timestamp         | YES
+-- ============================================
+
+
+
+
+
+SELECT id, email, full_name FROM users 
+WHERE id = 'a7ad2f68-3946-4e40-b73a-fe2867d9af0f';
+
+INSERT INTO users (id, email, full_name, created_at, updated_at) 
+VALUES (
+    'a7ad2f68-3946-4e40-b73a-fe2867d9af0f',
+    'juan.perez@example.com',
+    'Juan Pérez',
+    NOW(),
+    NOW()
+);
+
+
+
+
+-- 2. Si NO existe, crear el usuario MOCK
+-- (Ejecutar SOLO si la consulta anterior no devuelve resultados)
+INSERT INTO users (
+    id,
+    email,
+    full_name,
+    created_at,
+    updated_at
+) VALUES (
+    'a7ad2f68-3946-4e40-b73a-fe2867d9af0f',
+    'juan.perez@example.com',
+    'Juan Pérez',
+    NOW(),
+    NOW()
+)
+ON CONFLICT (id) DO NOTHING;
+
+
+
+-- 3. Verificar que se creó correctamente
+SELECT id, email, full_name, created_at 
+FROM users 
+WHERE id = 'a7ad2f68-3946-4e40-b73a-fe2867d9af0f';
+
+
+-- 5. Ver los materiales de este usuario
+SELECT 
+    id,
+    title,
+    file_name,
+    total_chunks,
+    real_pages,
+    processing_status,
+    created_at
+FROM materials 
+WHERE user_id = 'a7ad2f68-3946-4e40-b73a-fe2867d9af0f'
+ORDER BY created_at DESC;
+
+
+SELECT 
+    id, 
+    title, 
+    user_id,
+    total_chunks,
+    created_at
+FROM materials 
+WHERE user_id = '49ae3509-edb7-44b4-9ccd-004629409430'
+ORDER BY created_at DESC;
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- 2.1 Permitir a usuarios autenticados SUBIR sus propias fotos
+CREATE POLICY "Users can upload their own avatar"
+ON storage.objects
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'avatars' 
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- 2.2 Permitir a usuarios autenticados ACTUALIZAR sus propias fotos
+CREATE POLICY "Users can update their own avatar"
+ON storage.objects
+FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'avatars' 
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- 2.3 Permitir a usuarios autenticados ELIMINAR sus propias fotos
+CREATE POLICY "Users can delete their own avatar"
+ON storage.objects
+FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'avatars' 
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- 2.4 Permitir a TODOS (incluso no autenticados) VER las fotos
+CREATE POLICY "Anyone can view avatars"
+ON storage.objects
+FOR SELECT
+TO public
+USING (bucket_id = 'avatars');
+
+
+SELECT 
+  policyname,
+  cmd,
+  roles
+FROM pg_policies
+WHERE tablename = 'objects'
+  AND policyname LIKE '%avatar%'
+ORDER BY policyname;
+
+
+
+
+
+
+
+
+
+
+SELECT 
+  id, 
+  name, 
+  public,
+  file_size_limit,
+  allowed_mime_types
+FROM storage.buckets 
+WHERE name = 'avatars';
+
+
+
+
+
+
+
+
+UPDATE user_profiles 
+SET avatar_url = 'https://xqicgzqgluslzleddmfv.supabase.co/storage/...'
+WHERE id = 'user_id';
