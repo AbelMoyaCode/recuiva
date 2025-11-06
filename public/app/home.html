@@ -1833,135 +1833,192 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// SINCRONIZAR CARDS CON LOCALSTORAGE
+// SINCRONIZAR CARDS CON SUPABASE
 // ==========================================
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('🔄 Sincronizando cards de index.html con localStorage...');
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('🔄 Sincronizando cards con Supabase...');
   
-  // 1️⃣ ÚLTIMA SESIÓN
   try {
-    const activeMaterialId = localStorage.getItem('active_material_id');
-    const lastSessionText = document.getElementById('last-session-text');
-    const lastSessionLink = document.getElementById('last-session-link');
-    
-    if (activeMaterialId && activeMaterialId !== 'null') {
-      // Buscar preguntas del material activo
-      const storageKey = `recuiva_questions_material_${activeMaterialId}`;
-      const questions = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      
-      if (questions.length > 0) {
-        // Obtener la última pregunta
-        const lastQuestion = questions[questions.length - 1];
-        const questionText = (lastQuestion.pregunta || lastQuestion.question || '').substring(0, 40);
-        
-        lastSessionText.textContent = `Última pregunta: "${questionText}..."`;
-        lastSessionLink.href = `app/sesion-practica.html?material=${activeMaterialId}`;
-        console.log('  ✓ Última sesión: Material ID', activeMaterialId);
-      } else {
-        lastSessionText.textContent = 'Aún no hay preguntas en este material.';
-        lastSessionLink.textContent = 'Empezar práctica →';
-        lastSessionLink.href = 'app/sesion-practica.html';
-        console.log('  ⚠️ Material activo sin preguntas');
-      }
-    } else {
-      lastSessionText.textContent = 'Aún no hay sesiones de práctica.';
-      lastSessionLink.textContent = 'Empezar primera sesión →';
-      lastSessionLink.href = 'app/sesion-practica.html';
-      console.log('  ⚠️ Sin material activo');
+    // Verificar autenticación
+    const user = await SupabaseOperations.getCurrentUser();
+    if (!user) {
+      console.warn('⚠️ Usuario no autenticado, mostrando datos vacíos');
+      showEmptyState();
+      return;
     }
-  } catch (e) {
-    console.error('❌ Error en última sesión:', e);
-    document.getElementById('last-session-text').textContent = 'Error al cargar.';
-  }
-  
-  // 2️⃣ TU PROGRESO (sincronizar con Dashboard)
-  try {
-    const activeMaterialId = localStorage.getItem('active_material_id');
-    const progressRetention = document.getElementById('progress-retention');
-    const progressStreak = document.getElementById('progress-streak');
     
-    if (activeMaterialId && activeMaterialId !== 'null') {
-      const storageKey = `recuiva_questions_material_${activeMaterialId}`;
-      const questions = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    console.log(`✅ Usuario autenticado: ${user.email}`);
+    
+    // Obtener todos los materiales del usuario
+    const materials = await SupabaseOperations.getMaterials();
+    
+    if (!materials || materials.length === 0) {
+      console.log('📭 Usuario sin materiales');
+      showEmptyState();
+      return;
+    }
+    
+    console.log(`📚 ${materials.length} materiales encontrados`);
+    
+    // Obtener todas las preguntas y respuestas del usuario
+    let allQuestions = [];
+    let allAnswers = [];
+    
+    for (const material of materials) {
+      const questions = await SupabaseOperations.getQuestionsByMaterial(material.id);
       
-      if (questions.length > 0) {
-        // Calcular score promedio (retención)
-        const scores = questions.map(q => q.score || 0).filter(s => s >= 0 && s <= 100);
-        if (scores.length > 0) {
-          const avgScore = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
-          progressRetention.innerHTML = `${avgScore}<span class="text-lg">%</span>`;
-          console.log('  ✓ Retención:', avgScore + '%');
-        } else {
-          progressRetention.innerHTML = '0<span class="text-lg">%</span>';
+      for (const question of questions) {
+        const answers = await SupabaseOperations.getAnswersByQuestion(question.id);
+        
+        if (answers.length > 0) {
+          // Tomar la última respuesta (más reciente)
+          const lastAnswer = answers[0];
+          
+          allQuestions.push({
+            id: question.id,
+            materialId: material.id,
+            materialTitle: material.title,
+            questionText: question.question_text,
+            score: parseFloat(lastAnswer.score),
+            createdAt: new Date(lastAnswer.created_at),
+            answerId: lastAnswer.id
+          });
+          
+          allAnswers.push(lastAnswer);
         }
-        
-        // Calcular racha de días
-        const streak = calculateStreak(questions);
-        progressStreak.innerHTML = `${streak} <span class="text-sm md:text-lg">días</span>`;
-        console.log('  ✓ Racha:', streak, 'días');
-      } else {
-        progressRetention.innerHTML = '0<span class="text-lg">%</span>';
-        progressStreak.innerHTML = '0 <span class="text-sm md:text-lg">días</span>';
-        console.log('  ⚠️ Sin datos de progreso');
       }
-    } else {
-      progressRetention.innerHTML = '0<span class="text-lg">%</span>';
-      progressStreak.innerHTML = '0 <span class="text-sm md:text-lg">días</span>';
-      console.log('  ⚠️ Sin material activo para progreso');
     }
-  } catch (e) {
-    console.error('❌ Error en progreso:', e);
-    document.getElementById('progress-retention').textContent = '--';
-    document.getElementById('progress-streak').textContent = '--';
-  }
-  
-  // 3️⃣ TEMAS A REPASAR (preguntas con score < 70%)
-  try {
-    const activeMaterialId = localStorage.getItem('active_material_id');
-    const reviewTopicsList = document.getElementById('review-topics-list');
     
-    if (activeMaterialId && activeMaterialId !== 'null') {
-      const storageKey = `recuiva_questions_material_${activeMaterialId}`;
-      const questions = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      
-      // Filtrar preguntas con score < 70%
-      const weakQuestions = questions.filter(q => (q.score || 0) < 70);
-      
-      if (weakQuestions.length > 0) {
-        // Mostrar hasta 3 preguntas para repasar
-        const topicsHTML = weakQuestions.slice(0, 3).map(q => {
-          const questionText = (q.pregunta || q.question || 'Sin título').substring(0, 50);
-          const score = Math.round(q.score || 0);
-          return `<li>📌 ${questionText}... (${score}%)</li>`;
-        }).join('');
-        
-        reviewTopicsList.innerHTML = topicsHTML;
-        console.log('  ✓ Temas a repasar:', weakQuestions.length);
-      } else {
-        reviewTopicsList.innerHTML = '<li class="text-green-600 font-semibold">✨ ¡Excelente! No hay temas que necesiten repaso.</li>';
-        console.log('  ✓ Sin temas débiles');
-      }
-    } else {
-      reviewTopicsList.innerHTML = '<li class="text-gray-400">Aún no hay repasos pendientes.</li>';
-      console.log('  ⚠️ Sin material activo para repasos');
-    }
-  } catch (e) {
-    console.error('❌ Error en temas a repasar:', e);
-    document.getElementById('review-topics-list').innerHTML = '<li>Error al cargar.</li>';
+    console.log(`❓ ${allQuestions.length} preguntas con respuestas encontradas`);
+    
+    // ====================================
+    // 1️⃣ ÚLTIMA SESIÓN
+    // ====================================
+    await updateLastSessionCard(allQuestions);
+    
+    // ====================================
+    // 2️⃣ TU PROGRESO
+    // ====================================
+    await updateProgressCard(allQuestions);
+    
+    // ====================================
+    // 3️⃣ TEMAS A REPASAR
+    // ====================================
+    await updateReviewTopicsCard(allQuestions);
+    
+    console.log('✅ Sincronización de cards completada con Supabase');
+    
+  } catch (error) {
+    console.error('❌ Error sincronizando cards:', error);
+    showErrorState();
   }
-  
-  console.log('✅ Sincronización de cards completada');
 });
 
-// Función auxiliar: Calcular racha de días
-function calculateStreak(questions) {
+// ====================================
+// FUNCIÓN: Actualizar card ÚLTIMA SESIÓN
+// ====================================
+async function updateLastSessionCard(questions) {
+  const lastSessionText = document.getElementById('last-session-text');
+  const lastSessionLink = document.getElementById('last-session-link');
+  
+  if (!questions || questions.length === 0) {
+    lastSessionText.textContent = 'Aún no hay sesiones de práctica.';
+    lastSessionLink.textContent = 'Empezar primera sesión →';
+    lastSessionLink.href = 'app/sesion-practica.html';
+    console.log('  ⚠️ Sin preguntas para última sesión');
+    return;
+  }
+  
+  // Ordenar por fecha más reciente
+  const sortedQuestions = [...questions].sort((a, b) => b.createdAt - a.createdAt);
+  const lastQuestion = sortedQuestions[0];
+  
+  const questionText = lastQuestion.questionText.substring(0, 40);
+  const materialTitle = lastQuestion.materialTitle || 'Material';
+  
+  lastSessionText.innerHTML = `
+    <span class="text-sm text-gray-500">${materialTitle}</span><br>
+    "${questionText}..."
+  `;
+  lastSessionLink.href = `app/sesion-practica.html?material=${lastQuestion.materialId}`;
+  
+  console.log(`  ✓ Última sesión: "${questionText}" (${lastQuestion.materialTitle})`);
+}
+
+// ====================================
+// FUNCIÓN: Actualizar card TU PROGRESO
+// ====================================
+async function updateProgressCard(questions) {
+  const progressRetention = document.getElementById('progress-retention');
+  const progressStreak = document.getElementById('progress-streak');
+  
+  if (!questions || questions.length === 0) {
+    progressRetention.innerHTML = '0<span class="text-lg">%</span>';
+    progressStreak.innerHTML = '0 <span class="text-sm md:text-lg">días</span>';
+    console.log('  ⚠️ Sin datos para progreso');
+    return;
+  }
+  
+  // 📊 RETENCIÓN: Promedio de scores
+  const scores = questions.map(q => q.score).filter(s => s >= 0 && s <= 100);
+  
+  if (scores.length > 0) {
+    const avgScore = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    progressRetention.innerHTML = `${avgScore}<span class="text-lg">%</span>`;
+    console.log(`  ✓ Retención: ${avgScore}% (${scores.length} respuestas)`);
+  } else {
+    progressRetention.innerHTML = '0<span class="text-lg">%</span>';
+  }
+  
+  // 🔥 RACHA: Días consecutivos
+  const streak = calculateStreakFromSupabase(questions);
+  progressStreak.innerHTML = `${streak} <span class="text-sm md:text-lg">días</span>`;
+  console.log(`  ✓ Racha: ${streak} días`);
+}
+
+// ====================================
+// FUNCIÓN: Actualizar card TEMAS A REPASAR
+// ====================================
+async function updateReviewTopicsCard(questions) {
+  const reviewTopicsList = document.getElementById('review-topics-list');
+  
+  if (!questions || questions.length === 0) {
+    reviewTopicsList.innerHTML = '<li class="text-gray-400">Aún no hay repasos pendientes.</li>';
+    console.log('  ⚠️ Sin preguntas para repasos');
+    return;
+  }
+  
+  // Filtrar preguntas con score < 70%
+  const weakQuestions = questions.filter(q => q.score < 70);
+  
+  if (weakQuestions.length > 0) {
+    // Ordenar por score más bajo primero
+    weakQuestions.sort((a, b) => a.score - b.score);
+    
+    // Mostrar hasta 3 preguntas
+    const topicsHTML = weakQuestions.slice(0, 3).map(q => {
+      const questionText = q.questionText.substring(0, 50);
+      const score = Math.round(q.score);
+      const materialBadge = `<span class="text-xs text-gray-500">[${q.materialTitle}]</span>`;
+      return `<li>📌 ${questionText}... <span class="font-semibold text-orange-600">(${score}%)</span> ${materialBadge}</li>`;
+    }).join('');
+    
+    reviewTopicsList.innerHTML = topicsHTML;
+    console.log(`  ✓ ${weakQuestions.length} temas a repasar (mostrando 3)`);
+  } else {
+    reviewTopicsList.innerHTML = '<li class="text-green-600 font-semibold">✨ ¡Excelente! No hay temas que necesiten repaso.</li>';
+    console.log('  ✓ Sin temas débiles');
+  }
+}
+
+// ====================================
+// FUNCIÓN: Calcular racha desde Supabase
+// ====================================
+function calculateStreakFromSupabase(questions) {
   if (!questions || questions.length === 0) return 0;
   
-  const sortedQuestions = [...questions].sort((a, b) => {
-    const dateA = new Date(a.timestamp || a.createdAt || 0);
-    const dateB = new Date(b.timestamp || b.createdAt || 0);
-    return dateB - dateA;
-  });
+  // Ordenar por fecha descendente (más reciente primero)
+  const sortedQuestions = [...questions].sort((a, b) => b.createdAt - a.createdAt);
   
   let streak = 0;
   const today = new Date();
@@ -1969,13 +2026,22 @@ function calculateStreak(questions) {
   
   let currentDate = new Date(today);
   
-  for (const question of sortedQuestions) {
-    const questionDate = new Date(question.timestamp || question.createdAt || 0);
-    questionDate.setHours(0, 0, 0, 0);
-    
-    if (questionDate.getTime() === currentDate.getTime()) {
+  // Crear conjunto de fechas únicas de práctica
+  const practiceDates = new Set();
+  sortedQuestions.forEach(q => {
+    const date = new Date(q.createdAt);
+    date.setHours(0, 0, 0, 0);
+    practiceDates.add(date.getTime());
+  });
+  
+  // Convertir a array ordenado
+  const uniqueDates = Array.from(practiceDates).sort((a, b) => b - a);
+  
+  // Calcular racha
+  for (const dateTimestamp of uniqueDates) {
+    if (dateTimestamp === currentDate.getTime()) {
       if (streak === 0) streak = 1;
-    } else if (questionDate.getTime() === currentDate.getTime() - 86400000) {
+    } else if (dateTimestamp === currentDate.getTime() - 86400000) {
       streak++;
       currentDate.setDate(currentDate.getDate() - 1);
     } else {
@@ -1986,19 +2052,46 @@ function calculateStreak(questions) {
   return streak;
 }
 
+// ====================================
+// FUNCIÓN: Mostrar estado vacío
+// ====================================
+function showEmptyState() {
+  document.getElementById('last-session-text').textContent = 'Aún no hay sesiones de práctica.';
+  document.getElementById('last-session-link').textContent = 'Empezar primera sesión →';
+  document.getElementById('last-session-link').href = 'app/sesion-practica.html';
+  
+  document.getElementById('progress-retention').innerHTML = '0<span class="text-lg">%</span>';
+  document.getElementById('progress-streak').innerHTML = '0 <span class="text-sm md:text-lg">días</span>';
+  
+  document.getElementById('review-topics-list').innerHTML = '<li class="text-gray-400">Aún no hay repasos pendientes.</li>';
+}
+
+// ====================================
+// FUNCIÓN: Mostrar estado de error
+// ====================================
+function showErrorState() {
+  document.getElementById('last-session-text').textContent = 'Error al cargar datos.';
+  document.getElementById('progress-retention').textContent = '--';
+  document.getElementById('progress-streak').textContent = '--';
+  document.getElementById('review-topics-list').innerHTML = '<li>Error al cargar.</li>';
+}
+
 // ===================================
 // 🎨 EFECTO TYPING EN TÍTULO DE BIENVENIDA
 // ===================================
-(function initTypingEffect() {
+(async function initTypingEffect() {
   // SIEMPRE ejecutar la animación al cargar la página
-  // (Eliminado el check de sessionStorage para que se ejecute cada vez)
-
-  // Obtener el nombre del usuario
-  const currentUser = JSON.parse(localStorage.getItem('recuiva_user') || '{}');
-  const fullName = currentUser.name || currentUser.email || 'Usuario';
   
-  // Extraer solo el primer nombre
-  const firstName = fullName.split(' ')[0].split('@')[0];
+  // Obtener el nombre del usuario desde Supabase Auth
+  const user = await SupabaseOperations.getCurrentUser();
+  
+  let firstName = 'Usuario';
+  
+  if (user) {
+    // Intentar obtener nombre desde metadata
+    const fullName = user.user_metadata?.full_name || user.email || 'Usuario';
+    firstName = fullName.split(' ')[0].split('@')[0];
+  }
   
   // Texto completo a escribir (sin colores, se aplican después)
   const fullText = `¡Bienvenido ${firstName} a Recuiva!`;
