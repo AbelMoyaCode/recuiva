@@ -3,6 +3,8 @@
  * Sistema modular para mostrar confirmaciones elegantes
  */
 
+console.log('✅ success-modal.js cargado correctamente - Versión con logo animado');
+
 window.showSuccessModal = function({
   title = '¡Registro exitoso!',
   message = 'Tu cuenta ha sido creada correctamente.',
