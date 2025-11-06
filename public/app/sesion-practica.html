@@ -51,23 +51,8 @@
       .menu-btn:hover {
         transform: scale(1.1);
       }
-      .mobile-menu {
-        transform-origin: top;
-        transition: transform 0.3s ease, opacity 0.3s ease;
-        transform: scaleY(0);
-        opacity: 0;
-        pointer-events: none;
-        height: 100vh;
-        overflow-y: auto;
-      }
-      .mobile-menu.active {
-        transform: scaleY(1);
-        opacity: 1;
-        pointer-events: auto;
-      }
-      #menu-btn.active .menu-icon {
-        transform: rotate(180deg);
-      }
+      /* ESTILOS DE MENÚ MÓVIL MOVIDOS A header-footer-components.js */
+      /* Ya no se definen aquí para evitar conflictos */
       .profile-dropdown {
         display: none;
         position: absolute;
@@ -2257,67 +2242,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     showAdvancedModal('settings', 'Configuración', 'Aquí podrás ajustar preferencias del sistema.');
   };
 
-  // Menú móvil animación landing-page
-  const menuBtn = document.getElementById('menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
-  const menuIcon = menuBtn.querySelector('.material-symbols-outlined');
-  let isMenuOpen = false;
-
-  function toggleMenu() {
-    isMenuOpen = !isMenuOpen;
-    mobileMenu.classList.toggle('active');
-    document.body.classList.toggle('overflow-hidden');
-    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
-    if (isMenuOpen) {
-      menuIcon.style.transform = 'rotate(90deg)';
-      menuIcon.style.opacity = '0';
-      setTimeout(() => {
-        menuIcon.textContent = 'close';
-        menuIcon.style.transform = 'rotate(0deg)';
-        menuIcon.style.opacity = '1';
-      }, 150);
-    } else {
-      menuIcon.style.transform = 'rotate(90deg)';
-      menuIcon.style.opacity = '0';
-      setTimeout(() => {
-        menuIcon.textContent = 'menu';
-        menuIcon.style.transform = 'rotate(0deg)';
-        menuIcon.style.opacity = '1';
-      }, 150);
-    }
-  }
-
-  menuBtn.addEventListener('click', toggleMenu);
-  // Cerrar menú cuando se hace clic en un enlace
-  const menuLinks = mobileMenu.querySelectorAll('a');
-  menuLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      if (isMenuOpen) {
-        toggleMenu();
-      }
-    });
-  });
-
-  // Menú de perfil
-  const profileBtn = document.getElementById('profile-btn');
-  const profileDropdown = document.getElementById('profile-dropdown');
-  function toggleProfileMenu(e) {
-    e.stopPropagation();
-    profileDropdown.classList.toggle('active');
-  }
-  if (profileBtn && profileDropdown) {
-    profileBtn.addEventListener('click', toggleProfileMenu);
-    document.addEventListener('click', (e) => {
-      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
-        profileDropdown.classList.remove('active');
-      }
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        profileDropdown.classList.remove('active');
-      }
-    });
-  }
+  // ===================================================================
+  // MENÚ MÓVIL Y PERFIL - MANEJADO POR header-footer-components.js
+  // El código duplicado fue eliminado para evitar conflictos
+  // ===================================================================
 
   // === AUTENTICACIÓN DEMO (Ya no se usa mockAPI) ===
   
