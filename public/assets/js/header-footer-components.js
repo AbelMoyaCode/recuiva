@@ -87,7 +87,7 @@ function renderPublicHeader() {
 
         <!-- Menú Mobile -->
         <div class="md:hidden">
-          <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100" id="menu-btn" onclick="window.toggleMobileMenu()">
+          <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100" id="menu-btn" onclick="window.toggleMobileMenu(event)">
             <span class="material-symbols-outlined text-3xl text-gray-900 menu-icon">menu</span>
           </button>
         </div>
@@ -203,7 +203,7 @@ function renderAuthenticatedHeader(currentPage = '') {
 
         <!-- Menú Mobile (Hamburguesa) -->
         <div class="md:hidden">
-          <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100" id="menu-btn" onclick="window.toggleMobileMenu()">
+          <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100" id="menu-btn" onclick="window.toggleMobileMenu(event)">
             <span class="material-symbols-outlined text-3xl text-gray-900 menu-icon">menu</span>
           </button>
         </div>
@@ -278,19 +278,31 @@ function renderFooter() {
 // FUNCIONES DE INTERACCIÓN
 // ==========================================
 
-window.toggleMobileMenu = function() {
+window.toggleMobileMenu = function(event) {
+  // Prevenir propagación del evento para evitar que se cierre inmediatamente
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  
   const mobileMenu = document.getElementById('mobile-menu');
   const menuBtn = document.getElementById('menu-btn');
   const menuIcon = menuBtn?.querySelector('.menu-icon');
   
-  if (!mobileMenu || !menuIcon) return;
+  if (!mobileMenu || !menuIcon) {
+    console.warn('⚠️ No se encontraron elementos del menú móvil');
+    return;
+  }
   
   const isOpen = mobileMenu.classList.contains('active');
+  
+  console.log(`🍔 Toggle menú móvil: ${isOpen ? 'CERRAR' : 'ABRIR'}`);
   
   if (isOpen) {
     // Cerrar
     mobileMenu.classList.remove('active');
     document.body.classList.remove('overflow-hidden');
+    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
     menuIcon.style.transform = 'rotate(90deg)';
     menuIcon.style.opacity = '0';
     setTimeout(() => {
@@ -302,6 +314,7 @@ window.toggleMobileMenu = function() {
     // Abrir
     mobileMenu.classList.add('active');
     document.body.classList.add('overflow-hidden');
+    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
     menuIcon.style.transform = 'rotate(90deg)';
     menuIcon.style.opacity = '0';
     setTimeout(() => {
@@ -348,6 +361,20 @@ document.addEventListener('click', function(e) {
       !profileBtn.contains(e.target) && 
       !profileDropdown.contains(e.target)) {
     profileDropdown.classList.remove('active');
+  }
+  
+  // NO cerrar el menú móvil si el clic es en el botón del menú o dentro del menú
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  
+  // Solo cerrar si se hace clic FUERA del menú y del botón
+  if (mobileMenu && 
+      mobileMenu.classList.contains('active') && 
+      menuBtn && 
+      !menuBtn.contains(e.target) && 
+      !mobileMenu.contains(e.target)) {
+    // No hacer nada - dejar que el usuario cierre con el botón hamburguesa
+    // window.toggleMobileMenu(); // COMENTADO para evitar cierre automático
   }
 });
 
