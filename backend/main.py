@@ -541,7 +541,9 @@ async def validate_answer(answer: Answer):
                 print(f"📚 {len(material_embeddings)} chunks disponibles")
             
             # Generar embedding de la respuesta (combinar pregunta + respuesta para contexto)
-            combined_text = f"Pregunta: {question_text}\nRespuesta: {answer.user_answer}"
+            # ✅ FIX: Generar embedding SOLO de la respuesta del usuario (no combinar con pregunta)
+        # Esto mejora la precisión semántica al buscar chunks que responden directamente
+        user_embedding = generate_embeddings(answer.user_answer)
             user_embedding = generate_embeddings(combined_text)
             print(f"🧠 Embedding generado (dim: {len(user_embedding)})")
             

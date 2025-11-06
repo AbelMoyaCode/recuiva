@@ -115,11 +115,10 @@ class SemanticValidator:
             embedding_b.reshape(1, -1)
         )[0][0]
         
-        # Normalizar de [-1, 1] a [0, 1]
-        # Esto facilita la interpretación como "porcentaje de similitud"
-        normalized_similarity = (similarity + 1) / 2
-        
-        return float(normalized_similarity)
+        # ✅ FIX: cosine_similarity de sklearn YA retorna valores en [0, 1] para embeddings normalizados
+        # La normalización (similarity + 1) / 2 estaba inflando incorrectamente los scores
+        # Ejemplo: 0.40 real → 0.70 inflado (❌ INCORRECTO)
+        return float(similarity)
     
     def classify_response(
         self, 
@@ -281,12 +280,13 @@ class SemanticValidator:
         # ===== SCORING INTELIGENTE =====
         
         # FACTOR 1: Contexto amplio (múltiples chunks relevantes)
+        # ✅ FIX: Reducir bonificaciones a la mitad para evitar inflar scores débiles
         high_sim_chunks = [c for c in top_chunks if c['similarity'] > 0.5]
         context_bonus = 0
         if len(high_sim_chunks) >= 3:
-            context_bonus = 10
+            context_bonus = 5  # Antes: 10
         elif len(high_sim_chunks) >= 2:
-            context_bonus = 5
+            context_bonus = 3  # Antes: 5
         
         # FACTOR 2: Palabras clave compartidas
         answer_keywords = set(re.findall(r'\b\w{4,}\b', user_answer.lower()))
@@ -307,13 +307,14 @@ class SemanticValidator:
             length_bonus = 3
         
         # FACTOR 4: Boost de inteligencia (concepto correcto, formulación diferente)
+        # ✅ FIX: Reducir intelligence_boost a la mitad para evitar compensar similitudes débiles
         intelligence_boost = 0
         if 0.50 <= base_similarity < 0.70:
             if context_bonus > 0 or keyword_bonus >= 5:
-                intelligence_boost = 15
+                intelligence_boost = 8  # Antes: 15
         elif 0.35 <= base_similarity < 0.50:
-            if context_bonus >= 5 and keyword_bonus >= 5:
-                intelligence_boost = 20
+            if context_bonus >= 3 and keyword_bonus >= 5:  # Ajustar umbral de context_bonus
+                intelligence_boost = 10  # Antes: 20
         
         # Clasificar con todos los bonos
         classification = self.classify_response(
