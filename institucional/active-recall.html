@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <title>¿Qué es Active Recall? - Recuiva</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      .menu-btn {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+      .menu-btn:hover {
+        transform: scale(1.1);
+      }
+      .mobile-menu {
+        transform-origin: top;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform: scaleY(0);
+        opacity: 0;
+        pointer-events: none;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .mobile-menu.active {
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #menu-btn.active .menu-icon {
+        transform: rotate(180deg);
+      }
+      .notification-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        padding: 0.1rem 0.4rem;
+        min-width: 1.2rem;
+        text-align: center;
+      }
+      
+      /* Modal de notificaciones mejorado - Estilo elegante */
+      .notification-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      .notification-modal.show {
+        opacity: 1;
+        visibility: visible;
+      }
+      .notification-modal-content {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        max-width: 26rem;
+        margin: 1rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.8) translateY(30px);
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .notification-modal.show .notification-modal-content {
+        transform: scale(1) translateY(0);
+      }
+      .notification-icon-container {
+        background: linear-gradient(135deg, #FF6600, #FF8533);
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 8px 16px rgba(255, 102, 0, 0.3);
+      }
+      .notification-modal h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.75rem;
+        text-align: center;
+      }
+      .notification-modal p {
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: #6b7280;
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .modal-button {
+        background: linear-gradient(135deg, #FF6600, #FF8533);
+        color: white;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+        width: 100%;
+      }
+      .modal-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 102, 0, 0.4);
+      }
+      .profile-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        padding: 0.75rem 0;
+        min-width: 14rem;
+        z-index: 50;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+      }
+      .profile-dropdown.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      .profile-dropdown a, .profile-dropdown button {
+        transition: all 0.2s ease;
+      }
+      .profile-dropdown a:hover, .profile-dropdown button:hover {
+        transform: translateX(4px);
+      }
+      .notification-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        padding: 0.1rem 0.4rem;
+        min-width: 1.2rem;
+        text-align: center;
+      }
+      .highlight-box {
+        background: linear-gradient(135deg, rgba(255,102,0,0.1) 0%, rgba(0,78,170,0.1) 100%);
+        border-left: 4px solid var(--primary-color);
+      }
+      .comparison-card {
+        transition: transform 0.2s ease;
+      }
+      .comparison-card:hover {
+        transform: translateY(-4px);
+      }
+      .step-number {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 1rem;
+      }
+    </style>
+</head>
+<body class="bg-[var(--base-gray)] min-h-screen">
+
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-6 py-4 flex justify-between items-center">
+  <!-- Logo -->
+  <div class="flex items-center gap-2">
+    <a href="../index.html" class="flex items-center gap-2">
+      <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="text-2xl font-bold text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  <div class="flex items-center gap-4">
+    <!-- Notifications (solo desktop) -->
+    <button onclick="showBackendModal('notifications', 'Notificaciones', 'Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor.')" class="hidden md:inline-block relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none transition-all">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="notification-badge">3</span>
+    </button>
+    <!-- Profile Dropdown (solo desktop) -->
+    <div class="hidden md:inline-block relative">
+      <button id="profile-btn" class="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus:outline-none">
+        <img alt="User profile picture" class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR"/>
+        <span class="material-symbols-outlined text-gray-500">expand_more</span>
+      </button>
+      <div id="profile-dropdown" class="profile-dropdown">
+        <div class="px-4 py-3 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <img class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR" alt="Foto de perfil"/>
+            <div>
+              <div class="font-medium text-gray-900">Juan Pérez</div>
+              <div class="text-sm text-gray-500">juan@ejemplo.com</div>
+            </div>
+          </div>
+        </div>
+        <a href="../app/mi-perfil.html" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+          <span class="material-symbols-outlined mr-2">person</span>
+          Mi Perfil
+        </a>
+        <hr class="my-1 border-gray-200">
+        <button class="flex w-full items-center px-4 py-2 text-red-600 hover:bg-red-50">
+          <span class="material-symbols-outlined mr-2">logout</span>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+    <!-- Botón menú móvil (solo móvil) -->
+    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
+      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
+    </button>
+  </div>
+</div>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
+<div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-8">
+  <!-- Perfil y configuración arriba de navegación -->
+  <div class="flex flex-col items-center w-full mb-2 py-2">
+    <div class="flex flex-col items-center w-full px-6 py-2 hover:bg-gray-100 rounded-xl cursor-pointer transition-all">
+      <img src="../assets/img/Icon-Recuiva.png" alt="Perfil" class="w-10 h-10 rounded-full border-2 border-blue-700 mx-auto" />
+      <span class="text-base font-semibold text-gray-800 mt-2 text-center">Mi perfil</span>
+    </div>
+  </div>
+  <!-- Navegación principal -->
+  <div class="text-2xl text-gray-600 flex flex-col items-center gap-6">
+  </div>
+  <!-- Cerrar sesión abajo -->
+  <div class="flex flex-col items-center w-full px-6 py-4 border-t border-gray-200">
+    <button class="flex items-center gap-3 text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg transition-all">
+      <span class="material-symbols-outlined">logout</span>
+      <span class="font-medium">Cerrar sesión</span>
+    </button>
+  </div>
+</div>
+</div>
+</header>
+
+<main class="container mx-auto px-4 py-8 max-w-4xl">
+
+  <!-- Hero Section -->
+  <div class="text-center mb-12">
+    <h1 class="text-4xl md:text-5xl font-bold text-[var(--secondary-color)] mb-4">
+      ¿Qué es <span class="text-[var(--primary-color)]">Active Recall</span>?
+    </h1>
+    <p class="text-xl text-[var(--text-secondary)] max-w-3xl mx-auto">
+      La técnica de estudio más efectiva respaldada por la neurociencia para mejorar la retención a largo plazo
+    </p>
+  </div>
+
+  <!-- Definición Principal -->
+  <div class="bg-white rounded-xl p-8 mb-8 highlight-box">
+    <div class="flex items-start gap-4">
+      <span class="material-symbols-outlined text-4xl text-[var(--primary-color)] mt-1">psychology</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-4">Definición Científica</h2>
+        <p class="text-lg text-[var(--text-primary)] mb-4">
+          El <strong>Active Recall</strong> (o "acto y recuerdo") es una técnica de estudio que consiste en 
+          <strong>forzar al cerebro a recuperar información de la memoria sin verla delante.</strong>
+        </p>
+        <p class="text-[var(--text-secondary)]">
+          No es leer ni subrayar → eso es pasivo. Es hacerte una pregunta y obligarte a responderla 
+          con tus propias palabras, reconstruyendo el conocimiento y manteniendo fidelidad al sentido original.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Por qué funciona -->
+  <div class="bg-white rounded-xl p-8 mb-8">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-6">
+      ¿Por qué es más efectivo que leer pasivamente?
+    </h2>
+    
+    <div class="grid md:grid-cols-2 gap-8 mb-6">
+      
+      <div class="comparison-card bg-red-50 border border-red-200 rounded-lg p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="material-symbols-outlined text-2xl text-red-500">close</span>
+          <h3 class="font-bold text-red-700">Estudio Pasivo</h3>
+        </div>
+        <ul class="space-y-2 text-sm text-red-600">
+          <li>• Leer y releer textos</li>
+          <li>• Subrayar sin procesar</li>
+          <li>• Hacer resúmenes mecánicos</li>
+          <li>• Reconocer ≠ Recordar</li>
+        </ul>
+        <p class="mt-4 text-xs text-red-500 italic">
+          Crea la "ilusión de competencia": crees que sabes, pero en exámenes olvidas
+        </p>
+      </div>
+
+      <div class="comparison-card bg-green-50 border border-green-200 rounded-lg p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="material-symbols-outlined text-2xl text-green-500">check</span>
+          <h3 class="font-bold text-green-700">Active Recall</h3>
+        </div>
+        <ul class="space-y-2 text-sm text-green-600">
+          <li>• Cerrar el libro y recordar</li>
+          <li>• Generar preguntas propias</li>
+          <li>• Responder sin mirar</li>
+          <li>• Reconstruir conocimiento</li>
+        </ul>
+        <p class="mt-4 text-xs text-green-500 italic">
+          Fortalece conexiones neuronales. Incluso si fallas, el intento mejora la memoria
+        </p>
+      </div>
+
+    </div>
+
+    <div class="highlight-box p-6 rounded-lg">
+      <h3 class="font-bold text-[var(--secondary-color)] mb-3">🧠 Respaldo Neurocientífico:</h3>
+      <p class="text-[var(--text-secondary)]">
+        Estudios de la <strong>Birmingham City University</strong> demuestran que el Active Recall 
+        fortalece las conexiones neuronales y mejora la transferencia de información de la memoria 
+        de corto plazo a la memoria de largo plazo, mucho más que releer o resumir pasivamente.
+      </p>
+    </div>
+  </div>
+
+  <!-- Cómo funciona el proceso -->
+  <div class="bg-white rounded-xl p-8 mb-8">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-6">
+      ¿Cómo funciona el proceso?
+    </h2>
+    
+    <div class="space-y-6">
+      
+      <div class="flex items-start">
+        <div class="step-number">1</div>
+        <div>
+          <h3 class="font-bold text-[var(--text-primary)] mb-2">Codificación Activa</h3>
+          <p class="text-[var(--text-secondary)]">
+            Cuando estudias, transformas lo leído/visto en preguntas y respuestas propias. 
+            <strong>Ejemplo:</strong> Lees un párrafo sobre fotosíntesis → te preguntas "¿Cuáles son los 3 pasos de la fotosíntesis?"
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-start">
+        <div class="step-number">2</div>
+        <div>
+          <h3 class="font-bold text-[var(--text-primary)] mb-2">Recuperación Forzada</h3>
+          <p class="text-[var(--text-secondary)]">
+            Cierras el material y intentas responder de memoria. Tu cerebro debe "buscar" la información 
+            almacenada, fortaleciendo las rutas neuronales en el proceso.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-start">
+        <div class="step-number">3</div>
+        <div>
+          <h3 class="font-bold text-[var(--text-primary)] mb-2">Contraste y Consolidación</h3>
+          <p class="text-[var(--text-secondary)]">
+            Comparas tu respuesta con la fuente original. Las diferencias se vuelven más memorables 
+            y tu comprensión se consolida a largo plazo.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-start">
+        <div class="step-number">4</div>
+        <div>
+          <h3 class="font-bold text-[var(--text-primary)] mb-2">Repetición Espaciada</h3>
+          <p class="text-[var(--text-secondary)]">
+            Repites el proceso en intervalos crecientes (1d → 3d → 7d → 14d → 30d) para vencer 
+            la curva del olvido y transferir a memoria permanente.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Ejemplo Práctico -->
+  <div class="bg-white rounded-xl p-8 mb-8">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-6">
+      Ejemplo Práctico: Lucía estudia Medicina
+    </h2>
+    
+    <div class="grid md:grid-cols-3 gap-6">
+      
+      <div class="border border-[var(--accent-color)] rounded-lg p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-lg font-bold text-[var(--primary-color)]">Día 1</span>
+          <span class="material-symbols-outlined text-[var(--primary-color)]">book_2</span>
+        </div>
+        <h4 class="font-semibold mb-2">Primer Contacto</h4>
+        <p class="text-sm text-[var(--text-secondary)] mb-3">
+          Lucía lee sobre necrosis pulpar. Crea la pregunta: "¿Qué es la necrosis pulpar?"
+        </p>
+        <p class="text-sm italic text-[var(--text-primary)]">
+          Su autorrespuesta inicial: "Es cuando la pulpa dental muere por infección"
+        </p>
+      </div>
+
+      <div class="border border-[var(--accent-color)] rounded-lg p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-lg font-bold text-[var(--primary-color)]">Día 2</span>
+          <span class="material-symbols-outlined text-[var(--primary-color)]">psychology</span>
+        </div>
+        <h4 class="font-semibold mb-2">Active Recall</h4>
+        <p class="text-sm text-[var(--text-secondary)] mb-3">
+          Sin mirar el material, responde: "Es la muerte del tejido pulpar por bacterias o traumatismos"
+        </p>
+        <p class="text-sm italic text-green-600">
+          Resultado: Buena (0.78) - Faltó "irreversible"
+        </p>
+      </div>
+
+      <div class="border border-[var(--accent-color)] rounded-lg p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-lg font-bold text-[var(--primary-color)]">Día 5</span>
+          <span class="material-symbols-outlined text-[var(--primary-color)]">trending_up</span>
+        </div>
+        <h4 class="font-semibold mb-2">Mejora Evidente</h4>
+        <p class="text-sm text-[var(--text-secondary)] mb-3">
+          Repaso espaciado: responde completo y con más detalles específicos
+        </p>
+        <p class="text-sm italic text-green-600">
+          Evolución: +40% coherencia, latencia bajó de 45s a 15s
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Diferenciadores de Recuiva -->
+  <div class="bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] rounded-xl p-8 text-white mb-8">
+    <h2 class="text-2xl font-bold mb-6">
+      ¿Cómo mejora Recuiva el Active Recall tradicional?
+    </h2>
+    
+    <div class="grid md:grid-cols-2 gap-6">
+      
+      <div>
+        <h3 class="font-bold mb-3">🎯 Validación Semántica Objetiva</h3>
+        <p class="text-sm mb-4">
+          No dependes de tu "sensación" de si recordaste bien. Nuestra IA compara semánticamente 
+          tu respuesta vs. la fuente (PDF) o vs. tu autorrespuesta inicial.
+        </p>
+        
+        <h3 class="font-bold mb-3">📊 Métricas Longitudinales</h3>
+        <p class="text-sm">
+          Medimos tu evolución (ΔS) desde la primera práctica: coherencia, latencia, 
+          cobertura de conceptos, consistencia entre sesiones.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-3">🔄 Repasos Espaciados Adaptativos</h3>
+        <p class="text-sm mb-4">
+          El algoritmo ajusta intervalos según tu rendimiento: si fallas, acorta; 
+          si dominas, alarga automáticamente.
+        </p>
+        
+        <h3 class="font-bold mb-3">🎨 IA Mínima y Explicable</h3>
+        <p class="text-sm">
+          La IA NO responde por ti ni genera contenido. Solo compara, puntúa y explica 
+          qué conceptos faltaron o sobraron en tu respuesta.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- No es lo mismo que... -->
+  <div class="bg-white rounded-xl p-8 mb-8">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-6">
+      Recuiva NO es lo mismo que...
+    </h2>
+    
+    <div class="grid md:grid-cols-3 gap-6">
+      
+      <div class="text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-2xl text-gray-500">style</span>
+        </div>
+        <h3 class="font-bold text-[var(--text-primary)] mb-2">Anki / Flashcards</h3>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Anki usa flashcards pregeneradas y autopercepción subjetiva. 
+          <strong>Recuiva</strong> obliga a crear preguntas propias y valida objetivamente.
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-2xl text-gray-500">smart_toy</span>
+        </div>
+        <h3 class="font-bold text-[var(--text-primary)] mb-2">ChatGPT / IA Generativa</h3>
+        <p class="text-sm text-[var(--text-secondary)]">
+          ChatGPT responde por ti, fomentando pasividad. 
+          <strong>Recuiva</strong> te obliga a generar respuestas y solo da feedback.
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-2xl text-gray-500">picture_as_pdf</span>
+        </div>
+        <h3 class="font-bold text-[var(--text-primary)] mb-2">Lector de PDF</h3>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Un lector solo muestra contenido. 
+          <strong>Recuiva</strong> entrena tu memoria activa con validación semántica y métricas.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Call to Action -->
+  <div class="text-center">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-4">
+      ¿Listo para entrenar tu memoria con Active Recall?
+    </h2>
+    <p class="text-[var(--text-secondary)] mb-6">
+      Únete a estudiantes que han mejorado su retención hasta un 40% con validación semántica objetiva
+    </p>
+    <div class="flex gap-4 justify-center">
+      <a href="../index.html" 
+         class="px-8 py-3 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90 font-semibold">
+        Probar Demo
+      </a>
+      <a href="../auth/crear-cuenta.html" 
+         class="px-8 py-3 border border-[var(--secondary-color)] text-[var(--secondary-color)] rounded-lg hover:bg-[var(--base-gray)] font-semibold">
+        Crear Cuenta
+      </a>
+    </div>
+  </div>
+
+</main>
+
+<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
+<div class="container mx-auto text-center">
+<div class="flex justify-center items-center gap-2 mb-6">
+<img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<span class="text-2xl font-black">Recuiva</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+<a class="hover:text-[var(--primary-color)] transition-colors" href="active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
+</div>
+<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
+</div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Menú móvil animación
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = menuBtn?.querySelector('.material-symbols-outlined');
+  let isMenuOpen = false;
+
+  function toggleMenu() {
+    isMenuOpen = !isMenuOpen;
+    mobileMenu.classList.toggle('active');
+    menuBtn.classList.toggle('active');
+    document.body.classList.toggle('overflow-hidden');
+    if (menuIcon) {
+      menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+      if (isMenuOpen) {
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = 'close';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      } else {
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = 'menu';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      }
+    }
+  }
+
+  if (menuBtn) {
+    menuBtn.addEventListener('click', toggleMenu);
+  }
+
+  // Cerrar menú cuando se hace clic en un enlace
+  const menuLinks = mobileMenu?.querySelectorAll('a');
+  menuLinks?.forEach(link => {
+    link.addEventListener('click', () => {
+      if (isMenuOpen) {
+        toggleMenu();
+      }
+    });
+  });
+
+  // Menú de perfil
+  const profileBtn = document.getElementById('profile-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  
+  function toggleProfileMenu(e) {
+    e.stopPropagation();
+    profileDropdown?.classList.toggle('active');
+  }
+  
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener('click', toggleProfileMenu);
+    document.addEventListener('click', (e) => {
+      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+        profileDropdown.classList.remove('active');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        profileDropdown.classList.remove('active');
+      }
+    });
+  }
+});
+
+// Funciones del modal de notificaciones
+window.showBackendModal = function(icon, title, description) {
+  showAdvancedModal(icon, title, description);
+};
+
+// Modal avanzado con mejor UX
+window.showAdvancedModal = function(icon, title, description) {
+  // Crear modal si no existe
+  let modal = document.getElementById('advanced-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'advanced-modal';
+    modal.className = 'notification-modal';
+    modal.innerHTML = `
+      <div class="notification-modal-content">
+        <div class="notification-icon-container">
+          <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">notifications</span>
+        </div>
+        <h3 id="modal-title">🔔 Notificaciones</h3>
+        <p id="modal-description">Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor. Por ahora puedes explorar la funcionalidad simulada. En la versión completa con backend, esto funcionará en tiempo real.</p>
+        <button onclick="closeAdvancedModal()" class="modal-button">
+          Aceptar
+        </button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Cerrar con escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modal.classList.contains('show')) {
+        closeAdvancedModal();
+      }
+    });
+    
+    // Cerrar clickeando fuera
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeAdvancedModal();
+      }
+    });
+  }
+  
+  // Actualizar contenido
+  const iconMap = {
+    'notifications': '🔔',
+    'settings': '⚙️',
+    'dashboard': '📊',
+    'analytics': '📈'
+  };
+  
+  document.getElementById('modal-icon').textContent = icon;
+  document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
+  document.getElementById('modal-description').textContent = description;
+  
+  // Mostrar modal con animación
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeAdvancedModal = function() {
+  const modal = document.getElementById('advanced-modal');
+  if (modal) {
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+};
+</script>
+
+<style>
+#mobile-menu.show {
+  transform: translateX(0) !important;
+}
+
+/* Animación del botón hamburger */
+#mobile-menu-btn.active span {
+  transform: rotate(180deg);
+}
+</style>
+
+</body>
+</html>

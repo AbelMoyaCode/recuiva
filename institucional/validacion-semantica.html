@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <title>Validación Semántica RAG - Recuiva</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      .menu-btn {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+      .menu-btn:hover {
+        transform: scale(1.1);
+      }
+      .mobile-menu {
+        transform-origin: top;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform: scaleY(0);
+        opacity: 0;
+        pointer-events: none;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .mobile-menu.active {
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #menu-btn.active .menu-icon {
+        transform: rotate(180deg);
+      }
+      .notification-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        padding: 0.1rem 0.4rem;
+        min-width: 1.2rem;
+        text-align: center;
+      }
+      
+      /* Modal de notificaciones mejorado - Estilo elegante */
+      .notification-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      .notification-modal.show {
+        opacity: 1;
+        visibility: visible;
+      }
+      .notification-modal-content {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        max-width: 26rem;
+        margin: 1rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.8) translateY(30px);
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .notification-modal.show .notification-modal-content {
+        transform: scale(1) translateY(0);
+      }
+      .notification-icon-container {
+        background: linear-gradient(135deg, #FF6600, #FF8533);
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 8px 16px rgba(255, 102, 0, 0.3);
+      }
+      .notification-modal h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.75rem;
+        text-align: center;
+      }
+      .notification-modal p {
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: #6b7280;
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .modal-button {
+        background: linear-gradient(135deg, #FF6600, #FF8533);
+        color: white;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+        width: 100%;
+      }
+      .modal-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 102, 0, 0.4);
+      }
+      .profile-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        padding: 0.75rem 0;
+        min-width: 14rem;
+        z-index: 50;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+      }
+      .profile-dropdown.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      .mobile-menu.active {
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .profile-dropdown a, .profile-dropdown button {
+        transition: all 0.2s ease;
+      }
+      .profile-dropdown a:hover, .profile-dropdown button:hover {
+        transform: translateX(4px);
+      }
+      .notification-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        padding: 0.1rem 0.4rem;
+        min-width: 1.2rem;
+        text-align: center;
+      }
+      .formula-box {
+        background: linear-gradient(135deg, rgba(0,78,170,0.1) 0%, rgba(255,102,0,0.1) 100%);
+        border: 2px solid var(--accent-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        font-family: monospace;
+        font-size: 1.125rem;
+        text-align: center;
+        margin: 1rem 0;
+      }
+      .process-step {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+        border-left: 4px solid var(--primary-color);
+      }
+      .process-step:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 12px -1px rgba(0, 0, 0, 0.15);
+      }
+      .metric-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+      .similarity-badge { background: rgba(34, 197, 94, 0.1); color: #15803d; }
+      .coverage-badge { background: rgba(59, 130, 246, 0.1); color: #1d4ed8; }
+      .contra-badge { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+      .offtopic-badge { background: rgba(168, 85, 247, 0.1); color: #7c3aed; }
+    </style>
+</head>
+<body class="bg-[var(--base-gray)] min-h-screen">
+
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-6 py-4 flex justify-between items-center">
+  <!-- Logo -->
+  <div class="flex items-center gap-2">
+    <a href="../index.html" class="flex items-center gap-2">
+      <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="text-2xl font-bold text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  <nav class="hidden md:flex items-center gap-4">
+  <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../index.html">Inicio</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <!-- Notifications (solo desktop) -->
+    <button onclick="showBackendModal('notifications', 'Notificaciones', 'Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor.')" class="hidden md:inline-block relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none transition-all">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="notification-badge">3</span>
+    </button>
+    <!-- Profile Dropdown (solo desktop) -->
+    <div class="hidden md:inline-block relative">
+      <button id="profile-btn" class="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus:outline-none">
+        <img alt="User profile picture" class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR"/>
+        <span class="material-symbols-outlined text-gray-500">expand_more</span>
+      </button>
+      <div id="profile-dropdown" class="profile-dropdown">
+        <div class="px-4 py-3 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <img class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR" alt="Foto de perfil"/>
+            <div>
+              <div class="font-medium text-gray-900">Juan Pérez</div>
+              <div class="text-sm text-gray-500">juan@ejemplo.com</div>
+            </div>
+          </div>
+        </div>
+        <a href="../app/mi-perfil.html" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+          <span class="material-symbols-outlined mr-2">person</span>
+          Mi Perfil
+        </a>
+        <hr class="my-1 border-gray-200">
+        <button class="flex w-full items-center px-4 py-2 text-red-600 hover:bg-red-50">
+          <span class="material-symbols-outlined mr-2">logout</span>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+    <!-- Botón menú móvil (solo móvil) -->
+    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
+      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
+    </button>
+  </div>
+</div>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
+<div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-8">
+  <!-- Perfil y configuración arriba de navegación -->
+  <div class="flex flex-col items-center w-full mb-2 py-2">
+    <div class="flex flex-col items-center w-full px-6 py-2 hover:bg-gray-100 rounded-xl cursor-pointer transition-all">
+      <img src="../assets/img/Icon-Recuiva.png" alt="Perfil" class="w-10 h-10 rounded-full border-2 border-blue-700 mx-auto" />
+      <span class="text-base font-semibold text-gray-800 mt-2 text-center">Mi perfil</span>
+    </div>
+  </div>
+  <!-- Navegación principal -->
+  <div class="text-2xl text-gray-600 flex flex-col items-center gap-6">
+    <a class="hover:text-[var(--primary-color)] transition-colors" href="../index.html">Inicio</a>
+  </div>
+  <!-- Cerrar sesión abajo -->
+  <div class="flex flex-col items-center w-full px-6 py-4 border-t border-gray-200">
+    <button class="flex items-center gap-3 text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg transition-all">
+      <span class="material-symbols-outlined">logout</span>
+      <span class="font-medium">Cerrar sesión</span>
+    </button>
+  </div>
+</div>
+</div>
+</header>
+
+<main class="container mx-auto px-4 py-8 max-w-5xl">
+
+  <!-- Hero Section -->
+  <div class="text-center mb-12">
+    <h1 class="text-4xl md:text-5xl font-bold text-[var(--secondary-color)] mb-4">
+      Validación <span class="text-[var(--primary-color)]">Semántica</span> RAG
+    </h1>
+    <p class="text-xl text-[var(--text-secondary)] max-w-3xl mx-auto">
+      Cómo medimos objetivamente la calidad de tus respuestas usando Retrieval-Augmented Generation
+    </p>
+  </div>
+
+  <!-- Problema que resuelve -->
+  <div class="grid md:grid-cols-2 gap-8 mb-12">
+    
+    <div class="bg-red-50 border border-red-200 rounded-xl p-8">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-3xl text-red-500">help</span>
+        <h2 class="text-xl font-bold text-red-700">El Problema Tradicional</h2>
+      </div>
+      <ul class="space-y-3 text-red-600">
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">close</span>
+          <span class="text-sm"><strong>Subjetividad:</strong> "Creo que respondí bien" sin feedback objetivo</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">close</span>
+          <span class="text-sm"><strong>Autopercepción:</strong> Sesgos cognitivos distorsionan autoevaluación</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">close</span>
+          <span class="text-sm"><strong>Sin métricas:</strong> Imposible trackear mejoras longitudinales</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">close</span>
+          <span class="text-sm"><strong>Escalabilidad:</strong> No hay forma de comparar entre sesiones/usuarios</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="bg-green-50 border border-green-200 rounded-xl p-8">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-3xl text-green-500">psychology</span>
+        <h2 class="text-xl font-bold text-green-700">Nuestra Solución RAG</h2>
+      </div>
+      <ul class="space-y-3 text-green-600">
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">check</span>
+          <span class="text-sm"><strong>Objetividad:</strong> IA compara semánticamente tu respuesta vs. fuente</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">check</span>
+          <span class="text-sm"><strong>Explicabilidad:</strong> Sabes exactamente qué faltó o sobraba</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">check</span>
+          <span class="text-sm"><strong>Longitudinal:</strong> Métricas comparables en el tiempo (ΔS)</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-sm mt-0.5">check</span>
+          <span class="text-sm"><strong>Escalable:</strong> Mismo parámetro S normalizado para todos</span>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Fórmula del Score -->
+  <div class="bg-white rounded-xl p-8 mb-12">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-6 text-center">
+      La Fórmula del Score (S)
+    </h2>
+    
+    <div class="formula-box">
+      <strong>S = 0.45·Similitud + 0.35·Cobertura - 0.10·Contradicciones - 0.10·OffTopic</strong>
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-4 mt-8">
+      
+      <div class="text-center">
+        <div class="metric-badge similarity-badge mx-auto mb-3">
+          <span class="material-symbols-outlined">trending_up</span>
+          Similitud (45%)
+        </div>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Qué tan parecida es tu respuesta al contenido original usando embeddings semánticos
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="metric-badge coverage-badge mx-auto mb-3">
+          <span class="material-symbols-outlined">checklist</span>
+          Cobertura (35%)
+        </div>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Porcentaje de conceptos clave del material que mencionaste correctamente
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="metric-badge contra-badge mx-auto mb-3">
+          <span class="material-symbols-outlined">warning</span>
+          Contradicciones (-10%)
+        </div>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Información incorrecta o que contradice la fuente original de conocimiento
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="metric-badge offtopic-badge mx-auto mb-3">
+          <span class="material-symbols-outlined">center_focus_weak</span>
+          OffTopic (-10%)
+        </div>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Contenido irrelevante que no responde directamente a la pregunta planteada
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Proceso RAG explicado -->
+  <div class="mb-12">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-8 text-center">
+      ¿Cómo funciona el proceso RAG paso a paso?
+    </h2>
+    
+    <div class="grid gap-6">
+      
+      <div class="process-step">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center font-bold text-lg">1</div>
+          <div>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">
+              <span class="material-symbols-outlined align-middle mr-2">picture_as_pdf</span>
+              Ingesta del Material (PDFs)
+            </h3>
+            <p class="text-[var(--text-secondary)] mb-4">
+              Tu PDF es procesado automáticamente: <strong>OCR → Extracción de texto → Chunking inteligente</strong> por conceptos relacionados.
+            </p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm font-mono text-gray-600">
+                📄 "informe_cardiologia.pdf" → 📝 Texto plano → 🧩 Chunks: ["anatomía corazón", "patologías cardíacas", "tratamientos", ...]
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="process-step">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center font-bold text-lg">2</div>
+          <div>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">
+              <span class="material-symbols-outlined align-middle mr-2">hub</span>
+              Generación de Embeddings
+            </h3>
+            <p class="text-[var(--text-secondary)] mb-4">
+              Cada chunk se convierte en <strong>vectores de alta dimensión</strong> que capturan el significado semántico, no solo palabras literales.
+            </p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm font-mono text-gray-600">
+                🧩 "El miocardio es el músculo cardíaco" → 🔢 [0.1, -0.3, 0.8, ...] (384 dimensiones)
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="process-step">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center font-bold text-lg">3</div>
+          <div>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">
+              <span class="material-symbols-outlined align-middle mr-2">storage</span>
+              Vector Store & Indexing
+            </h3>
+            <p class="text-[var(--text-secondary)] mb-4">
+              Los embeddings se almacenan en una <strong>base de datos vectorial</strong> optimizada para búsquedas de similitud semántica.
+            </p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm font-mono text-gray-600">
+                💾 ChromaDB/Pinecone → Índice HNSW → Búsqueda k-NN optimizada → Recuperación < 100ms
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="process-step">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center font-bold text-lg">4</div>
+          <div>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">
+              <span class="material-symbols-outlined align-middle mr-2">search</span>
+              Retrieval (Recuperación)
+            </h3>
+            <p class="text-[var(--text-secondary)] mb-4">
+              Cuando respondes, tu respuesta se vectoriza y se buscan los <strong>chunks más similares</strong> del material original.
+            </p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm font-mono text-gray-600">
+                🗣️ Tu respuesta → 🔢 Vector → 🔍 Similitud coseno → 📋 Top-5 chunks relevantes recuperados
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="process-step">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-[var(--primary-color)] text-white rounded-full flex items-center justify-center font-bold text-lg">5</div>
+          <div>
+            <h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">
+              <span class="material-symbols-outlined align-middle mr-2">analytics</span>
+              Augmented Scoring
+            </h3>
+            <p class="text-[var(--text-secondary)] mb-4">
+              La IA compara tu respuesta vs. chunks recuperados, calculando Similitud, Cobertura, Contradicciones y OffTopic.
+            </p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-sm font-mono text-gray-600">
+                📊 Comparación semántica → S = 0.45·0.82 + 0.35·0.75 - 0.10·0.02 - 0.10·0.05 = 0.724 → "Buena"
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Clasificación de resultados -->
+  <div class="bg-white rounded-xl p-8 mb-12">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-6 text-center">
+      Clasificación de Resultados
+    </h2>
+    
+    <div class="grid md:grid-cols-4 gap-4">
+      
+      <div class="text-center p-6 border-2 border-green-500 bg-green-50 rounded-lg">
+        <div class="text-3xl font-bold text-green-700 mb-2">≥ 0.85</div>
+        <h3 class="font-bold text-green-700 mb-2">Excelente</h3>
+        <p class="text-sm text-green-600">
+          Dominio completo del concepto. Respuesta precisa y bien estructurada.
+        </p>
+      </div>
+
+      <div class="text-center p-6 border-2 border-blue-500 bg-blue-50 rounded-lg">
+        <div class="text-3xl font-bold text-blue-700 mb-2">0.70-0.84</div>
+        <h3 class="font-bold text-blue-700 mb-2">Buena</h3>
+        <p class="text-sm text-blue-600">
+          Buen entendimiento. Faltaron algunos detalles menores.
+        </p>
+      </div>
+
+      <div class="text-center p-6 border-2 border-yellow-500 bg-yellow-50 rounded-lg">
+        <div class="text-3xl font-bold text-yellow-700 mb-2">0.50-0.69</div>
+        <h3 class="font-bold text-yellow-700 mb-2">Regular</h3>
+        <p class="text-sm text-yellow-600">
+          Comprensión parcial. Revisar conceptos faltantes.
+        </p>
+      </div>
+
+      <div class="text-center p-6 border-2 border-red-500 bg-red-50 rounded-lg">
+        <div class="text-3xl font-bold text-red-700 mb-2">< 0.50</div>
+        <h3 class="font-bold text-red-700 mb-2">Mala</h3>
+        <p class="text-sm text-red-600">
+          Requiere estudio adicional del material original.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Ejemplo real -->
+  <div class="bg-gradient-to-r from-[var(--secondary-color)] to-[var(--primary-color)] rounded-xl p-8 text-white mb-12">
+    <h2 class="text-2xl font-bold mb-6 text-center">
+      Ejemplo Real: Validación de Respuesta
+    </h2>
+    
+    <div class="grid md:grid-cols-2 gap-8">
+      
+      <div>
+        <h3 class="font-bold mb-4">📚 Material Original (PDF):</h3>
+        <div class="bg-white bg-opacity-20 p-4 rounded-lg mb-4">
+          <p class="text-sm">
+            "La fotosíntesis es el proceso mediante el cual las plantas convierten la luz solar, agua y dióxido de carbono en glucosa y oxígeno. Ocurre en dos fases: reacciones dependientes de luz (tilacoides) y ciclo de Calvin (estroma)."
+          </p>
+        </div>
+        
+        <h3 class="font-bold mb-4">🎯 Pregunta:</h3>
+        <div class="bg-white bg-opacity-20 p-4 rounded-lg">
+          <p class="text-sm">
+            "¿Qué es la fotosíntesis y dónde ocurre?"
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="font-bold mb-4">🗣️ Respuesta del Usuario:</h3>
+        <div class="bg-white bg-opacity-20 p-4 rounded-lg mb-4">
+          <p class="text-sm">
+            "La fotosíntesis es cuando las plantas usan luz solar para hacer comida. Toma agua y CO2 del aire y produce azúcar. Pasa en las hojas."
+          </p>
+        </div>
+        
+        <h3 class="font-bold mb-4">📊 Análisis RAG:</h3>
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span>Similitud:</span>
+            <span class="font-bold">0.78 (78%)</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Cobertura:</span>
+            <span class="font-bold">0.65 (65%)</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Contradicciones:</span>
+            <span class="font-bold">0.05 (5%)</span>
+          </div>
+          <div class="flex justify-between">
+            <span>OffTopic:</span>
+            <span class="font-bold">0.02 (2%)</span>
+          </div>
+          <hr class="border-white border-opacity-50 my-3"/>
+          <div class="flex justify-between text-lg font-bold">
+            <span>Score Final:</span>
+            <span>0.72 (Buena)</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="mt-8 bg-white bg-opacity-20 p-6 rounded-lg">
+      <h3 class="font-bold mb-3">💡 Feedback Explicable:</h3>
+      <ul class="text-sm space-y-2">
+        <li>✅ <strong>Conceptos bien cubiertos:</strong> luz solar → glucosa, agua, CO2</li>
+        <li>⚠️ <strong>Conceptos faltantes:</strong> oxígeno como producto, fases (tilacoides/estroma)</li>
+        <li>📍 <strong>Imprecisiones menores:</strong> "comida" es demasiado informal para "glucosa"</li>
+        <li>🎯 <strong>Mejora sugerida:</strong> Mencionar productos específicos y ubicación celular</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Ventajas técnicas -->
+  <div class="bg-white rounded-xl p-8 mb-12">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-6">
+      Ventajas Técnicas del Enfoque RAG
+    </h2>
+    
+    <div class="grid md:grid-cols-3 gap-6">
+      
+      <div class="text-center">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-2xl text-green-600">verified</span>
+        </div>
+        <h3 class="font-bold text-[var(--text-primary)] mb-2">Precisión Semántica</h3>
+        <p class="text-sm text-[var(--text-secondary)]">
+          No depende de coincidencia literal de palabras. "Auto" y "vehículo" se reconocen como sinónimos.
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-2xl text-blue-600">speed</span>
+        </div>
+        <h3 class="font-bold text-[var(--text-primary)] mb-2">Escalabilidad</h3>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Procesa PDFs de cualquier tamaño. Vector store optimizado para millones de documentos.
+        </p>
+      </div>
+
+      <div class="text-center">
+        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-2xl text-purple-600">visibility</span>
+        </div>
+        <h3 class="font-bold text-[var(--text-primary)] mb-2">Explicabilidad</h3>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Siempre sabes qué chunks fueron recuperados y por qué recibiste esa puntuación.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Call to Action -->
+  <div class="text-center">
+    <h2 class="text-2xl font-bold text-[var(--secondary-color)] mb-4">
+      ¿Quieres probar la validación semántica?
+    </h2>
+    <p class="text-[var(--text-secondary)] mb-6">
+      Sube tu primer PDF y experimenta el feedback objetivo de la IA
+    </p>
+    <div class="flex gap-4 justify-center">
+      <a href="../app/subir-material.html" 
+         class="px-8 py-3 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90 font-semibold">
+        Subir Material
+      </a>
+      <a href="../index.html" 
+         class="px-8 py-3 border border-[var(--secondary-color)] text-[var(--secondary-color)] rounded-lg hover:bg-[var(--base-gray)] font-semibold">
+        Ver Demo
+      </a>
+    </div>
+  </div>
+
+</main>
+
+<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
+<div class="container mx-auto text-center">
+<div class="flex justify-center items-center gap-2 mb-6">
+<img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<span class="text-2xl font-black">Recuiva</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+<a class="hover:text-[var(--primary-color)] transition-colors" href="active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
+</div>
+<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
+</div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Menú móvil animación
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = menuBtn?.querySelector('.material-symbols-outlined');
+  let isMenuOpen = false;
+
+  function toggleMenu() {
+    isMenuOpen = !isMenuOpen;
+    mobileMenu.classList.toggle('active');
+    menuBtn.classList.toggle('active');
+    document.body.classList.toggle('overflow-hidden');
+    if (menuIcon) {
+      menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+      if (isMenuOpen) {
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = 'close';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      } else {
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = 'menu';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      }
+    }
+  }
+
+  if (menuBtn) {
+    menuBtn.addEventListener('click', toggleMenu);
+  }
+
+  // Cerrar menú cuando se hace clic en un enlace
+  const menuLinks = mobileMenu?.querySelectorAll('a');
+  menuLinks?.forEach(link => {
+    link.addEventListener('click', () => {
+      if (isMenuOpen) {
+        toggleMenu();
+      }
+    });
+  });
+
+  // Menú de perfil
+  const profileBtn = document.getElementById('profile-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  
+  function toggleProfileMenu(e) {
+    e.stopPropagation();
+    profileDropdown?.classList.toggle('active');
+  }
+  
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener('click', toggleProfileMenu);
+    document.addEventListener('click', (e) => {
+      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+        profileDropdown.classList.remove('active');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        profileDropdown.classList.remove('active');
+      }
+    });
+  }
+});
+
+// Funciones del modal de notificaciones
+window.showBackendModal = function(icon, title, description) {
+  showAdvancedModal(icon, title, description);
+};
+
+// Modal avanzado con mejor UX
+window.showAdvancedModal = function(icon, title, description) {
+  // Crear modal si no existe
+  let modal = document.getElementById('advanced-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'advanced-modal';
+    modal.className = 'notification-modal';
+    modal.innerHTML = `
+      <div class="notification-modal-content">
+        <div class="notification-icon-container">
+          <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">notifications</span>
+        </div>
+        <h3 id="modal-title">🔔 Notificaciones</h3>
+        <p id="modal-description">Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor. Por ahora puedes explorar la funcionalidad simulada. En la versión completa con backend, esto funcionará en tiempo real.</p>
+        <button onclick="closeAdvancedModal()" class="modal-button">
+          Aceptar
+        </button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // Cerrar con escape
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modal.classList.contains('show')) {
+        closeAdvancedModal();
+      }
+    });
+    
+    // Cerrar clickeando fuera
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeAdvancedModal();
+      }
+    });
+  }
+  
+  // Actualizar contenido
+  const iconMap = {
+    'notifications': '🔔',
+    'settings': '⚙️',
+    'dashboard': '📊',
+    'analytics': '📈'
+  };
+  
+  document.getElementById('modal-icon').textContent = icon;
+  document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
+  document.getElementById('modal-description').textContent = description;
+  
+  // Mostrar modal con animación
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeAdvancedModal = function() {
+  const modal = document.getElementById('advanced-modal');
+  if (modal) {
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+};
+</script>
+
+<style>
+#mobile-menu.active {
+  transform: scaleY(1) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Animación del botón hamburger */
+#menu-btn.active .menu-icon {
+  transform: rotate(180deg);
+}
+</style>
+
+</body>
+</html>

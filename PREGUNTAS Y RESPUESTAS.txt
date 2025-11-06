@@ -1,0 +1,75 @@
+📖 Preguntas y Respuestas (Active Recall)
+
+Pregunta: ¿Qué era el “collar de la reina” y por qué tenía tanta importancia histórica?
+Respuesta: Era una joya legendaria que originalmente había sido destinada a Madame du Barry y luego relacionada con María Antonieta. Tras varios engaños, los Dreux-Soubise lograron recomponerlo y se convirtió en un símbolo familiar de orgullo y prestigio.
+
+Pregunta: ¿Cómo cuidaban el conde y la condesa de Dreux-Soubise este collar?
+Respuesta: El conde lo guardaba con mucha prudencia: lo llevaba personalmente a una caja de seguridad del banco y, cuando su esposa quería usarlo, lo sacaba y volvía a guardarlo al día siguiente.
+
+Pregunta: ¿Qué ocurrió después de una fiesta en que la condesa lució el collar?
+Respuesta: A la mañana siguiente, el conde fue a buscarlo en el lugar donde lo había escondido en su casa y descubrió que había desaparecido misteriosamente.
+
+Pregunta: ¿Por qué sospecharon de Henriette y qué papel jugaba en la historia?
+Respuesta: Henriette era una amiga pobre de la condesa que vivía con su hijo en el mismo palacete. La condesa la acusó de saber demasiado sobre el escondite del collar, aunque al principio parecía inocente y honesta.
+
+Pregunta: ¿Qué dedujo el caballero Floriani sobre el robo?
+Respuesta: Él concluyó que no fue un adulto, sino un niño —probablemente Raoul, el hijo de Henriette— quien pudo entrar por el tragaluz, usar tablas como puente y llevarse el collar sin ser descubierto.
+
+Pregunta: ¿Qué detalle reforzó la hipótesis de Floriani sobre Raoul?
+Respuesta: Durante años, Henriette recibió misteriosamente dinero por correo, lo que podía indicar que el niño vendía poco a poco las piedras para mantenerla.
+
+Pregunta: ¿Quién se reveló finalmente como el verdadero ladrón?
+Respuesta: El propio caballero Floriani dio a entender que él mismo era Raoul, el hijo de Henriette, que de niño había robado el collar. Luego lo devolvió, y la prensa reveló que el ladrón no era otro que Arsène Lupin.
+
+
+
+
+Lote “Incorrectas” (con tipo de error)
+
+P: ¿Quién custodiaba el collar habitualmente?
+R (incorrecta): La condesa lo llevaba siempre en su bolso.
+Error: Hecho invertido (lo custodiaba el conde y lo guardaba en el banco).
+
+P: ¿Cómo desapareció el collar tras la fiesta?
+R (incorrecta): Un mayordomo lo tomó a plena luz frente a todos.
+Error: Ficción evidente (el robo fue nocturno y sigiloso).
+
+P: ¿Por qué sospecharon de Henriette?
+R (incorrecta): Porque era joyera profesional.
+Error: Atribución falsa de ocupación (era amiga pobre de la condesa).
+
+P: ¿Qué dedujo Floriani sobre el autor del robo?
+R (incorrecta): Que fue un ladrón adulto que forzó la caja fuerte.
+Error: Conclusión opuesta (dedujo que pudo ser un niño por el tragaluz).
+
+P: ¿Qué papel tuvo Raoul en la historia?
+R (incorrecta): Era el guardaespaldas del conde.
+Error: Identidad errónea (Raoul es el hijo de Henriette).
+
+P: ¿Cómo se financiaba Henriette después del suceso?
+R (incorrecta): Con una herencia pública del conde.
+Error: Causalidad inventada (recibía dinero misterioso por correo).
+
+P: ¿Qué ocurrió con el collar tras el robo?
+R (incorrecta): Se exhibió entero en el Louvre al día siguiente.
+Error: Temporalidad absurda (el collar se desarma/vende por partes en la hipótesis).
+
+P: ¿Qué reveló la prensa al final?
+R (incorrecta): Que el collar nunca existió; era un rumor.
+Error: Negación del objeto central (sí existía y es crucial en la trama).
+
+P: ¿Qué relación tiene Floriani con Arsène Lupin?
+R (incorrecta): Floriani detuvo a Lupin y recuperó el collar.
+Error: Inversión de roles (Floriani insinúa ser Lupin/autor del robo).
+
+P: ¿Cómo accedió el ladrón al lugar del collar?
+R (incorrecta): Entró por la puerta principal usando una llave de repuesto.
+Error: Mecanismo falso (se plantea acceso por tragaluz y tablas).
+
+P: ¿Qué hizo el conde con el collar después de la fiesta?
+R (incorrecta): Lo empeñó para pagar deudas.
+Error: Motivación inventada (su conducta era guardarlo con prudencia).
+
+P: ¿Cuál es el origen histórico del collar?
+R (incorrecta): Fue diseñado para la reina Victoria en el siglo XIX.
+Error: Desfase histórico (la historia alude a Madame du Barry/María Antonieta, s. XVIII).

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8"/>
@@ -6,29 +6,9 @@
     <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
     <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-    <title>Recuiva - Home</title>
-    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+    <title>Recuiva - Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="assets/img/Icon-Recuiva.ico"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <!-- Supabase Auth -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../assets/js/supabase-config.js"></script>
-    <script src="../assets/js/supabase-operations.js"></script>
-    <!-- Header/Footer Components -->
-    <script src="../assets/js/header-footer-components.js"></script>
-    <!-- Protección de ruta: solo usuarios autenticados -->
-    <!-- MockAPI deshabilitado - usando Supabase real -->
-    <script>
-      // Verificar si el usuario está logueado
-      (function() {
-        const isAuthenticated = localStorage.getItem('recuiva_isAuthenticated') === 'true';
-        const currentUser = localStorage.getItem('recuiva_user');
-        
-        // Si NO está autenticado, redirigir al landing page
-        if (!isAuthenticated || !currentUser) {
-          window.location.href = '/index.html';
-        }
-      })();
-    </script>
     <style type="text/tailwindcss">
 /* Filtro de seguridad: oculta cualquier toast/banner/snackbar por si acaso */
 #toast-root, .toast, .notyf, .iziToast, .swal2-container.swal2-top, .banner, .snackbar { display:none !important; }
@@ -106,11 +86,18 @@
         transform: scale(1.1);
       }
       .mobile-menu {
-        display: none;
-        transition: all 0.3s ease;
+        transform-origin: top;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform: scaleY(0);
+        opacity: 0;
+        pointer-events: none;
+        height: 100vh;
+        overflow-y: auto;
       }
       .mobile-menu.active {
-        display: flex !important;
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
       }
       #menu-btn.active .menu-icon {
         transform: rotate(180deg);
@@ -313,50 +300,135 @@
   </div>
 </div>
 <div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  <nav class="hidden md:flex items-center gap-4">
+  <a class="text-[var(--primary-color)] font-semibold px-2 py-1 rounded-lg" href="#inicio">Inicio</a>
+  <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="app/materiales.html">Materiales</a>
+  <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="app/dashboard.html">Dashboard</a>
+  <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="app/repasos.html">Repasos</a>
+  <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="app/sesion-practica.html">Práctica</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <!-- Notifications (solo desktop) -->
+    <button onclick="showBackendModal('notifications', 'Notificaciones', 'Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor.')" class="hidden md:inline-block relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none transition-all">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="notification-badge">3</span>
+    </button>
+    <!-- Profile Dropdown (solo desktop) -->
+    <div class="hidden md:inline-block relative">
+      <button id="profile-btn" class="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus:outline-none">
+        <img alt="User profile picture" class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR"/>
+        <span class="material-symbols-outlined text-gray-500">expand_more</span>
+      </button>
+      <div id="profile-dropdown" class="profile-dropdown">
+        <div class="px-4 py-3 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <img class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR" alt="Foto de perfil"/>
+            <div>
+              <div class="font-medium text-gray-900">Juan Pérez</div>
+              <div class="text-sm text-gray-500">juan@ejemplo.com</div>
+            </div>
+          </div>
+        </div>
+        <a href="app/mi-perfil.html" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+          <span class="material-symbols-outlined mr-2">person</span>
+          Mi Perfil
+        </a>
+        <hr class="my-1 border-gray-200">
+        <button onclick="logout()" class="flex w-full items-center px-4 py-2 text-red-600 hover:bg-red-50">
+          <span class="material-symbols-outlined mr-2">logout</span>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+    <!-- Botón menú móvil (solo móvil) -->
+    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
+      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
+    </button>
+  </div>
 
-<!-- Header Universal -->
-<div id="header-container"></div>
+<!-- Mobile Menu -->
+<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
+<div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-8">
+  <!-- Perfil y configuración arriba de navegación -->
+  <div class="flex flex-col items-center w-full mb-2 py-2">
+    <a href="app/mi-perfil.html" class="flex flex-col items-center w-full px-6 py-2 hover:bg-gray-100 rounded-xl cursor-pointer transition-all">
+      <img src="img/profile.jpg" alt="Perfil" class="w-10 h-10 rounded-full border-2 border-blue-700 mx-auto" />
+      <span class="text-base font-semibold text-gray-800 mt-2 text-center">Mi perfil</span>
+    </a>
+  </div>
+  <hr class="w-2/3 border-gray-300 my-2" />
+  <!-- Navegación principal -->
+  <nav class="flex flex-col items-center gap-6 w-full">
+  <a class="text-xl text-[var(--primary-color)] font-semibold" href="#inicio">Inicio</a>
+  <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="app/materiales.html">Materiales</a>
+  <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="app/dashboard.html">Dashboard</a>
+  <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="app/repasos.html">Repasos</a>
+  <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="app/sesion-practica.html">Práctica</a>
+  </nav>
+  <hr class="w-2/3 border-gray-300 my-2" />
+  <button onclick="logout()" class="flex items-center gap-2 text-base text-red-600 font-semibold">
+  <span class="material-symbols-outlined">logout</span>
+  <a href="landing-page.html">Cerrar sesión</a>
+  </button>
+</div>
+</header>
 
-<main class="flex-grow w-full">
+<main class="flex-grow">
   <!-- Hero / Bienvenida -->
-  <section id="inicio" class="bg-[var(--base-white)] py-8 md:py-16 lg:py-20 px-3 sm:px-4 md:px-6">
-    <div class="container mx-auto max-w-[1100px]">
-      <h1 id="titulo-bienvenida" class="text-center text-[28px] sm:text-[34px] leading-tight md:text-5xl lg:text-6xl font-extrabold text-[var(--text-primary)] tracking-tight min-h-[70px] sm:min-h-[80px] md:min-h-[100px] px-2">
-        <!-- El texto se generará dinámicamente con efecto typing -->
+  <section id="inicio" class="bg-[var(--base-white)] py-16 md:py-20 px-4 md:px-6">
+    <div class="container mx-auto">
+      <h1 class="text-center text-[34px] leading-tight md:text-6xl font-extrabold text-[var(--text-primary)] tracking-tight">
+        Bienvenido de nuevo, <span class="text-[var(--primary-color)]">[Nombre]</span>
       </h1>
       <!-- Onboarding + Entrenador alineados -->
-      <div class="mt-6 sm:mt-8 md:mt-10 w-full grid grid-cols-1 md:grid-cols-[1fr_320px] gap-4 sm:gap-6 md:gap-8 items-start">
+      <div class="mt-8 md:mt-10 max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 md:gap-8 items-start">
         <!-- Board principal (asistente de organización) -->
-        <div class="bg-[var(--base-white)] rounded-2xl shadow-xl border border-[var(--accent-color)] p-4 sm:p-6 md:p-8">
-          <h3 class="text-center text-lg sm:text-xl md:text-2xl font-bold text-[var(--secondary-color)]">
-            Organización de Materiales
+        <div class="bg-[var(--base-white)] rounded-2xl shadow-xl border border-[var(--accent-color)] p-6 md:p-8">
+          <h3 class="text-center text-xl md:text-2xl font-bold text-[var(--secondary-color)]">
+            Organización
           </h3>
-          <!-- input nombre (SIN MODALIDADES) -->
-          <div class="mt-4 sm:mt-6 flex flex-col items-center px-2">
-            <label for="modalidad-input" class="text-xs sm:text-sm text-[var(--text-secondary)] mb-2">Nombre de la carpeta</label>
-            <input id="modalidad-input" type="text" class="w-full max-w-md text-center px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-[var(--accent-color)] bg-[var(--base-gray)] focus:border-[var(--primary-color)] focus:outline-none transition-colors" placeholder="Ej: Anatomía, Endodoncia, Capítulo 1..." />
+          <!-- chips -->
+          <div class="mt-5 flex flex-wrap items-center justify-center gap-3" id="modalidad-chips">
+            <button type="button" class="chip bg-[var(--base-gray)] text-[var(--text-primary)] px-4 py-2 rounded-full font-semibold hover:bg-[var(--accent-color)]" data-modalidad="Semestre">Semestre</button>
+            <button type="button" class="chip bg-[var(--base-gray)] text-[var(--text-primary)] px-4 py-2 rounded-full font-semibold hover:bg-[var(--accent-color)]" data-modalidad="Curso/Materia">Curso/Materia</button>
+            <button type="button" class="chip bg-[var(--base-gray)] text-[var(--text-primary)] px-4 py-2 rounded-full font-semibold hover:bg-[var(--accent-color)]" data-modalidad="Tema">Tema</button>
+            <button type="button" class="chip bg-[var(--base-gray)] text-[var(--text-primary)] px-4 py-2 rounded-full font-semibold hover:bg-[var(--accent-color)]" data-modalidad="Proyecto">Proyecto</button>
+            <button type="button" class="chip bg-[var(--base-gray)] text-[var(--text-primary)] px-4 py-2 rounded-full font-semibold hover:bg-[var(--accent-color)]" data-modalidad="Otro">Otro</button>
+          </div>
+          <!-- input nombre -->
+          <div class="mt-4 flex flex-col items-center">
+            <label for="modalidad-input" class="text-sm text-[var(--text-secondary)] mb-1">Nombre</label>
+            <input id="modalidad-input" type="text" class="w-64 md:w-72 text-center px-3 py-2 rounded-lg border border-[var(--accent-color)] bg-[var(--base-gray)]" placeholder="Selecciona modalidad" />
           </div>
           <!-- CTA agregar carpeta -->
-          <div class="mt-4 sm:mt-5 flex justify-center px-2">
-            <button type="button" id="agregar-carpeta-btn" class="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-full bg-[var(--primary-color)] text-white font-bold flex items-center gap-2 hover:bg-opacity-90 shadow-lg hover:shadow-xl transition-all">
+          <div class="mt-5 flex justify-center">
+            <button type="button" id="agregar-carpeta-btn" class="px-5 py-2 rounded-full bg-[var(--primary-color)] text-white font-bold flex items-center gap-2 hover:bg-opacity-90">
                 <span class="material-symbols-outlined" style="font-size:20px;">add</span>
                 <span class="material-symbols-outlined" style="font-size:20px;">folder</span>
-                <span>Agregar Carpeta</span>
+                <span>Agregar carpeta</span>
             </button>
           </div>
           <!-- Árbol de carpetas -->
-          <div id="carpetas-board" class="mt-5 sm:mt-7 px-2">
+          <div id="carpetas-board" class="mt-7">
             <!-- se rellena por JS -->
           </div>
         </div>
         <!-- Panel del entrenador -->
-        <aside class="bg-[var(--base-gray)] rounded-2xl p-4 sm:p-6 md:p-7 min-h-[320px] sm:min-h-[420px]">
-          <div class="flex items-center gap-2 sm:gap-3 justify-center md:justify-start">
-            <img src="../assets/img/Icon-Recuiva.png" alt="Avatar entrenador" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-[var(--secondary-color)]" />
-            <span class="font-bold text-sm sm:text-base text-[var(--secondary-color)]">Entrenador</span>
+        <aside class="bg-[var(--base-gray)] rounded-2xl p-6 md:p-7 min-h-[420px]">
+          <div class="flex items-center gap-3">
+            <img src="assets/img/Icon-Recuiva.png" alt="Avatar entrenador" class="w-12 h-12 rounded-full border-2 border-[var(--secondary-color)]" />
+            <span class="font-bold text-[var(--secondary-color)]">Entrenador</span>
           </div>
-          <p id="entrenador-texto" class="mt-3 sm:mt-4 text-[var(--text-secondary)] text-xs sm:text-sm md:text-[15px] text-center md:text-left">
-            
+          <p id="entrenador-texto" class="mt-4 text-[var(--text-secondary)] text-sm md:text-[15px]">
+            “Empieza eligiendo la modalidad (Semestre, Curso, Tema…) y nómbrala. Luego agrega tu primera carpeta.”
           </p>
         </aside>
       </div>
@@ -364,68 +436,71 @@
   </section>
 
   <!-- Tarjetas inferiores -->
-  <section class="py-8 sm:py-12 md:py-16 lg:py-20 px-3 sm:px-4 md:px-6 bg-[var(--base-gray)]">
+  <section class="py-16 md:py-20 px-4 md:px-6 bg-[var(--base-gray)]">
     <div class="container mx-auto max-w-[1100px]">
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+      <div class="grid md:grid-cols-3 gap-6 md:gap-8">
         <!-- Última sesión -->
-        <div class="bg-[var(--base-white)] p-4 sm:p-6 md:p-8 rounded-xl shadow-md hover-lift">
-          <div class="flex items-center mb-3 sm:mb-4">
-            <span class="material-symbols-outlined text-2xl sm:text-3xl md:text-4xl text-[var(--secondary-color)] mr-2 sm:mr-3 md:mr-4">history</span>
-            <h3 class="text-base sm:text-lg md:text-xl font-bold text-[var(--text-primary)]">Última sesión</h3>
+        <div class="bg-[var(--base-white)] p-6 md:p-8 rounded-xl shadow-md hover-lift">
+          <div class="flex items-center mb-4">
+            <span class="material-symbols-outlined text-3xl md:text-4xl text-[var(--secondary-color)] mr-3 md:mr-4">history</span>
+            <h3 class="text-lg md:text-xl font-bold text-[var(--text-primary)]">Última sesión</h3>
           </div>
-          <p id="last-session-text" class="text-sm sm:text-base text-[var(--text-secondary)] mb-3 sm:mb-4 line-clamp-3">Cargando...</p>
-          <a id="last-session-link" class="text-sm sm:text-base text-[var(--primary-color)] font-bold hover:underline transition-colors cursor-pointer" href="#" onclick="validarYIrAPractica(event)">Continuar práctica →</a>
+          <p class="text-[var(--text-secondary)] mb-4">Continúa practicando Biología Celular.</p>
+          <a class="text-[var(--primary-color)] font-bold hover:underline transition-colors" href="app/sesion-practica.html">Continuar práctica →</a>
         </div>
 
         <!-- Progreso -->
-        <a href="dashboard.html" class="bg-[var(--base-white)] p-4 sm:p-6 md:p-8 rounded-xl shadow-md hover-lift transition-all cursor-pointer block">
-          <div class="flex items-center mb-3 sm:mb-4">
-            <span class="material-symbols-outlined text-2xl sm:text-3xl md:text-4xl text-[var(--secondary-color)] mr-2 sm:mr-3 md:mr-4">trending_up</span>
-            <h3 class="text-base sm:text-lg md:text-xl font-bold text-[var(--text-primary)]">Tu progreso</h3>
+        <a href="app/dashboard.html" class="bg-[var(--base-white)] p-6 md:p-8 rounded-xl shadow-md hover-lift transition-all cursor-pointer block">
+          <div class="flex items-center mb-4">
+            <span class="material-symbols-outlined text-3xl md:text-4xl text-[var(--secondary-color)] mr-3 md:mr-4">trending_up</span>
+            <h3 class="text-lg md:text-xl font-bold text-[var(--text-primary)]">Tu progreso</h3>
           </div>
-          <div class="flex justify-around text-center gap-2">
+          <div class="flex justify-around text-center">
             <div>
-              <p id="progress-retention" class="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary-color)]">--</p>
-              <p class="text-[var(--text-secondary)] text-xs sm:text-sm">Retención</p>
+              <p class="text-2xl md:text-3xl font-bold text-[var(--primary-color)]">85%</p>
+              <p class="text-[var(--text-secondary)] text-sm">Retención</p>
             </div>
             <div>
-              <p id="progress-streak" class="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary-color)]">-- <span class="text-xs sm:text-sm md:text-lg">días</span></p>
-              <p class="text-[var(--text-secondary)] text-xs sm:text-sm">Racha</p>
+              <p class="text-2xl md:text-3xl font-bold text-[var(--primary-color)]">12 <span class="text-sm md:text-lg">días</span></p>
+              <p class="text-[var(--text-secondary)] text-sm">Racha</p>
             </div>
           </div>
         </a>
 
         <!-- Temas a repasar -->
-        <a href="repasos.html" class="bg-[var(--base-white)] p-4 sm:p-6 md:p-8 rounded-xl shadow-md hover-lift transition-all cursor-pointer block sm:col-span-2 md:col-span-1">
-          <div class="flex items-center mb-3 sm:mb-4">
-            <span class="material-symbols-outlined text-2xl sm:text-3xl md:text-4xl text-[var(--secondary-color)] mr-2 sm:mr-3 md:mr-4">psychology_alt</span>
-            <h3 class="text-base sm:text-lg md:text-xl font-bold text-[var(--text-primary)]">Temas a repasar</h3>
+        <div class="bg-[var(--base-white)] p-6 md:p-8 rounded-xl shadow-md hover-lift">
+          <div class="flex items-center mb-4">
+            <span class="material-symbols-outlined text-3xl md:text-4xl text-[var(--secondary-color)] mr-3 md:mr-4">psychology_alt</span>
+            <h3 class="text-lg md:text-xl font-bold text-[var(--text-primary)]">Temas a repasar</h3>
           </div>
-          <ul id="review-topics-list" class="space-y-1 sm:space-y-2 text-xs sm:text-sm text-[var(--text-secondary)]">
-            <li>Cargando...</li>
+          <ul class="space-y-2 text-[var(--text-secondary)]">
+            <li>Fórmulas de Física Cuántica</li>
+            <li>Fechas clave de la Revolución Francesa</li>
           </ul>
-          <span class="text-sm sm:text-base text-[var(--primary-color)] font-bold hover:underline mt-2 sm:mt-3 inline-block transition-colors">Ver sugerencias →</span>
-        </a>
+          <a class="text-[var(--primary-color)] font-bold hover:underline mt-3 inline-block transition-colors" href="app/repasos.html">Ver sugerencias →</a>
+        </div>
       </div>
     </div>
   </section>
 </main>
 
-<!-- Footer Universal -->
-<div id="footer-container"></div>
-
+<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
+<div class="container mx-auto text-center">
+<div class="flex justify-center items-center gap-2 mb-6">
+<img src="assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<span class="recuiva-logo">Recuiva</span>
 </div>
-
-<!-- Inicializar componentes al cargar -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  // Inicializar header y footer
-  initializeHeaderFooter('inicio');
-  
-  // El resto del código JavaScript del dashboard continúa aquí...
-});
-</script>
-
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
+</div>
+<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
+</div>
+</footer>
 <script>
 // Modal bloqueante reutilizable de marca Recuiva
 window.modal = (() => {
@@ -480,29 +555,8 @@ window.modal = (() => {
   window.addEventListener('resize', centrarEntrenadorTexto);
   centrarEntrenadorTexto();
 
-  // 🔥 TYPING ANIMATION PARA ENTRENADOR (2 segundos después del bienvenido)
-  setTimeout(() => {
-    const textoEntrenador = '"Organiza tu material creando carpetas. Sube PDFs, crea preguntas con Active Recall y practica con repetición espaciada."';
-    const elemento = document.getElementById('entrenador-texto');
-    let index = 0;
-    
-    function escribir() {
-      if (index < textoEntrenador.length) {
-        elemento.textContent += textoEntrenador.charAt(index);
-        index++;
-        setTimeout(escribir, 30); // Velocidad igual al bienvenido
-      }
-    }
-    escribir();
-  }, 2000);
-
 // === FUNCIONES MODALES DE MATERIAL (SCOPE GLOBAL) ===
-function mostrarModalMaterial(carpetaId, carpetaNombre, modalidad = '') {
-  // Actualizar carpeta activa en el header
-  if (typeof window.actualizarCarpetaActiva === 'function') {
-    window.actualizarCarpetaActiva(carpetaNombre, modalidad);
-  }
-  
+function mostrarModalMaterial(carpetaId, carpetaNombre) {
   const modalMaterial = `
     <div id="modal-material" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-carpeta-id="${carpetaId}" data-carpeta-nombre="${carpetaNombre}">
       <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
@@ -871,176 +925,6 @@ function cerrarModalBienvenida() {
   if (modal) modal.remove();
 }
 
-// --- SISTEMA DE VALIDACIÓN DE CONFIGURACIÓN (GLOBAL) ---
-
-/**
- * Verifica si el usuario ha configurado carpeta, material y preguntas
- * @returns {object} { valido: boolean, razon: string }
- */
-window.validarConfiguracion = function() {
-  // 1. Verificar si existe al menos una carpeta configurada
-  let tieneCarpetas = false;
-  
-  // Verificar en localStorage
-  const carpetasGuardadas = localStorage.getItem('recuiva_carpetas');
-  if (carpetasGuardadas) {
-    try {
-      const parsed = JSON.parse(carpetasGuardadas);
-      tieneCarpetas = parsed && parsed.length > 0;
-    } catch(e) {
-      tieneCarpetas = false;
-    }
-  }
-  
-  if (!tieneCarpetas) {
-    return { 
-      valido: false, 
-      razon: 'carpeta',
-      mensaje: 'Primero debes crear una carpeta (Semestre, Curso, Tema, etc.)'
-    };
-  }
-  
-  // 2. Verificar si tiene preguntas creadas
-  const preguntas = JSON.parse(localStorage.getItem('recuiva_preguntas') || '[]');
-  
-  if (!preguntas || preguntas.length === 0) {
-    return { 
-      valido: false, 
-      razon: 'preguntas',
-      mensaje: 'Necesitas crear al menos una pregunta para practicar'
-    };
-  }
-  
-  // Todo está listo para practicar
-  return { 
-    valido: true, 
-    razon: 'completo',
-    mensaje: 'Configuración completa'
-  };
-};
-
-/**
- * Muestra un modal cuando el usuario intenta acceder a práctica sin configurar
- */
-window.mostrarModalAdvertenciaPractica = function(validacion) {
-  const razon = validacion?.razon || 'carpeta';
-  
-  let pasos = '';
-  let titulo = '¡Espera un momento!';
-  let descripcion = 'Antes de practicar, necesitas configurar tu material de estudio';
-  
-  if (razon === 'carpeta') {
-    titulo = 'Configura tu primera carpeta';
-    descripcion = 'Para comenzar a practicar, primero debes crear una carpeta de estudio';
-    pasos = `
-      <ol class="text-sm text-[var(--text-secondary)] space-y-2 ml-1">
-        <li class="flex items-start gap-2">
-          <span class="font-bold text-[var(--primary-color)]">1.</span>
-          <span><strong>Organiza tus carpetas</strong> de estudio</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <span class="font-bold text-[var(--primary-color)]">2.</span>
-          <span>Dale un <strong>nombre</strong> a tu carpeta</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <span class="font-bold text-[var(--primary-color)]">3.</span>
-          <span>Haz clic en <strong>"+ Agregar carpeta"</strong></span>
-        </li>
-        <li class="flex items-start gap-2">
-          <span class="font-bold text-[var(--primary-color)]">4.</span>
-          <span>Haz clic en <strong>"Entrar"</strong> en la carpeta creada</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <span class="font-bold text-[var(--primary-color)]">5.</span>
-          <span>Selecciona tu tipo de material y crea una pregunta</span>
-        </li>
-      </ol>
-    `;
-  } else if (razon === 'preguntas') {
-    titulo = 'Crea tu primera pregunta';
-    descripcion = 'Ya tienes una carpeta, ahora necesitas crear al menos una pregunta para practicar';
-    pasos = `
-      <ol class="text-sm text-[var(--text-secondary)] space-y-2 ml-1">
-        <li class="flex items-start gap-2">
-          <span class="font-bold text-[var(--primary-color)]">1.</span>
-          <span>Haz clic en el botón <strong>"Entrar"</strong> de tu carpeta</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <span class="font-bold text-[var(--primary-color)]">2.</span>
-          <span>Selecciona tu <strong>tipo de material</strong> (PDF, libro físico, o sin material)</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <span class="font-bold text-[var(--primary-color)]">3.</span>
-          <span>Crea tu <strong>primera pregunta</strong> con su respuesta</span>
-        </li>
-        <li class="flex items-start gap-2">
-          <span class="font-bold text-[var(--primary-color)]">4.</span>
-          <span>¡Listo! Ya podrás <strong>empezar a practicar</strong></span>
-        </li>
-      </ol>
-    `;
-  }
-  
-  const modalAdvertencia = `
-    <div id="modal-advertencia-practica" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-      <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-[var(--accent-color)]">
-        <div class="text-center mb-6">
-          <div class="size-16 rounded-full flex items-center justify-center mx-auto mb-4
-                      ring-2 ring-[var(--primary-color)] bg-orange-50">
-            <span class="material-symbols-outlined text-5xl text-[var(--primary-color)]">warning</span>
-          </div>
-          <h3 class="text-2xl font-bold text-[var(--text-primary)] mb-2">
-            ${titulo}
-          </h3>
-          <p class="text-[var(--text-secondary)]">
-            ${descripcion}
-          </p>
-        </div>
-        
-        <div class="bg-[var(--base-gray)] p-4 rounded-xl mb-6">
-          <h4 class="font-bold text-[var(--secondary-color)] mb-3 flex items-center gap-2">
-            <span class="material-symbols-outlined">checklist</span>
-            Pasos para comenzar:
-          </h4>
-          ${pasos}
-        </div>
-
-        <button onclick="cerrarModalAdvertenciaPractica()" 
-                class="w-full bg-[var(--primary-color)] text-white py-3 px-6 rounded-lg font-bold 
-                       hover:bg-opacity-90 transition-all shadow-lg">
-          Entendido, voy a configurar
-        </button>
-      </div>
-    </div>
-  `;
-  document.body.insertAdjacentHTML('beforeend', modalAdvertencia);
-};
-
-/**
- * Cierra el modal de advertencia
- */
-window.cerrarModalAdvertenciaPractica = function() {
-  const modal = document.getElementById('modal-advertencia-practica');
-  if (modal) modal.remove();
-};
-
-/**
- * Función global para validar y redirigir a práctica
- * Úsala en los enlaces: onclick="validarYIrAPractica(event)"
- */
-window.validarYIrAPractica = function(event) {
-  if (event) event.preventDefault();
-  
-  const validacion = window.validarConfiguracion();
-  if (!validacion.valido) {
-    window.mostrarModalAdvertenciaPractica(validacion);
-    return false;
-  }
-  
-  window.location.href = 'app/sesion-practica.html';
-  return true;
-};
-
 document.addEventListener('DOMContentLoaded', () => {
   
   // === FUNCIONES MODALES BACKEND MEJORADAS ===
@@ -1111,44 +995,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   
   // === FUNCIONES NAVEGACIÓN ===
-  
-  // Función para limpiar datos locales (reemplaza logout)
-  window.limpiarDatos = function() {
-    if (confirm('⚠️ ¿Estás seguro?\n\nSe borrarán todas tus carpetas, preguntas y progreso guardados.\n\nEsta acción no se puede deshacer.')) {
-      localStorage.clear();
-      alert('✅ Datos locales eliminados correctamente.');
-      window.location.reload();
+  window.logout = function() {
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+      localStorage.removeItem('recuiva_user');
+      window.location.href = 'auth/iniciar-sesion.html';
     }
   };
-  
-  // Función para mostrar configuración (placeholder)
-  window.mostrarConfiguracion = function() {
-    showAdvancedModal('settings', 'Configuración', 'Aquí podrás ajustar preferencias del sistema, exportar/importar datos, y personalizar tu experiencia de estudio.');
-  };
-  
-  // Función para actualizar carpeta activa en el header
-  window.actualizarCarpetaActiva = function(nombre, tipo) {
-    const displayDesktop = document.getElementById('carpeta-activa-nombre');
-    const displayMobile = document.getElementById('carpeta-activa-nombre-mobile');
-    const textoCompleto = tipo ? `${nombre} (${tipo})` : nombre;
-    
-    if (displayDesktop) displayDesktop.textContent = textoCompleto;
-    if (displayMobile) displayMobile.textContent = textoCompleto;
-    
-    // Guardar en localStorage para persistencia
-    localStorage.setItem('recuiva_carpeta_activa', JSON.stringify({ nombre, tipo }));
-  };
-  
-  // Cargar carpeta activa al iniciar
-  const carpetaActiva = localStorage.getItem('recuiva_carpeta_activa');
-  if (carpetaActiva) {
-    try {
-      const { nombre, tipo } = JSON.parse(carpetaActiva);
-      window.actualizarCarpetaActiva(nombre, tipo);
-    } catch(e) {
-      console.log('No hay carpeta activa guardada');
-    }
-  }
   
   // === DRAG & DROP HELPERS ===
   function findNodeById(id, nodes, parent = null) {
@@ -1161,29 +1013,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return null;
   }
-  
-  // 🔥 CONSTRUIR RUTA BREADCRUMB (camino completo desde raíz)
-  function construirRutaBreadcrumb(carpetaId) {
-    const ruta = [];
-    function buscarRuta(id, nodes, camino = []) {
-      for (const node of nodes) {
-        const nuevoCamino = [...camino, node.nombre];
-        if (node.id === id) {
-          ruta.push(...nuevoCamino);
-          return true;
-        }
-        if (node.subcarpetas && node.subcarpetas.length > 0) {
-          if (buscarRuta(id, node.subcarpetas, nuevoCamino)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-    buscarRuta(carpetaId, carpetas);
-    return ruta;
-  }
-  
   function removeNode(id) {
     const found = findNodeById(id, carpetas);
     if (!found) return null;
@@ -1223,7 +1052,19 @@ document.addEventListener('DOMContentLoaded', () => {
     nombreInput.value = '';
     chipsDiv.innerHTML = '';
 
-    // Ya no mostramos chips de modalidad - sistema simplificado
+    // Si es raíz, mostrar chips de modalidad
+    if (esRaiz) {
+      ['Semestre', 'Curso/Materia', 'Tema', 'Proyecto', 'Otro'].forEach(modalidad => {
+        const chip = document.createElement('button');
+        chip.className = 'chip';
+        chip.textContent = modalidad;
+        chip.onclick = () => {
+          chipsDiv.querySelectorAll('button').forEach(b => b.classList.remove('is-active'));
+          chip.classList.add('is-active');
+        };
+        chipsDiv.appendChild(chip);
+      });
+    }
 
     modal.classList.remove('hidden');
 
@@ -1239,9 +1080,17 @@ document.addEventListener('DOMContentLoaded', () => {
         await modal.alert({ message: 'Escribe el nombre de la carpeta.' });
         return;
       }
-      // Sistema simplificado - sin modalidad
+      let modalidad = null;
+      if (esRaiz) {
+        const activeChip = chipsDiv.querySelector('.is-active');
+        if (!activeChip) {
+          await modal.alert({ message: 'Selecciona una modalidad.' });
+          return;
+        }
+        modalidad = activeChip.textContent;
+      }
       cerrarModal();
-      callback({ nombre, modalidad: null });
+      callback({ nombre, modalidad });
     };
     cancelarBtn.onclick = cerrarModal;
     // Cerrar con Escape
@@ -1250,70 +1099,86 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     nombreInput.focus();
   }
+  // Menú móvil animación landing-page
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = menuBtn.querySelector('.material-symbols-outlined');
+  let isMenuOpen = false;
+  function toggleMenu() {
+    isMenuOpen = !isMenuOpen;
+    mobileMenu.classList.toggle('active');
+    document.body.classList.toggle('overflow-hidden');
+    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+    if (isMenuOpen) {
+      menuIcon.style.transform = 'rotate(90deg)';
+      menuIcon.style.opacity = '0';
+      setTimeout(() => {
+        menuIcon.textContent = 'close';
+        menuIcon.style.transform = 'rotate(0deg)';
+        menuIcon.style.opacity = '1';
+      }, 150);
+    } else {
+      menuIcon.style.transform = 'rotate(90deg)';
+      menuIcon.style.opacity = '0';
+      setTimeout(() => {
+        menuIcon.textContent = 'menu';
+        menuIcon.style.transform = 'rotate(0deg)';
+        menuIcon.style.opacity = '1';
+      }, 150);
+    }
+  }
+  menuBtn.addEventListener('click', toggleMenu);
+  const menuLinks = mobileMenu.querySelectorAll('a');
+  menuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (isMenuOpen) {
+        toggleMenu();
+      }
+    });
+  });
+  // Menú de perfil
+  const profileBtn = document.getElementById('profile-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  function toggleProfileMenu(e) {
+    e.stopPropagation();
+    profileDropdown.classList.toggle('active');
+  }
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener('click', toggleProfileMenu);
+    document.addEventListener('click', (e) => {
+      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+        profileDropdown.classList.remove('active');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        profileDropdown.classList.remove('active');
+      }
+    });
+  }
 
-  // --- Onboarding jerárquico en un solo board CON PERSISTENCIA ---
+  // --- Onboarding jerárquico en un solo board ---
   let carpetas = [];
-  
-  // 🔥 CARGAR CARPETAS DESDE SUPABASE AL INICIO
-  async function cargarCarpetasDesdeSupabase() {
-    console.log('🔍 CARGANDO CARPETAS DESDE SUPABASE...');
-    try {
-      const folders = await SupabaseOperations.getFolders();
-      
-      // Convertir estructura de Supabase a estructura local
-      carpetas = folders.map(folder => ({
-        id: folder.id,
-        nombre: folder.name,
-        parent_id: folder.parent_folder_id,
-        subcarpetas: [],
-        _expand: false,
-        color: folder.color,
-        icon: folder.icon
-      }));
-      
-      // Organizar en estructura jerárquica
-      const carpetasMap = new Map();
-      carpetas.forEach(c => carpetasMap.set(c.id, c));
-      
-      const raices = [];
-      carpetas.forEach(c => {
-        if (c.parent_id) {
-          const parent = carpetasMap.get(c.parent_id);
-          if (parent) {
-            parent.subcarpetas.push(c);
-          }
-        } else {
-          raices.push(c);
-        }
-      });
-      
-      carpetas = raices;
-      console.log('� Carpetas cargadas desde Supabase:', carpetas.length);
-      renderTree();
-    } catch (error) {
-      console.error('❌ Error al cargar carpetas:', error);
-      carpetas = [];
-    }
-  }
-  
-  // 🔥 GUARDAR CARPETA EN SUPABASE
-  async function guardarCarpetaEnSupabase(nombre, parentId = null, options = {}) {
-    try {
-      console.log('💾 GUARDANDO CARPETA EN SUPABASE...');
-      console.log('   • Nombre:', nombre);
-      console.log('   • Parent ID:', parentId);
-      
-      const folder = await SupabaseOperations.createFolder(nombre, parentId, options);
-      console.log('✅ Carpeta guardada en Supabase:', folder);
-      return folder;
-    } catch (error) {
-      console.error('❌ Error al guardar carpeta:', error);
-      throw error;
-    }
-  }
-  
   // Elementos
+  const modalidadChips = document.getElementById('modalidad-chips');
   const modalidadInput = document.getElementById('modalidad-input');
+  let modalidadSeleccionada = null;
+
+  // Modalidad chips lógica
+  modalidadChips.querySelectorAll('button[data-modalidad]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      modalidadSeleccionada = btn.getAttribute('data-modalidad');
+      modalidadChips.querySelectorAll('button').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      modalidadInput.placeholder = {
+        'Semestre': '2025-I',
+        'Curso/Materia': 'Anatomía',
+        'Tema': 'Sistema Digestivo',
+        'Proyecto': 'Proyecto Final',
+        'Otro': 'Personalizado'
+      }[modalidadSeleccionada] || 'Nombre';
+    });
+  });
 
   // Helpers para IDs únicas
   function genId() {
@@ -1388,36 +1253,22 @@ document.addEventListener('DOMContentLoaded', () => {
     entrar.title = 'Entrar';
     entrar.textContent = 'Entrar';
     entrar.onclick = () => { 
-      // 🔥 GUARDAR RUTA ACTIVA (breadcrumb trail)
-      const rutaCompleta = construirRutaBreadcrumb(carpeta.id);
-      const rutaActiva = {
-        carpetaId: carpeta.id,
-        carpetaNombre: carpeta.nombre,
-        carpetas: rutaCompleta,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem('recuiva_active_path', JSON.stringify(rutaActiva));
-      console.log('📍 Ruta activa guardada:', rutaCompleta.join(' › '));
-      
-      // 🚀 REDIRECCIÓN DIRECTA A SUBIR MATERIAL (sin modal)
-      window.location.href = `subir-material.html?carpeta=${encodeURIComponent(carpeta.id)}&nombre=${encodeURIComponent(carpeta.nombre)}`;
+      // Si es una carpeta hoja (sin subcarpetas), abrir modal de material
+      if (!carpeta.subcarpetas || carpeta.subcarpetas.length === 0) {
+        mostrarModalMaterial(carpeta.id, carpeta.nombre);
+      } else {
+        // Si tiene subcarpetas, expandir normalmente
+        carpeta._expand = true; 
+        renderTree(); 
+      }
     };
     const add = document.createElement('button');
     add.className = 'px-3 py-2 rounded-full bg-blue-100 border border-blue-300 text-[var(--secondary-color)] font-semibold flex items-center';
     add.title = 'Agregar subcarpeta';
     add.innerHTML = `<span class="material-symbols-outlined mr-1" style="font-size:20px;">add</span><span class="material-symbols-outlined" style="font-size:20px;">folder</span>`;
     add.onclick = () => {
-      abrirModalAgregar(async ({ nombre }) => {
-        // Crear subcarpeta en Supabase
-        const newFolder = await guardarCarpetaEnSupabase(nombre, carpeta.id);
-        
-        // Actualizar estructura local
-        (carpeta.subcarpetas ||= []).push({ 
-          id: newFolder.id, 
-          nombre: newFolder.name, 
-          subcarpetas: [], 
-          _expand:false 
-        });
+      abrirModalAgregar(({ nombre }) => {
+        (carpeta.subcarpetas ||= []).push({ id: genId(), nombre, modalidad: carpeta.modalidad, subcarpetas: [], _expand:false });
         carpeta._expand = true;
         renderTree();
       }, false);
@@ -1428,23 +1279,12 @@ document.addEventListener('DOMContentLoaded', () => {
     del.innerHTML = `<span class="material-symbols-outlined" style="font-size:20px;">delete</span>`;
     del.onclick = async () => {
       if (!await modal.confirm({ title: 'Eliminar', message: '¿Seguro que quieres eliminar esta carpeta?' })) return;
-      
-      // Eliminar de Supabase
-      try {
-        await SupabaseOperations.deleteFolder(carpeta.id);
-        console.log('✅ Carpeta eliminada de Supabase');
-        
-        // Actualizar estructura local
-        if (parentRef) {
-          parentRef.subcarpetas = parentRef.subcarpetas.filter(x => x !== carpeta);
-        } else {
-          carpetas = carpetas.filter(x => x !== carpeta);
-        }
-        renderTree();
-      } catch (error) {
-        console.error('❌ Error al eliminar carpeta:', error);
-        await modal.alert({ message: 'Error al eliminar la carpeta' });
+      if (parentRef) {
+        parentRef.subcarpetas = parentRef.subcarpetas.filter(x => x !== carpeta);
+      } else {
+        carpetas = carpetas.filter(x => x !== carpeta);
       }
+      renderTree();
     };
     acciones.append(entrar, add, del);
     fila.append(nombreSpan, acciones);
@@ -1485,32 +1325,25 @@ document.addEventListener('DOMContentLoaded', () => {
     fila.addEventListener('dragleave', () => {
       fila.classList.remove('drop-line', 'drop-line-above', 'drop-line-below', 'drop-inside');
     });
-    fila.addEventListener('drop', async (e) => {
+    fila.addEventListener('drop', (e) => {
       e.preventDefault();
       fila.classList.remove('drop-line', 'drop-line-above', 'drop-line-below', 'drop-inside');
       const draggedId = e.dataTransfer.getData('text/plain');
       if (!draggedId || draggedId === carpeta.id) return;
       const draggedNode = findNodeById(draggedId, carpetas);
       if (!draggedNode) return;
-      
-      try {
-        if (dropIntent === 'above') {
-          const destParent = parentRef;
-          const destIdx = destParent ? destParent.subcarpetas.indexOf(carpeta) : carpetas.indexOf(carpeta);
-          moveNode(draggedId, destParent ? destParent.id : null, destIdx);
-        } else if (dropIntent === 'below') {
-          const destParent = parentRef;
-          const destIdx = (destParent ? destParent.subcarpetas.indexOf(carpeta) : carpetas.indexOf(carpeta)) + 1;
-          moveNode(draggedId, destParent ? destParent.id : null, destIdx);
-        } else if (dropIntent === 'inside') {
-          moveNode(draggedId, carpeta.id, carpeta.subcarpetas ? carpeta.subcarpetas.length : 0);
-          // Actualizar parent_id en Supabase
-          await SupabaseOperations.updateFolder(draggedId, { parent_folder_id: carpeta.id });
-        }
-        renderTree();
-      } catch (error) {
-        console.error('❌ Error al mover carpeta:', error);
+      if (dropIntent === 'above') {
+        const destParent = parentRef;
+        const destIdx = destParent ? destParent.subcarpetas.indexOf(carpeta) : carpetas.indexOf(carpeta);
+        moveNode(draggedId, destParent ? destParent.id : null, destIdx);
+      } else if (dropIntent === 'below') {
+        const destParent = parentRef;
+        const destIdx = (destParent ? destParent.subcarpetas.indexOf(carpeta) : carpetas.indexOf(carpeta)) + 1;
+        moveNode(draggedId, destParent ? destParent.id : null, destIdx);
+      } else if (dropIntent === 'inside') {
+        moveNode(draggedId, carpeta.id, carpeta.subcarpetas ? carpeta.subcarpetas.length : 0);
       }
+      renderTree();
     });
     fila.addEventListener('dragend', () => {
       fila.classList.remove('dragging', 'drop-line', 'drop-line-above', 'drop-line-below', 'drop-inside');
@@ -1519,45 +1352,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return fila;
   }
 
-  // Evento para agregar carpeta raíz (SIMPLIFICADO - sin modalidad)
-  document.getElementById('agregar-carpeta-btn').addEventListener('click', async () => {
-    console.log('🔵 CLICK EN BOTÓN AGREGAR CARPETA');
-    
+  // Evento para agregar carpeta raíz
+  document.getElementById('agregar-carpeta-btn').addEventListener('click', () => {
     const nombre = modalidadInput.value.trim();
-    if (!nombre) {
-      console.log('⚠️ Falta nombre de carpeta');
-      modal.alert({ message: 'Escribe el nombre de la carpeta.' });
+    if (!modalidadSeleccionada || !nombre) {
+      modal.alert({ message: 'Selecciona modalidad y escribe el nombre.' });
       return;
     }
-    
-    try {
-      // Guardar en Supabase
-      const newFolder = await guardarCarpetaEnSupabase(nombre, null);
-      console.log('✅ Carpeta guardada en Supabase:', newFolder);
-      
-      // Actualizar estructura local
-      const nuevaCarpeta = { 
-        id: newFolder.id, 
-        nombre: newFolder.name, 
-        subcarpetas: [], 
-        _expand: false 
-      };
-      
-      carpetas.push(nuevaCarpeta);
-      console.log('📦 Array carpetas después de push:', carpetas);
-      
-      modalidadInput.value = '';
-      renderTree();
-      
-      console.log('✅ Carpeta agregada:', nombre);
-    } catch (error) {
-      console.error('❌ Error al crear carpeta:', error);
-      modal.alert({ message: 'Error al crear la carpeta' });
-    }
+    carpetas.push({ id: genId(), nombre, modalidad: modalidadSeleccionada, subcarpetas: [], _expand: false });
+    modalidadInput.value = '';
+    renderTree();
   });
 
-  // 🔥 INICIALIZAR: Cargar carpetas guardadas
-  cargarCarpetasDesdeSupabase();
+  // Inicializar board único al cargar
   renderTree();
 
   // --- MODAL AGREGAR MATERIAL ---
@@ -1813,12 +1620,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function irAPractica() {
-    // Validar antes de ir a práctica usando la función global
-    const validacion = window.validarConfiguracion();
-    if (!validacion.valido) {
-      window.mostrarModalAdvertenciaPractica(validacion);
-      return;
-    }
     window.location.href = 'app/sesion-practica.html';
   }
 
@@ -1831,321 +1632,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 });
-
-// ==========================================
-// SINCRONIZAR CARDS CON SUPABASE
-// ==========================================
-document.addEventListener('DOMContentLoaded', async function() {
-  console.log('🔄 Sincronizando cards con Supabase...');
-  
-  try {
-    // Verificar autenticación
-    const user = await SupabaseOperations.getCurrentUser();
-    if (!user) {
-      console.warn('⚠️ Usuario no autenticado, mostrando datos vacíos');
-      showEmptyState();
-      return;
-    }
-    
-    console.log(`✅ Usuario autenticado: ${user.email}`);
-    
-    // Obtener todos los materiales del usuario
-    const materials = await SupabaseOperations.getMaterials();
-    
-    if (!materials || materials.length === 0) {
-      console.log('📭 Usuario sin materiales');
-      showEmptyState();
-      return;
-    }
-    
-    console.log(`📚 ${materials.length} materiales encontrados`);
-    
-    // Obtener todas las preguntas y respuestas del usuario
-    let allQuestions = [];
-    let allAnswers = [];
-    
-    for (const material of materials) {
-      const questions = await SupabaseOperations.getQuestionsByMaterial(material.id);
-      
-      for (const question of questions) {
-        const answers = await SupabaseOperations.getAnswersByQuestion(question.id);
-        
-        if (answers.length > 0) {
-          // Tomar la última respuesta (más reciente)
-          const lastAnswer = answers[0];
-          
-          allQuestions.push({
-            id: question.id,
-            materialId: material.id,
-            materialTitle: material.title,
-            questionText: question.question_text,
-            score: parseFloat(lastAnswer.score),
-            createdAt: new Date(lastAnswer.created_at),
-            answerId: lastAnswer.id
-          });
-          
-          allAnswers.push(lastAnswer);
-        }
-      }
-    }
-    
-    console.log(`❓ ${allQuestions.length} preguntas con respuestas encontradas`);
-    
-    // ====================================
-    // 1️⃣ ÚLTIMA SESIÓN
-    // ====================================
-    await updateLastSessionCard(allQuestions);
-    
-    // ====================================
-    // 2️⃣ TU PROGRESO
-    // ====================================
-    await updateProgressCard(allQuestions);
-    
-    // ====================================
-    // 3️⃣ TEMAS A REPASAR
-    // ====================================
-    await updateReviewTopicsCard(allQuestions);
-    
-    console.log('✅ Sincronización de cards completada con Supabase');
-    
-  } catch (error) {
-    console.error('❌ Error sincronizando cards:', error);
-    showErrorState();
-  }
-});
-
-// ====================================
-// FUNCIÓN: Actualizar card ÚLTIMA SESIÓN
-// ====================================
-async function updateLastSessionCard(questions) {
-  const lastSessionText = document.getElementById('last-session-text');
-  const lastSessionLink = document.getElementById('last-session-link');
-  
-  if (!questions || questions.length === 0) {
-    lastSessionText.textContent = 'Aún no hay sesiones de práctica.';
-    lastSessionLink.textContent = 'Empezar primera sesión →';
-    lastSessionLink.href = 'app/sesion-practica.html';
-    console.log('  ⚠️ Sin preguntas para última sesión');
-    return;
-  }
-  
-  // Ordenar por fecha más reciente
-  const sortedQuestions = [...questions].sort((a, b) => b.createdAt - a.createdAt);
-  const lastQuestion = sortedQuestions[0];
-  
-  const questionText = lastQuestion.questionText.substring(0, 40);
-  const materialTitle = lastQuestion.materialTitle || 'Material';
-  
-  lastSessionText.innerHTML = `
-    <span class="text-sm text-gray-500">${materialTitle}</span><br>
-    "${questionText}..."
-  `;
-  lastSessionLink.href = `app/sesion-practica.html?material=${lastQuestion.materialId}`;
-  
-  console.log(`  ✓ Última sesión: "${questionText}" (${lastQuestion.materialTitle})`);
-}
-
-// ====================================
-// FUNCIÓN: Actualizar card TU PROGRESO
-// ====================================
-async function updateProgressCard(questions) {
-  const progressRetention = document.getElementById('progress-retention');
-  const progressStreak = document.getElementById('progress-streak');
-  
-  if (!questions || questions.length === 0) {
-    progressRetention.innerHTML = '0<span class="text-lg">%</span>';
-    progressStreak.innerHTML = '0 <span class="text-sm md:text-lg">días</span>';
-    console.log('  ⚠️ Sin datos para progreso');
-    return;
-  }
-  
-  // 📊 RETENCIÓN: Promedio de scores
-  const scores = questions.map(q => q.score).filter(s => s >= 0 && s <= 100);
-  
-  if (scores.length > 0) {
-    const avgScore = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
-    progressRetention.innerHTML = `${avgScore}<span class="text-lg">%</span>`;
-    console.log(`  ✓ Retención: ${avgScore}% (${scores.length} respuestas)`);
-  } else {
-    progressRetention.innerHTML = '0<span class="text-lg">%</span>';
-  }
-  
-  // 🔥 RACHA: Días consecutivos
-  const streak = calculateStreakFromSupabase(questions);
-  progressStreak.innerHTML = `${streak} <span class="text-sm md:text-lg">días</span>`;
-  console.log(`  ✓ Racha: ${streak} días`);
-}
-
-// ====================================
-// FUNCIÓN: Actualizar card TEMAS A REPASAR
-// ====================================
-async function updateReviewTopicsCard(questions) {
-  const reviewTopicsList = document.getElementById('review-topics-list');
-  
-  if (!questions || questions.length === 0) {
-    reviewTopicsList.innerHTML = '<li class="text-gray-400">Aún no hay repasos pendientes.</li>';
-    console.log('  ⚠️ Sin preguntas para repasos');
-    return;
-  }
-  
-  // Filtrar preguntas con score < 70%
-  const weakQuestions = questions.filter(q => q.score < 70);
-  
-  if (weakQuestions.length > 0) {
-    // Ordenar por score más bajo primero
-    weakQuestions.sort((a, b) => a.score - b.score);
-    
-    // Mostrar hasta 3 preguntas
-    const topicsHTML = weakQuestions.slice(0, 3).map(q => {
-      const questionText = q.questionText.substring(0, 50);
-      const score = Math.round(q.score);
-      const materialBadge = `<span class="text-xs text-gray-500">[${q.materialTitle}]</span>`;
-      return `<li>📌 ${questionText}... <span class="font-semibold text-orange-600">(${score}%)</span> ${materialBadge}</li>`;
-    }).join('');
-    
-    reviewTopicsList.innerHTML = topicsHTML;
-    console.log(`  ✓ ${weakQuestions.length} temas a repasar (mostrando 3)`);
-  } else {
-    reviewTopicsList.innerHTML = '<li class="text-green-600 font-semibold">✨ ¡Excelente! No hay temas que necesiten repaso.</li>';
-    console.log('  ✓ Sin temas débiles');
-  }
-}
-
-// ====================================
-// FUNCIÓN: Calcular racha desde Supabase
-// ====================================
-function calculateStreakFromSupabase(questions) {
-  if (!questions || questions.length === 0) return 0;
-  
-  // Ordenar por fecha descendente (más reciente primero)
-  const sortedQuestions = [...questions].sort((a, b) => b.createdAt - a.createdAt);
-  
-  let streak = 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  let currentDate = new Date(today);
-  
-  // Crear conjunto de fechas únicas de práctica
-  const practiceDates = new Set();
-  sortedQuestions.forEach(q => {
-    const date = new Date(q.createdAt);
-    date.setHours(0, 0, 0, 0);
-    practiceDates.add(date.getTime());
-  });
-  
-  // Convertir a array ordenado
-  const uniqueDates = Array.from(practiceDates).sort((a, b) => b - a);
-  
-  // Calcular racha
-  for (const dateTimestamp of uniqueDates) {
-    if (dateTimestamp === currentDate.getTime()) {
-      if (streak === 0) streak = 1;
-    } else if (dateTimestamp === currentDate.getTime() - 86400000) {
-      streak++;
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-  
-  return streak;
-}
-
-// ====================================
-// FUNCIÓN: Mostrar estado vacío
-// ====================================
-function showEmptyState() {
-  document.getElementById('last-session-text').textContent = 'Aún no hay sesiones de práctica.';
-  document.getElementById('last-session-link').textContent = 'Empezar primera sesión →';
-  document.getElementById('last-session-link').href = 'app/sesion-practica.html';
-  
-  document.getElementById('progress-retention').innerHTML = '0<span class="text-lg">%</span>';
-  document.getElementById('progress-streak').innerHTML = '0 <span class="text-sm md:text-lg">días</span>';
-  
-  document.getElementById('review-topics-list').innerHTML = '<li class="text-gray-400">Aún no hay repasos pendientes.</li>';
-}
-
-// ====================================
-// FUNCIÓN: Mostrar estado de error
-// ====================================
-function showErrorState() {
-  document.getElementById('last-session-text').textContent = 'Error al cargar datos.';
-  document.getElementById('progress-retention').textContent = '--';
-  document.getElementById('progress-streak').textContent = '--';
-  document.getElementById('review-topics-list').innerHTML = '<li>Error al cargar.</li>';
-}
-
-// ===================================
-// 🎨 EFECTO TYPING EN TÍTULO DE BIENVENIDA
-// ===================================
-(async function initTypingEffect() {
-  // SIEMPRE ejecutar la animación al cargar la página
-  
-  // Obtener el nombre del usuario desde Supabase Auth
-  const user = await SupabaseOperations.getCurrentUser();
-  
-  let firstName = 'Usuario';
-  
-  if (user) {
-    // Intentar obtener nombre desde metadata
-    const fullName = user.user_metadata?.full_name || user.email || 'Usuario';
-    firstName = fullName.split(' ')[0].split('@')[0];
-  }
-  
-  // Texto completo a escribir (sin colores, se aplican después)
-  const fullText = `¡Bienvenido ${firstName} a Recuiva!`;
-  
-  const titleElement = document.getElementById('titulo-bienvenida');
-  let currentIndex = 0;
-  
-  // Velocidad del typing (ms por carácter) - MÁS RÁPIDO
-  const typingSpeed = 50; // Más rápido y fluido
-  
-  function typeNextChar() {
-    if (currentIndex < fullText.length) {
-      currentIndex++;
-      const currentText = fullText.substring(0, currentIndex);
-      
-      // Aplicar colores a las palabras mientras se escribe
-      let displayText = currentText
-        .replace('Bienvenido', '<span style="color: #004EAA;">Bienvenido</span>')
-        .replace(firstName, `<span style="color: #004EAA;">${firstName}</span>`)
-        .replace('Recuiva', '<span style="color: #ff6600;">Recuiva</span>');
-      
-      titleElement.innerHTML = displayText + '<span class="typing-cursor">|</span>';
-      setTimeout(typeNextChar, typingSpeed);
-    } else {
-      // Terminar: quitar cursor
-      const finalText = fullText
-        .replace('Bienvenido', '<span style="color: #004EAA;">Bienvenido</span>')
-        .replace(firstName, `<span style="color: #004EAA;">${firstName}</span>`)
-        .replace('Recuiva', '<span style="color: #ff6600;">Recuiva</span>');
-      
-      titleElement.innerHTML = finalText;
-    }
-  }
-  
-  // Iniciar el efecto después de un pequeño delay
-  setTimeout(typeNextChar, 300);
-})();
-
-// CSS para el cursor parpadeante
-const style = document.createElement('style');
-style.textContent = `
-  .typing-cursor {
-    display: inline-block;
-    animation: blink 0.7s infinite;
-    color: #004EAA;
-    font-weight: bold;
-  }
-  
-  @keyframes blink {
-    0%, 49% { opacity: 1; }
-    50%, 100% { opacity: 0; }
-  }
-`;
-document.head.appendChild(style);
 </script>
 
 <!-- Modales adicionales para el onboarding completo -->
