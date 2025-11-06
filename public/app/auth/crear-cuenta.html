@@ -228,8 +228,11 @@
               name="confirmPassword"
               required
               placeholder="Repite tu contraseña"
-              class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-transparent transition-all"
+              class="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--secondary-color)] focus:border-transparent transition-all"
             />
+            <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--primary-color)]">
+              <span class="material-symbols-outlined" id="confirmPasswordIcon">visibility</span>
+            </button>
           </div>
         </div>
 
@@ -395,6 +398,19 @@ if (togglePassword && passwordInput && passwordIcon) {
     const type = passwordInput.type === 'password' ? 'text' : 'password';
     passwordInput.type = type;
     passwordIcon.textContent = type === 'password' ? 'visibility' : 'visibility_off';
+  });
+}
+
+// Toggle mostrar/ocultar confirmar contraseña
+const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+const confirmPasswordInput = document.getElementById('confirmPassword');
+const confirmPasswordIcon = document.getElementById('confirmPasswordIcon');
+
+if (toggleConfirmPassword && confirmPasswordInput && confirmPasswordIcon) {
+  toggleConfirmPassword.addEventListener('click', () => {
+    const type = confirmPasswordInput.type === 'password' ? 'text' : 'password';
+    confirmPasswordInput.type = type;
+    confirmPasswordIcon.textContent = type === 'password' ? 'visibility' : 'visibility_off';
   });
 }
 
