@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function() {
         throw new Error('Usuario no autenticado');
       }
       
-      const response = await fetch('http://localhost:8000/api/materials/upload', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials/upload`, {
         method: 'POST',
         headers: {
           'X-User-ID': user.id  // Enviar user_id en el header
@@ -662,7 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </p>
       `;
       
-  const response = await fetch('http://localhost:8000/api/materials');
+  const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials`);
       const data = await response.json();
       
       if (!data.success || data.materials.length === 0) {
@@ -791,7 +791,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     try {
-  const response = await fetch(`http://localhost:8000/api/materials/${materialId}`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials/${materialId}`, {
         method: 'DELETE'
       });
       
