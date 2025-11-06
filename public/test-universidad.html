@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Universidad - Recuiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .test-card { transition: all 0.3s ease; }
+        .test-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-orange-500 to-blue-600 text-white rounded-lg p-6 mb-6 shadow-lg">
+            <h1 class="text-3xl font-bold mb-2">🔬 Test de Red Universitaria</h1>
+            <p class="text-lg opacity-90">Diagnóstico de compatibilidad de Recuiva</p>
+        </div>
+
+        <!-- Info del Sistema -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined">info</span>
+                Información del Sistema
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div class="p-3 bg-gray-50 rounded">
+                    <strong>Navegador:</strong>
+                    <p id="browser" class="text-gray-700"></p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded">
+                    <strong>Sistema Operativo:</strong>
+                    <p id="os" class="text-gray-700"></p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded">
+                    <strong>Protocolo:</strong>
+                    <p id="protocol" class="text-gray-700"></p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded">
+                    <strong>Cookies:</strong>
+                    <p id="cookies" class="text-gray-700"></p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded">
+                    <strong>LocalStorage:</strong>
+                    <p id="localStorage" class="text-gray-700"></p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded">
+                    <strong>Conexión:</strong>
+                    <p id="connection" class="text-gray-700"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tests -->
+        <div class="space-y-4">
+            
+            <!-- Test 1: Frontend -->
+            <div class="test-card bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined">web</span>
+                        Test 1: Frontend (Página Principal)
+                    </h3>
+                    <span id="test1-status" class="text-2xl">⏳</span>
+                </div>
+                <p class="text-gray-600 mb-4">Verificando que la página HTML carga correctamente...</p>
+                <button onclick="test1Frontend()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                    Ejecutar Test
+                </button>
+                <div id="test1-result" class="mt-4"></div>
+            </div>
+
+            <!-- Test 2: Backend API -->
+            <div class="test-card bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined">dns</span>
+                        Test 2: Backend API (FastAPI)
+                    </h3>
+                    <span id="test2-status" class="text-2xl">⏳</span>
+                </div>
+                <p class="text-gray-600 mb-4">Verificando conexión con el servidor Python...</p>
+                <button onclick="test2Backend()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                    Ejecutar Test
+                </button>
+                <div id="test2-result" class="mt-4"></div>
+            </div>
+
+            <!-- Test 3: Supabase -->
+            <div class="test-card bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined">cloud</span>
+                        Test 3: Base de Datos (Supabase)
+                    </h3>
+                    <span id="test3-status" class="text-2xl">⏳</span>
+                </div>
+                <p class="text-gray-600 mb-4">Verificando acceso a la base de datos...</p>
+                <button onclick="test3Supabase()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                    Ejecutar Test
+                </button>
+                <div id="test3-result" class="mt-4"></div>
+            </div>
+
+            <!-- Test 4: HTTPS/SSL -->
+            <div class="test-card bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined">lock</span>
+                        Test 4: Certificado SSL
+                    </h3>
+                    <span id="test4-status" class="text-2xl">⏳</span>
+                </div>
+                <p class="text-gray-600 mb-4">Verificando seguridad HTTPS...</p>
+                <button onclick="test4SSL()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                    Ejecutar Test
+                </button>
+                <div id="test4-result" class="mt-4"></div>
+            </div>
+
+            <!-- Test 5: Todo junto -->
+            <div class="test-card bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    Ejecutar Todos los Tests
+                </h3>
+                <button onclick="testAll()" class="bg-white text-green-600 px-8 py-3 rounded-lg hover:bg-gray-100 transition font-bold">
+                    ▶️ Ejecutar Todo
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Resumen Final -->
+        <div id="summary" class="mt-6 p-6 bg-white rounded-lg shadow-md hidden">
+            <h2 class="text-2xl font-bold mb-4">📊 Resumen de Resultados</h2>
+            <div id="summary-content"></div>
+        </div>
+
+        <!-- Botón Volver -->
+        <div class="mt-6 text-center">
+            <a href="index.html" class="inline-block bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition">
+                ← Volver a Recuiva
+            </a>
+        </div>
+
+    </div>
+
+    <script>
+        // Información del sistema
+        document.getElementById('browser').textContent = navigator.userAgent;
+        document.getElementById('os').textContent = navigator.platform;
+        document.getElementById('protocol').textContent = window.location.protocol === 'https:' ? '✅ HTTPS' : '❌ HTTP';
+        document.getElementById('cookies').textContent = navigator.cookieEnabled ? '✅ Habilitadas' : '❌ Bloqueadas';
+        
+        // Test localStorage
+        try {
+            localStorage.setItem('test', 'test');
+            localStorage.removeItem('test');
+            document.getElementById('localStorage').textContent = '✅ Disponible';
+        } catch (e) {
+            document.getElementById('localStorage').textContent = '❌ Bloqueado';
+        }
+        
+        // Test conexión
+        document.getElementById('connection').textContent = navigator.onLine ? '✅ Online' : '❌ Offline';
+
+        // Test 1: Frontend
+        async function test1Frontend() {
+            const status = document.getElementById('test1-status');
+            const result = document.getElementById('test1-result');
+            
+            status.textContent = '⏳';
+            result.innerHTML = '<p class="text-gray-600">Probando...</p>';
+            
+            try {
+                const response = await fetch('index.html');
+                
+                if (response.ok) {
+                    status.textContent = '✅';
+                    result.innerHTML = `
+                        <div class="bg-green-50 border border-green-200 text-green-800 p-4 rounded">
+                            <strong>✅ Éxito</strong><br>
+                            Status: ${response.status} ${response.statusText}<br>
+                            El frontend carga correctamente
+                        </div>
+                    `;
+                } else {
+                    throw new Error(`${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                status.textContent = '❌';
+                result.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-800 p-4 rounded">
+                        <strong>❌ Error</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Test 2: Backend
+        async function test2Backend() {
+            const status = document.getElementById('test2-status');
+            const result = document.getElementById('test2-result');
+            
+            status.textContent = '⏳';
+            result.innerHTML = '<p class="text-gray-600">Probando conexión al backend...</p>';
+            
+            // URL del backend (ajusta según tu configuración)
+            const backendURL = window.location.hostname === 'localhost' 
+                ? 'http://localhost:8000' 
+                : 'https://api-recuiva.duckdns.org';
+            
+            try {
+                const response = await fetch(`${backendURL}/`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    status.textContent = '✅';
+                    result.innerHTML = `
+                        <div class="bg-green-50 border border-green-200 text-green-800 p-4 rounded">
+                            <strong>✅ Backend OK</strong><br>
+                            Status: ${response.status}<br>
+                            Version: ${data.version || 'N/A'}<br>
+                            URL: ${backendURL}
+                        </div>
+                    `;
+                } else {
+                    throw new Error(`${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                status.textContent = '❌';
+                result.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-800 p-4 rounded">
+                        <strong>❌ Backend no responde</strong><br>
+                        Error: ${error.message}<br>
+                        URL probada: ${backendURL}<br>
+                        <small class="text-xs">Posible firewall universitario bloqueando la conexión</small>
+                    </div>
+                `;
+            }
+        }
+
+        // Test 3: Supabase
+        async function test3Supabase() {
+            const status = document.getElementById('test3-status');
+            const result = document.getElementById('test3-result');
+            
+            status.textContent = '⏳';
+            result.innerHTML = '<p class="text-gray-600">Probando conexión a Supabase...</p>';
+            
+            const supabaseURL = 'https://xnqczqqluelzedmfvbkv.supabase.co';
+            
+            try {
+                const response = await fetch(`${supabaseURL}/rest/v1/`, {
+                    method: 'HEAD',
+                    mode: 'cors'
+                });
+                
+                status.textContent = '✅';
+                result.innerHTML = `
+                    <div class="bg-green-50 border border-green-200 text-green-800 p-4 rounded">
+                        <strong>✅ Supabase accesible</strong><br>
+                        Status: ${response.status}<br>
+                        La base de datos es accesible desde esta red
+                    </div>
+                `;
+            } catch (error) {
+                status.textContent = '❌';
+                result.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-800 p-4 rounded">
+                        <strong>❌ Supabase bloqueado</strong><br>
+                        Error: ${error.message}<br>
+                        <small class="text-xs">La universidad puede estar bloqueando servicios externos</small>
+                    </div>
+                `;
+            }
+        }
+
+        // Test 4: SSL
+        function test4SSL() {
+            const status = document.getElementById('test4-status');
+            const result = document.getElementById('test4-result');
+            
+            const isHTTPS = window.location.protocol === 'https:';
+            
+            if (isHTTPS) {
+                status.textContent = '✅';
+                result.innerHTML = `
+                    <div class="bg-green-50 border border-green-200 text-green-800 p-4 rounded">
+                        <strong>✅ HTTPS activo</strong><br>
+                        Certificado SSL válido<br>
+                        Conexión segura establecida
+                    </div>
+                `;
+            } else {
+                status.textContent = '⚠️';
+                result.innerHTML = `
+                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded">
+                        <strong>⚠️ Sin HTTPS</strong><br>
+                        La página se carga por HTTP (no seguro)<br>
+                        Algunas funciones pueden estar limitadas
+                    </div>
+                `;
+            }
+        }
+
+        // Ejecutar todos los tests
+        async function testAll() {
+            await test1Frontend();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await test2Backend();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await test3Supabase();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            test4SSL();
+            
+            // Mostrar resumen
+            showSummary();
+        }
+
+        function showSummary() {
+            const summary = document.getElementById('summary');
+            const content = document.getElementById('summary-content');
+            
+            const test1 = document.getElementById('test1-status').textContent;
+            const test2 = document.getElementById('test2-status').textContent;
+            const test3 = document.getElementById('test3-status').textContent;
+            const test4 = document.getElementById('test4-status').textContent;
+            
+            const allPassed = test1 === '✅' && test2 === '✅' && test3 === '✅' && test4 === '✅';
+            
+            content.innerHTML = `
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="text-center p-4 ${test1 === '✅' ? 'bg-green-50' : 'bg-red-50'} rounded">
+                        <div class="text-4xl mb-2">${test1}</div>
+                        <div class="font-bold">Frontend</div>
+                    </div>
+                    <div class="text-center p-4 ${test2 === '✅' ? 'bg-green-50' : 'bg-red-50'} rounded">
+                        <div class="text-4xl mb-2">${test2}</div>
+                        <div class="font-bold">Backend</div>
+                    </div>
+                    <div class="text-center p-4 ${test3 === '✅' ? 'bg-green-50' : 'bg-red-50'} rounded">
+                        <div class="text-4xl mb-2">${test3}</div>
+                        <div class="font-bold">Supabase</div>
+                    </div>
+                    <div class="text-center p-4 ${test4 === '✅' ? 'bg-green-50' : 'bg-yellow-50'} rounded">
+                        <div class="text-4xl mb-2">${test4}</div>
+                        <div class="font-bold">HTTPS</div>
+                    </div>
+                </div>
+                
+                ${allPassed ? `
+                    <div class="bg-green-100 border-2 border-green-500 text-green-900 p-6 rounded-lg text-center">
+                        <div class="text-6xl mb-4">🎉</div>
+                        <h3 class="text-2xl font-bold mb-2">¡Todo funciona perfectamente!</h3>
+                        <p>Recuiva es compatible con esta red universitaria</p>
+                    </div>
+                ` : `
+                    <div class="bg-yellow-100 border-2 border-yellow-500 text-yellow-900 p-6 rounded-lg">
+                        <div class="text-4xl mb-4">⚠️</div>
+                        <h3 class="text-xl font-bold mb-2">Algunos tests fallaron</h3>
+                        <p class="mb-4">Posibles soluciones:</p>
+                        <ul class="list-disc list-inside text-left space-y-2">
+                            <li>Usar tu hotspot de celular en lugar de WiFi universitario</li>
+                            <li>Avisar al administrador de red que necesitas acceder a recuiva.duckdns.org</li>
+                            <li>Presentar desde tu laptop personal</li>
+                        </ul>
+                    </div>
+                `}
+            `;
+            
+            summary.classList.remove('hidden');
+            summary.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
