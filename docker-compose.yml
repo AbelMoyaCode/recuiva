@@ -49,6 +49,11 @@ services:
       - traefik.http.routers.recuiva-backend-websecure.tls.certresolver=letsencrypt
       - traefik.http.routers.recuiva-backend-websecure.service=recuiva-backend
       - traefik.http.services.recuiva-backend.loadbalancer.server.port=8001
+      # Backend por IP (HTTP en puerto 8001)
+      - traefik.http.routers.recuiva-backend-ip.rule=PathPrefix(`/api`) || PathPrefix(`/docs`)
+      - traefik.http.routers.recuiva-backend-ip.entrypoints=web
+      - traefik.http.routers.recuiva-backend-ip.priority=100
+      - traefik.http.routers.recuiva-backend-ip.service=recuiva-backend
     networks:
       - dokploy-network
 
@@ -78,6 +83,11 @@ services:
       - traefik.http.routers.recuiva-frontend-websecure.tls.certresolver=letsencrypt
       - traefik.http.routers.recuiva-frontend-websecure.service=recuiva-frontend
       - traefik.http.services.recuiva-frontend.loadbalancer.server.port=80
+      # Frontend por IP (HTTP en puerto 80)
+      - traefik.http.routers.recuiva-frontend-ip.rule=PathPrefix(`/`)
+      - traefik.http.routers.recuiva-frontend-ip.entrypoints=web
+      - traefik.http.routers.recuiva-frontend-ip.priority=1
+      - traefik.http.routers.recuiva-frontend-ip.service=recuiva-frontend
 
 volumes:
   embeddings-cache:

@@ -6,8 +6,24 @@
  * Fecha: 7 de octubre de 2025
  */
 
-// Configuración del API
-const API_BASE = 'https://api-recuiva.duckdns.org';
+// Configuración del API (detecta automáticamente el entorno)
+const API_BASE = (() => {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    
+    // Desarrollo local
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:8000';
+    }
+    
+    // Acceso por IP directa del VPS (para universidades con firewall)
+    if (hostname === '147.182.226.170') {
+        return `${protocol}//${hostname}:8001`;
+    }
+    
+    // Producción con dominio DuckDNS
+    return 'https://api-recuiva.duckdns.org';
+})();
 
 // Instancia del API
 const recuivaAPI = new RecuivaAPI(API_BASE);

@@ -69,9 +69,23 @@
  * @const {Object}
  */
 const API_CONFIG = {
-    BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:8000'
-        : 'https://api-recuiva.duckdns.org',
+    BASE_URL: (() => {
+        const hostname = window.location.hostname;
+        const protocol = window.location.protocol;
+        
+        // Desarrollo local
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'http://localhost:8000';
+        }
+        
+        // Acceso por IP directa del VPS (para universidades con firewall)
+        if (hostname === '147.182.226.170') {
+            return `${protocol}//${hostname}:8001`;
+        }
+        
+        // Producción con dominio DuckDNS
+        return 'https://api-recuiva.duckdns.org';
+    })(),
     ENDPOINTS: {
         ROOT: '/',
         UPLOAD_MATERIAL: '/api/materials/upload',
