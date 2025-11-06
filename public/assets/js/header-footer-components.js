@@ -211,35 +211,35 @@ function renderAuthenticatedHeader(currentPage = '') {
 
       <!-- Mobile Menu Expandido -->
       <div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-white z-40 shadow-lg" id="mobile-menu">
-        <div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-6 px-6 overflow-y-auto">
+        <div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-5 px-6 py-8 overflow-y-auto">
           <!-- Perfil en móvil -->
-          <div class="flex flex-col items-center gap-2 pb-4 border-b border-gray-200 w-full">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-blue-700 flex items-center justify-center text-white font-bold text-xl">
+          <div class="flex flex-col items-center gap-3 pb-5 border-b-2 border-gray-200 w-full max-w-sm">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-blue-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
               ${userInitials}
             </div>
-            <span class="font-semibold text-gray-900">${userName}</span>
-            <span class="text-sm text-gray-500">${user?.email || ''}</span>
+            <span class="font-bold text-lg text-gray-900">${userName}</span>
+            <span class="text-sm text-gray-500 text-center break-all px-2">${user?.email || ''}</span>
           </div>
 
           <!-- Navegación móvil -->
-          <nav class="flex flex-col items-center gap-4 w-full">
-            <a class="text-xl text-gray-600 hover:text-orange-500 transition-colors ${currentPage === 'inicio' ? 'text-orange-500 font-semibold' : ''}" 
+          <nav class="flex flex-col items-center gap-5 w-full max-w-sm py-4">
+            <a class="text-xl font-medium text-gray-700 hover:text-orange-500 transition-colors w-full text-center py-3 rounded-lg hover:bg-orange-50 ${currentPage === 'inicio' ? 'text-orange-500 font-bold bg-orange-50' : ''}" 
                href="${routes.inicio}">Inicio</a>
-            <a class="text-xl text-gray-600 hover:text-orange-500 transition-colors ${currentPage === 'materiales' ? 'text-orange-500 font-semibold' : ''}" 
+            <a class="text-xl font-medium text-gray-700 hover:text-orange-500 transition-colors w-full text-center py-3 rounded-lg hover:bg-orange-50 ${currentPage === 'materiales' ? 'text-orange-500 font-bold bg-orange-50' : ''}" 
                href="${routes.materiales}">Materiales</a>
-            <a class="text-xl text-gray-600 hover:text-orange-500 transition-colors ${currentPage === 'dashboard' ? 'text-orange-500 font-semibold' : ''}" 
+            <a class="text-xl font-medium text-gray-700 hover:text-orange-500 transition-colors w-full text-center py-3 rounded-lg hover:bg-orange-50 ${currentPage === 'dashboard' ? 'text-orange-500 font-bold bg-orange-50' : ''}" 
                href="${routes.dashboard}">Dashboard</a>
-            <a class="text-xl text-gray-600 hover:text-orange-500 transition-colors ${currentPage === 'repasos' ? 'text-orange-500 font-semibold' : ''}" 
+            <a class="text-xl font-medium text-gray-700 hover:text-orange-500 transition-colors w-full text-center py-3 rounded-lg hover:bg-orange-50 ${currentPage === 'repasos' ? 'text-orange-500 font-bold bg-orange-50' : ''}" 
                href="${routes.repasos}">Repasos</a>
-            <a class="text-xl text-gray-600 hover:text-orange-500 transition-colors ${currentPage === 'practica' ? 'text-orange-500 font-semibold' : ''}" 
+            <a class="text-xl font-medium text-gray-700 hover:text-orange-500 transition-colors w-full text-center py-3 rounded-lg hover:bg-orange-50 ${currentPage === 'practica' ? 'text-orange-500 font-bold bg-orange-50' : ''}" 
                href="${routes.practica}">Práctica</a>
           </nav>
 
-          <hr class="w-2/3 border-gray-300" />
+          <hr class="w-3/4 border-gray-300 my-2" />
 
-          <button onclick="window.cerrarSesion()" class="flex items-center gap-2 text-lg text-red-600 font-semibold">
-            <span class="material-symbols-outlined">logout</span>
-            Cerrar sesión
+          <button onclick="window.cerrarSesion()" class="flex items-center justify-center gap-3 text-xl text-red-600 font-bold py-3 px-6 rounded-lg hover:bg-red-50 transition-colors w-full max-w-sm">
+            <span class="material-symbols-outlined text-2xl">logout</span>
+            <span>Cerrar sesión</span>
           </button>
         </div>
       </div>

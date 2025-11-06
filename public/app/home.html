@@ -317,45 +317,45 @@
 <!-- Header Universal -->
 <div id="header-container"></div>
 
-<main class="flex-grow">
+<main class="flex-grow w-full">
   <!-- Hero / Bienvenida -->
-  <section id="inicio" class="bg-[var(--base-white)] py-16 md:py-20 px-4 md:px-6">
-    <div class="container mx-auto">
-      <h1 id="titulo-bienvenida" class="text-center text-[34px] leading-tight md:text-6xl font-extrabold text-[var(--text-primary)] tracking-tight min-h-[80px] md:min-h-[100px]">
+  <section id="inicio" class="bg-[var(--base-white)] py-8 md:py-16 lg:py-20 px-3 sm:px-4 md:px-6">
+    <div class="container mx-auto max-w-[1100px]">
+      <h1 id="titulo-bienvenida" class="text-center text-[28px] sm:text-[34px] leading-tight md:text-5xl lg:text-6xl font-extrabold text-[var(--text-primary)] tracking-tight min-h-[70px] sm:min-h-[80px] md:min-h-[100px] px-2">
         <!-- El texto se generará dinámicamente con efecto typing -->
       </h1>
       <!-- Onboarding + Entrenador alineados -->
-      <div class="mt-8 md:mt-10 max-w-[1100px] mx-auto grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 md:gap-8 items-start">
+      <div class="mt-6 sm:mt-8 md:mt-10 w-full grid grid-cols-1 md:grid-cols-[1fr_320px] gap-4 sm:gap-6 md:gap-8 items-start">
         <!-- Board principal (asistente de organización) -->
-        <div class="bg-[var(--base-white)] rounded-2xl shadow-xl border border-[var(--accent-color)] p-6 md:p-8">
-          <h3 class="text-center text-xl md:text-2xl font-bold text-[var(--secondary-color)]">
+        <div class="bg-[var(--base-white)] rounded-2xl shadow-xl border border-[var(--accent-color)] p-4 sm:p-6 md:p-8">
+          <h3 class="text-center text-lg sm:text-xl md:text-2xl font-bold text-[var(--secondary-color)]">
             Organización de Materiales
           </h3>
           <!-- input nombre (SIN MODALIDADES) -->
-          <div class="mt-6 flex flex-col items-center">
-            <label for="modalidad-input" class="text-sm text-[var(--text-secondary)] mb-2">Nombre de la carpeta</label>
-            <input id="modalidad-input" type="text" class="w-full max-w-md text-center px-4 py-3 rounded-lg border-2 border-[var(--accent-color)] bg-[var(--base-gray)] focus:border-[var(--primary-color)] focus:outline-none transition-colors" placeholder="Ej: Anatomía, Endodoncia, Capítulo 1..." />
+          <div class="mt-4 sm:mt-6 flex flex-col items-center px-2">
+            <label for="modalidad-input" class="text-xs sm:text-sm text-[var(--text-secondary)] mb-2">Nombre de la carpeta</label>
+            <input id="modalidad-input" type="text" class="w-full max-w-md text-center px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base rounded-lg border-2 border-[var(--accent-color)] bg-[var(--base-gray)] focus:border-[var(--primary-color)] focus:outline-none transition-colors" placeholder="Ej: Anatomía, Endodoncia, Capítulo 1..." />
           </div>
           <!-- CTA agregar carpeta -->
-          <div class="mt-5 flex justify-center">
-            <button type="button" id="agregar-carpeta-btn" class="px-6 py-3 rounded-full bg-[var(--primary-color)] text-white font-bold flex items-center gap-2 hover:bg-opacity-90 shadow-lg hover:shadow-xl transition-all">
-                <span class="material-symbols-outlined" style="font-size:22px;">add</span>
-                <span class="material-symbols-outlined" style="font-size:22px;">folder</span>
+          <div class="mt-4 sm:mt-5 flex justify-center px-2">
+            <button type="button" id="agregar-carpeta-btn" class="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-full bg-[var(--primary-color)] text-white font-bold flex items-center gap-2 hover:bg-opacity-90 shadow-lg hover:shadow-xl transition-all">
+                <span class="material-symbols-outlined" style="font-size:20px;">add</span>
+                <span class="material-symbols-outlined" style="font-size:20px;">folder</span>
                 <span>Agregar Carpeta</span>
             </button>
           </div>
           <!-- Árbol de carpetas -->
-          <div id="carpetas-board" class="mt-7">
+          <div id="carpetas-board" class="mt-5 sm:mt-7 px-2">
             <!-- se rellena por JS -->
           </div>
         </div>
         <!-- Panel del entrenador -->
-        <aside class="bg-[var(--base-gray)] rounded-2xl p-6 md:p-7 min-h-[420px]">
-          <div class="flex items-center gap-3">
-            <img src="../assets/img/Icon-Recuiva.png" alt="Avatar entrenador" class="w-12 h-12 rounded-full border-2 border-[var(--secondary-color)]" />
-            <span class="font-bold text-[var(--secondary-color)]">Entrenador</span>
+        <aside class="bg-[var(--base-gray)] rounded-2xl p-4 sm:p-6 md:p-7 min-h-[320px] sm:min-h-[420px]">
+          <div class="flex items-center gap-2 sm:gap-3 justify-center md:justify-start">
+            <img src="../assets/img/Icon-Recuiva.png" alt="Avatar entrenador" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-[var(--secondary-color)]" />
+            <span class="font-bold text-sm sm:text-base text-[var(--secondary-color)]">Entrenador</span>
           </div>
-          <p id="entrenador-texto" class="mt-4 text-[var(--text-secondary)] text-sm md:text-[15px]">
+          <p id="entrenador-texto" class="mt-3 sm:mt-4 text-[var(--text-secondary)] text-xs sm:text-sm md:text-[15px] text-center md:text-left">
             
           </p>
         </aside>
@@ -364,47 +364,47 @@
   </section>
 
   <!-- Tarjetas inferiores -->
-  <section class="py-16 md:py-20 px-4 md:px-6 bg-[var(--base-gray)]">
+  <section class="py-8 sm:py-12 md:py-16 lg:py-20 px-3 sm:px-4 md:px-6 bg-[var(--base-gray)]">
     <div class="container mx-auto max-w-[1100px]">
-      <div class="grid md:grid-cols-3 gap-6 md:gap-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
         <!-- Última sesión -->
-        <div class="bg-[var(--base-white)] p-6 md:p-8 rounded-xl shadow-md hover-lift">
-          <div class="flex items-center mb-4">
-            <span class="material-symbols-outlined text-3xl md:text-4xl text-[var(--secondary-color)] mr-3 md:mr-4">history</span>
-            <h3 class="text-lg md:text-xl font-bold text-[var(--text-primary)]">Última sesión</h3>
+        <div class="bg-[var(--base-white)] p-4 sm:p-6 md:p-8 rounded-xl shadow-md hover-lift">
+          <div class="flex items-center mb-3 sm:mb-4">
+            <span class="material-symbols-outlined text-2xl sm:text-3xl md:text-4xl text-[var(--secondary-color)] mr-2 sm:mr-3 md:mr-4">history</span>
+            <h3 class="text-base sm:text-lg md:text-xl font-bold text-[var(--text-primary)]">Última sesión</h3>
           </div>
-          <p id="last-session-text" class="text-[var(--text-secondary)] mb-4">Cargando...</p>
-          <a id="last-session-link" class="text-[var(--primary-color)] font-bold hover:underline transition-colors cursor-pointer" href="#" onclick="validarYIrAPractica(event)">Continuar práctica →</a>
+          <p id="last-session-text" class="text-sm sm:text-base text-[var(--text-secondary)] mb-3 sm:mb-4 line-clamp-3">Cargando...</p>
+          <a id="last-session-link" class="text-sm sm:text-base text-[var(--primary-color)] font-bold hover:underline transition-colors cursor-pointer" href="#" onclick="validarYIrAPractica(event)">Continuar práctica →</a>
         </div>
 
         <!-- Progreso -->
-        <a href="dashboard.html" class="bg-[var(--base-white)] p-6 md:p-8 rounded-xl shadow-md hover-lift transition-all cursor-pointer block">
-          <div class="flex items-center mb-4">
-            <span class="material-symbols-outlined text-3xl md:text-4xl text-[var(--secondary-color)] mr-3 md:mr-4">trending_up</span>
-            <h3 class="text-lg md:text-xl font-bold text-[var(--text-primary)]">Tu progreso</h3>
+        <a href="dashboard.html" class="bg-[var(--base-white)] p-4 sm:p-6 md:p-8 rounded-xl shadow-md hover-lift transition-all cursor-pointer block">
+          <div class="flex items-center mb-3 sm:mb-4">
+            <span class="material-symbols-outlined text-2xl sm:text-3xl md:text-4xl text-[var(--secondary-color)] mr-2 sm:mr-3 md:mr-4">trending_up</span>
+            <h3 class="text-base sm:text-lg md:text-xl font-bold text-[var(--text-primary)]">Tu progreso</h3>
           </div>
-          <div class="flex justify-around text-center">
+          <div class="flex justify-around text-center gap-2">
             <div>
-              <p id="progress-retention" class="text-2xl md:text-3xl font-bold text-[var(--primary-color)]">--</p>
-              <p class="text-[var(--text-secondary)] text-sm">Retención</p>
+              <p id="progress-retention" class="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary-color)]">--</p>
+              <p class="text-[var(--text-secondary)] text-xs sm:text-sm">Retención</p>
             </div>
             <div>
-              <p id="progress-streak" class="text-2xl md:text-3xl font-bold text-[var(--primary-color)]">-- <span class="text-sm md:text-lg">días</span></p>
-              <p class="text-[var(--text-secondary)] text-sm">Racha</p>
+              <p id="progress-streak" class="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--primary-color)]">-- <span class="text-xs sm:text-sm md:text-lg">días</span></p>
+              <p class="text-[var(--text-secondary)] text-xs sm:text-sm">Racha</p>
             </div>
           </div>
         </a>
 
         <!-- Temas a repasar -->
-        <a href="repasos.html" class="bg-[var(--base-white)] p-6 md:p-8 rounded-xl shadow-md hover-lift transition-all cursor-pointer block">
-          <div class="flex items-center mb-4">
-            <span class="material-symbols-outlined text-3xl md:text-4xl text-[var(--secondary-color)] mr-3 md:mr-4">psychology_alt</span>
-            <h3 class="text-lg md:text-xl font-bold text-[var(--text-primary)]">Temas a repasar</h3>
+        <a href="repasos.html" class="bg-[var(--base-white)] p-4 sm:p-6 md:p-8 rounded-xl shadow-md hover-lift transition-all cursor-pointer block sm:col-span-2 md:col-span-1">
+          <div class="flex items-center mb-3 sm:mb-4">
+            <span class="material-symbols-outlined text-2xl sm:text-3xl md:text-4xl text-[var(--secondary-color)] mr-2 sm:mr-3 md:mr-4">psychology_alt</span>
+            <h3 class="text-base sm:text-lg md:text-xl font-bold text-[var(--text-primary)]">Temas a repasar</h3>
           </div>
-          <ul id="review-topics-list" class="space-y-2 text-[var(--text-secondary)]">
+          <ul id="review-topics-list" class="space-y-1 sm:space-y-2 text-xs sm:text-sm text-[var(--text-secondary)]">
             <li>Cargando...</li>
           </ul>
-          <span class="text-[var(--primary-color)] font-bold hover:underline mt-3 inline-block transition-colors">Ver sugerencias →</span>
+          <span class="text-sm sm:text-base text-[var(--primary-color)] font-bold hover:underline mt-2 sm:mt-3 inline-block transition-colors">Ver sugerencias →</span>
         </a>
       </div>
     </div>
