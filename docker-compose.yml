@@ -14,6 +14,10 @@ services:
       - DEBUG=False
       # ✅ CORREGIDO: DuckDNS en vez de traefik.me
       - ALLOWED_ORIGINS=http://localhost:3000,https://recuiva.duckdns.org,https://api-recuiva.duckdns.org
+      # Supabase Configuration
+      - SUPABASE_URL=https://xqicgzqgluslzleddmfv.supabase.co
+      - SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxaWNnenFnbHVzbHpsZWRkbWZ2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjE5MTE2OCwiZXhwIjoyMDc3NzY3MTY4fQ.D6K04pVEd6CXIptiUW3BvFqe8pzrlx_h121966V0ws0
+      # Model Configuration
       - MODEL_NAME=all-MiniLM-L6-v2
       - SIMILARITY_THRESHOLD_EXCELLENT=0.9
       - SIMILARITY_THRESHOLD_GOOD=0.7
