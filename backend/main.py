@@ -6,6 +6,7 @@ FastAPI backend con embeddings y base de datos vectorial
 Autor: Abel Jesús Moya Acosta
 Fecha: 7 de octubre de 2025
 Proyecto: Taller Integrador I - UPAO
+Versión: 1.1.0 - URLs dinámicas para producción
 """
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Header
