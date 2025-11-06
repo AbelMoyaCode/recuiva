@@ -7,12 +7,18 @@ import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
-# Cargar variables de entorno
-load_dotenv()
+# Cargar variables de entorno (.env tiene prioridad sobre las del sistema)
+load_dotenv(override=False)  # No sobrescribir variables de Docker
 
 # Configuración de Supabase
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+# Debug: Verificar que las variables estén disponibles
+print(f"🔍 [supabase_client.py] SUPABASE_URL cargada: {'✅' if SUPABASE_URL else '❌'}")
+print(f"🔍 [supabase_client.py] SUPABASE_KEY cargada: {'✅' if SUPABASE_KEY else '❌'}")
+if SUPABASE_URL:
+    print(f"🔍 [supabase_client.py] URL: {SUPABASE_URL}")
 
 # Cliente global de Supabase
 supabase: Client = None

@@ -146,6 +146,11 @@ async def startup_event():
     print(f"📊 Directorio de embeddings: {EMBEDDINGS_DIR}")
     print(f"📂 Directorio de materiales: {MATERIALS_DIR}")
     
+    # Debug: Mostrar variables de entorno de Supabase
+    print("\n🔍 Variables de entorno:")
+    print(f"   SUPABASE_URL: {'✅ configurada' if os.getenv('SUPABASE_URL') else '❌ NO configurada'}")
+    print(f"   SUPABASE_KEY: {'✅ configurada' if os.getenv('SUPABASE_KEY') else '❌ NO configurada'}")
+    
     # Probar conexión a Supabase
     if SUPABASE_ENABLED:
         print("\n🔌 Conectando a Supabase...")
@@ -153,6 +158,8 @@ async def startup_event():
             print("✅ Base de datos Supabase conectada")
         else:
             print("⚠️ No se pudo conectar a Supabase - usando almacenamiento local")
+    else:
+        print("\n⚠️ Módulos de Supabase no cargados - modo sin base de datos")
     
     # Cargar índice de materiales
     load_materials_index()
