@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             // Eliminar de Supabase
-            const response = await fetch(`http://localhost:8000/api/materials/${materialId}`, {
+            const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials/${materialId}`, {
                 method: 'DELETE'
             });
             
@@ -527,7 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('materials-container');
     
     try {
-  const response = await fetch('http://localhost:8000/api/materials');
+  const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials`);
       if (!response.ok) throw new Error('Backend no disponible');
       
       const data = await response.json();
@@ -689,7 +689,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     try {
-  const response = await fetch(`http://localhost:8000/api/materials/${materialId}`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials/${materialId}`, {
         method: 'DELETE'
       });
       

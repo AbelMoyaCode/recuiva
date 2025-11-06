@@ -804,9 +804,9 @@ async function validateWithBackend() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
     
-    window.addValidationLog('🌐 Conectando con servidor http://localhost:8000 ...', 'info');
+    window.addValidationLog(`🌐 Conectando con servidor ${API_CONFIG.BASE_URL} ...`, 'info');
 
-    const response = await fetch('http://localhost:8000/api/validate-answer', {
+    const response = await fetch(`${API_CONFIG.BASE_URL}/api/validate-answer`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
