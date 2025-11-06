@@ -1,412 +1,251 @@
 /**
- * Módulo de modales de éxito y error para RECUIVA
- * Proporciona funciones para mostrar notificaciones al usuario
+ * MODAL DE REGISTRO EXITOSO CON ANIMACIÓN
+ * Sistema modular para mostrar confirmaciones elegantes
  */
 
-/**
- * Muestra un modal de éxito con un mensaje personalizado
- * @param {string} message - Mensaje a mostrar en el modal
- * @param {function} callback - Función opcional a ejecutar después de cerrar el modal
- */
-function showSuccessModal(message, callback) {
-    // Crear el modal si no existe
-    let modal = document.getElementById('success-modal');
-    
-    if (!modal) {
-        modal = createModal('success-modal', 'success');
-    }
-    
-    // Establecer el mensaje
-    const messageElement = modal.querySelector('.modal-message');
-    if (messageElement) {
-        messageElement.textContent = message || '✅ Operación completada exitosamente';
-    }
-    
-    // Mostrar el modal
-    modal.style.display = 'flex';
-    modal.classList.add('show');
-    
-    // Configurar el cierre
-    const closeBtn = modal.querySelector('.modal-close-btn');
-    const confirmBtn = modal.querySelector('.modal-confirm-btn');
-    
-    const closeModal = () => {
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
-        
-        if (typeof callback === 'function') {
-            callback();
-        }
-    };
-    
-    if (closeBtn) {
-        closeBtn.onclick = closeModal;
-    }
-    
-    if (confirmBtn) {
-        confirmBtn.onclick = closeModal;
-    }
-    
-    // Cerrar al hacer clic fuera del modal
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
-    };
-    
-    // Auto-cerrar después de 5 segundos
-    setTimeout(closeModal, 5000);
-}
+window.showSuccessModal = function({
+  title = '¡Registro exitoso!',
+  message = 'Tu cuenta ha sido creada correctamente.',
+  icon = 'check_circle',
+  buttonText = 'Continuar',
+  onClose = null,
+  redirectUrl = null,
+  autoRedirect = true,
+  delay = 2000
+} = {}) {
 
-/**
- * Muestra un modal de error con un mensaje personalizado
- * @param {string} message - Mensaje de error a mostrar
- * @param {function} callback - Función opcional a ejecutar después de cerrar el modal
- */
-function showErrorModal(message, callback) {
-    // Crear el modal si no existe
-    let modal = document.getElementById('error-modal');
-    
-    if (!modal) {
-        modal = createModal('error-modal', 'error');
-    }
-    
-    // Establecer el mensaje
-    const messageElement = modal.querySelector('.modal-message');
-    if (messageElement) {
-        messageElement.textContent = message || '❌ Ha ocurrido un error';
-    }
-    
-    // Mostrar el modal
-    modal.style.display = 'flex';
-    modal.classList.add('show');
-    
-    // Configurar el cierre
-    const closeBtn = modal.querySelector('.modal-close-btn');
-    const confirmBtn = modal.querySelector('.modal-confirm-btn');
-    
-    const closeModal = () => {
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
-        
-        if (typeof callback === 'function') {
-            callback();
-        }
-    };
-    
-    if (closeBtn) {
-        closeBtn.onclick = closeModal;
-    }
-    
-    if (confirmBtn) {
-        confirmBtn.onclick = closeModal;
-    }
-    
-    // Cerrar al hacer clic fuera del modal
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
-    };
-}
+  // Crear modal si no existe
+  let modal = document.getElementById('success-modal');
 
-/**
- * Crea dinámicamente un modal en el DOM
- * @param {string} id - ID del modal
- * @param {string} type - Tipo de modal ('success' o 'error')
- * @returns {HTMLElement} - El elemento modal creado
- */
-function createModal(id, type) {
-    const modal = document.createElement('div');
-    modal.id = id;
-    modal.className = 'modal-overlay';
-    
-    const isSuccess = type === 'success';
-    const icon = isSuccess ? '✅' : '❌';
-    const title = isSuccess ? '¡Éxito!' : 'Error';
-    const buttonClass = isSuccess ? 'success' : 'error';
-    
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'success-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[9999] opacity-0 transition-opacity duration-500';
     modal.innerHTML = `
-        <div class="modal-content ${type}">
-            <div class="modal-header">
-                <span class="modal-icon">${icon}</span>
-                <h2 class="modal-title">${title}</h2>
-                <button class="modal-close-btn" aria-label="Cerrar">&times;</button>
+      <div id="success-modal-content" class="bg-white rounded-3xl shadow-2xl p-8 max-w-md mx-4 transform scale-75 opacity-0 transition-all duration-500">
+        <!-- Logo Animado -->
+        <div class="flex justify-center mb-6">
+          <div class="relative">
+            <!-- Círculos de fondo animados -->
+            <div class="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 to-blue-700 animate-ping opacity-20"></div>
+            <div class="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 to-blue-700 animate-pulse opacity-30"></div>
+            <!-- Logo -->
+            <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-orange-500 to-blue-700 flex items-center justify-center shadow-lg transform transition-transform hover:scale-110 hover:rotate-12">
+              <img id="success-logo"
+                   src="../../assets/img/Icon-Recuiva.png"
+                   alt="Logo Recuiva"
+                   class="w-16 h-16 object-contain animate-bounce"
+                   style="animation-duration: 1s; animation-iteration-count: 3;" />
             </div>
-            <div class="modal-body">
-                <p class="modal-message"></p>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-confirm-btn btn-${buttonClass}">Aceptar</button>
-            </div>
+          </div>
         </div>
+
+        <!-- Icono de éxito -->
+        <div class="flex justify-center mb-4">
+          <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center animate-scale-in">
+            <span id="success-icon" class="material-symbols-outlined text-5xl text-green-600 animate-check">
+              check_circle
+            </span>
+          </div>
+        </div>
+
+        <!-- Título -->
+        <h3 id="success-title" class="text-2xl font-bold text-center text-gray-900 mb-3">
+          ¡Registro exitoso!
+        </h3>
+
+        <!-- Mensaje -->
+        <p id="success-message" class="text-center text-gray-600 mb-6">
+          Tu cuenta ha sido creada correctamente.
+        </p>
+
+        <!-- Barra de progreso (solo si hay redirect) -->
+        <div id="success-progress-container" class="hidden mb-6">
+          <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div id="success-progress-bar" class="h-full bg-gradient-to-r from-orange-500 to-blue-700 transition-all duration-100" style="width: 0%"></div>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-2">
+            Redirigiendo en <span id="success-countdown"></span> segundos...
+          </p>
+        </div>
+
+        <!-- Botón -->
+        <button
+          id="success-btn"
+          onclick="window.closeSuccessModal()"
+          class="w-full bg-gradient-to-r from-orange-500 to-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+          Continuar
+        </button>
+      </div>
     `;
-    
-    // Agregar estilos si no existen
-    if (!document.getElementById('modal-styles')) {
-        const style = document.createElement('style');
-        style.id = 'modal-styles';
-        style.textContent = `
-            .modal-overlay {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                justify-content: center;
-                align-items: center;
-                z-index: 9999;
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-            
-            .modal-overlay.show {
-                opacity: 1;
-            }
-            
-            .modal-content {
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-                max-width: 500px;
-                width: 90%;
-                max-height: 90vh;
-                overflow-y: auto;
-                transform: scale(0.7);
-                transition: transform 0.3s ease;
-            }
-            
-            .modal-overlay.show .modal-content {
-                transform: scale(1);
-            }
-            
-            .modal-content.success {
-                border-top: 4px solid #10b981;
-            }
-            
-            .modal-content.error {
-                border-top: 4px solid #ef4444;
-            }
-            
-            .modal-header {
-                display: flex;
-                align-items: center;
-                padding: 20px 24px;
-                border-bottom: 1px solid #e5e7eb;
-                position: relative;
-            }
-            
-            .modal-icon {
-                font-size: 32px;
-                margin-right: 12px;
-            }
-            
-            .modal-title {
-                flex: 1;
-                font-size: 20px;
-                font-weight: 600;
-                color: #1f2937;
-                margin: 0;
-            }
-            
-            .modal-close-btn {
-                position: absolute;
-                top: 20px;
-                right: 20px;
-                background: none;
-                border: none;
-                font-size: 28px;
-                color: #6b7280;
-                cursor: pointer;
-                padding: 0;
-                width: 32px;
-                height: 32px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 6px;
-                transition: all 0.2s ease;
-            }
-            
-            .modal-close-btn:hover {
-                background-color: #f3f4f6;
-                color: #1f2937;
-            }
-            
-            .modal-body {
-                padding: 24px;
-            }
-            
-            .modal-message {
-                font-size: 16px;
-                color: #4b5563;
-                line-height: 1.6;
-                margin: 0;
-            }
-            
-            .modal-footer {
-                padding: 16px 24px;
-                border-top: 1px solid #e5e7eb;
-                display: flex;
-                justify-content: flex-end;
-                gap: 12px;
-            }
-            
-            .modal-confirm-btn {
-                padding: 10px 24px;
-                border: none;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                color: white;
-            }
-            
-            .btn-success {
-                background-color: #10b981;
-            }
-            
-            .btn-success:hover {
-                background-color: #059669;
-            }
-            
-            .btn-error {
-                background-color: #ef4444;
-            }
-            
-            .btn-error:hover {
-                background-color: #dc2626;
-            }
-            
-            @media (max-width: 640px) {
-                .modal-content {
-                    width: 95%;
-                    margin: 20px;
-                }
-                
-                .modal-header {
-                    padding: 16px;
-                }
-                
-                .modal-body {
-                    padding: 20px 16px;
-                }
-                
-                .modal-footer {
-                    padding: 12px 16px;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
+
     document.body.appendChild(modal);
-    return modal;
+  }
+
+  // Actualizar contenido
+  document.getElementById('success-icon').textContent = icon;
+  document.getElementById('success-title').textContent = title;
+  document.getElementById('success-message').textContent = message;
+  document.getElementById('success-btn').textContent = buttonText;
+
+  // Mostrar modal con animación
+  requestAnimationFrame(() => {
+    modal.classList.remove('opacity-0');
+    setTimeout(() => {
+      const content = document.getElementById('success-modal-content');
+      content.classList.remove('scale-75', 'opacity-0');
+      content.classList.add('scale-100', 'opacity-100');
+    }, 100);
+  });
+
+  // Configurar redirección automática
+  if (autoRedirect && redirectUrl) {
+    const progressContainer = document.getElementById('success-progress-container');
+    const progressBar = document.getElementById('success-progress-bar');
+    const countdown = document.getElementById('success-countdown');
+
+    progressContainer.classList.remove('hidden');
+
+    const totalTime = delay;
+    const interval = 100;
+    let elapsed = 0;
+
+    const timer = setInterval(() => {
+      elapsed += interval;
+      const progress = (elapsed / totalTime) * 100;
+      progressBar.style.width = `${progress}%`;
+
+      const secondsLeft = Math.ceil((totalTime - elapsed) / 1000);
+      countdown.textContent = secondsLeft;
+
+      if (elapsed >= totalTime) {
+        clearInterval(timer);
+        window.location.href = redirectUrl;
+      }
+    }, interval);
+
+    // Permitir cancelar redirección
+    window.closeSuccessModal = function() {
+      clearInterval(timer);
+      closeModal();
+      if (onClose) onClose();
+    };
+  } else {
+    // Sin redirección automática
+    window.closeSuccessModal = function() {
+      closeModal();
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else if (onClose) {
+        onClose();
+      }
+    };
+  }
+
+  function closeModal() {
+    const content = document.getElementById('success-modal-content');
+    content.classList.add('scale-75', 'opacity-0');
+    content.classList.remove('scale-100', 'opacity-100');
+
+    setTimeout(() => {
+      modal.classList.add('opacity-0');
+      setTimeout(() => {
+        modal.remove();
+      }, 500);
+    }, 200);
+  }
+
+  // Cerrar con ESC
+  const handleEsc = (e) => {
+    if (e.key === 'Escape') {
+      window.closeSuccessModal();
+      document.removeEventListener('keydown', handleEsc);
+    }
+  };
+  document.addEventListener('keydown', handleEsc);
+};
+
+// ==========================================
+// MODAL DE ERROR (compatibilidad)
+// ==========================================
+
+window.showErrorModal = function(message, callback) {
+  showSuccessModal({
+    title: '❌ Error',
+    message: message || 'Ha ocurrido un error',
+    icon: 'error',
+    buttonText: 'Cerrar',
+    onClose: callback,
+    autoRedirect: false
+  });
+};
+
+// ==========================================
+// MODAL DE CONFIRMACIÓN
+// ==========================================
+
+window.showConfirmModal = function(message, onConfirm, onCancel) {
+  showSuccessModal({
+    title: '❓ Confirmación',
+    message: message,
+    icon: 'help',
+    buttonText: 'Confirmar',
+    onClose: onConfirm,
+    autoRedirect: false
+  });
+};
+
+// ==========================================
+// ESTILOS ANIMADOS
+// ==========================================
+
+const successModalStyles = `
+<style id="success-modal-styles">
+@keyframes scale-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
-/**
- * Muestra un modal de confirmación con opciones de confirmar/cancelar
- * @param {string} message - Mensaje a mostrar
- * @param {function} onConfirm - Función a ejecutar al confirmar
- * @param {function} onCancel - Función opcional a ejecutar al cancelar
- */
-function showConfirmModal(message, onConfirm, onCancel) {
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay show';
-    modal.style.display = 'flex';
-    
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-icon">❓</span>
-                <h2 class="modal-title">Confirmación</h2>
-                <button class="modal-close-btn" aria-label="Cerrar">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p class="modal-message">${message}</p>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-cancel-btn">Cancelar</button>
-                <button class="modal-confirm-btn btn-success">Confirmar</button>
-            </div>
-        </div>
-    `;
-    
-    // Agregar estilos para botón cancelar si no existen
-    const cancelBtnStyle = `
-        .modal-cancel-btn {
-            padding: 10px 24px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background-color: white;
-            color: #6b7280;
-        }
-        
-        .modal-cancel-btn:hover {
-            background-color: #f3f4f6;
-            border-color: #9ca3af;
-        }
-    `;
-    
-    if (!document.getElementById('confirm-modal-styles')) {
-        const style = document.createElement('style');
-        style.id = 'confirm-modal-styles';
-        style.textContent = cancelBtnStyle;
-        document.head.appendChild(style);
-    }
-    
-    document.body.appendChild(modal);
-    
-    const closeModal = () => {
-        modal.classList.remove('show');
-        setTimeout(() => {
-            modal.remove();
-        }, 300);
-    };
-    
-    modal.querySelector('.modal-close-btn').onclick = () => {
-        closeModal();
-        if (typeof onCancel === 'function') {
-            onCancel();
-        }
-    };
-    
-    modal.querySelector('.modal-cancel-btn').onclick = () => {
-        closeModal();
-        if (typeof onCancel === 'function') {
-            onCancel();
-        }
-    };
-    
-    modal.querySelector('.modal-confirm-btn').onclick = () => {
-        closeModal();
-        if (typeof onConfirm === 'function') {
-            onConfirm();
-        }
-    };
-    
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            closeModal();
-            if (typeof onCancel === 'function') {
-                onCancel();
-            }
-        }
-    };
+@keyframes check-animation {
+  0% {
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
 }
 
-// Exportar funciones globalmente
-window.showSuccessModal = showSuccessModal;
-window.showErrorModal = showErrorModal;
-window.showConfirmModal = showConfirmModal;
+.animate-scale-in {
+  animation: scale-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-check {
+  animation: check-animation 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s backwards;
+}
+
+#success-modal {
+  transition: opacity 0.5s ease;
+}
+
+#success-modal-content {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+</style>
+`;
+
+// Insertar estilos si no existen
+if (!document.getElementById('success-modal-styles')) {
+  document.head.insertAdjacentHTML('beforeend', successModalStyles);
+}
