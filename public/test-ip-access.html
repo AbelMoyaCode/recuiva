@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Acceso por IP - Recuiva</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .info-box code {
+            background: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+            font-size: 14px;
+        }
+        
+        .test-section {
+            margin-top: 30px;
+        }
+        
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .test-button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .current-url {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .current-url strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Test de Acceso por IP</h1>
+        <p class="subtitle">Verificación de conectividad para redes con firewall restrictivo</p>
+        
+        <div class="current-url">
+            <strong>📍 Conectado desde:</strong> <span id="currentHost"></span>
+        </div>
+        
+        <div class="info-box">
+            <h3>📌 URLs de Acceso</h3>
+            <p style="margin-bottom: 10px;">
+                <strong>Dominio (DuckDNS):</strong><br>
+                <code>https://recuiva.duckdns.org</code>
+            </p>
+            <p>
+                <strong>IP Directa (Para universidades):</strong><br>
+                <code>http://147.182.226.170</code>
+            </p>
+        </div>
+        
+        <div class="info-box">
+            <h3>ℹ️ ¿Cuándo usar cada una?</h3>
+            <ul style="margin-left: 20px; color: #555; line-height: 1.8;">
+                <li><strong>DuckDNS:</strong> Internet normal (casa, cafetería, datos móviles)</li>
+                <li><strong>IP Directa:</strong> Redes universitarias o empresariales con firewall</li>
+            </ul>
+        </div>
+        
+        <div class="test-section">
+            <h3 style="margin-bottom: 15px; color: #333;">🧪 Pruebas de Conectividad</h3>
+            
+            <button class="test-button" onclick="testFrontendDomain()">
+                ✅ Probar Frontend (DuckDNS)
+            </button>
+            
+            <button class="test-button" onclick="testFrontendIP()">
+                🔗 Probar Frontend (IP Directa)
+            </button>
+            
+            <button class="test-button" onclick="testBackendDomain()">
+                🚀 Probar Backend API (DuckDNS)
+            </button>
+            
+            <button class="test-button" onclick="testBackendIP()">
+                ⚙️ Probar Backend API (IP Directa)
+            </button>
+            
+            <div class="loader" id="loader"></div>
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Mostrar URL actual
+        document.getElementById('currentHost').textContent = window.location.host;
+        
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+        }
+        
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+        
+        function showResult(message, isSuccess) {
+            hideLoader();
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result ' + (isSuccess ? 'success' : 'error');
+            resultDiv.innerHTML = message;
+        }
+        
+        async function testFrontendDomain() {
+            showLoader();
+            try {
+                const response = await fetch('https://recuiva.duckdns.org/index.html');
+                if (response.ok) {
+                    showResult('✅ <strong>Frontend DuckDNS funciona!</strong><br>Status: ' + response.status + ' ' + response.statusText, true);
+                } else {
+                    showResult('❌ Frontend DuckDNS respondió con error: ' + response.status, false);
+                }
+            } catch (error) {
+                showResult('❌ <strong>Error al conectar con DuckDNS</strong><br>' + error.message + '<br><br>Posible firewall bloqueando el dominio.', false);
+            }
+        }
+        
+        async function testFrontendIP() {
+            showLoader();
+            try {
+                const response = await fetch('http://147.182.226.170/index.html');
+                if (response.ok) {
+                    showResult('✅ <strong>Frontend por IP funciona!</strong><br>Status: ' + response.status + ' ' + response.statusText + '<br><br>Puedes acceder a Recuiva desde: <code>http://147.182.226.170</code>', true);
+                } else {
+                    showResult('❌ Frontend por IP respondió con error: ' + response.status, false);
+                }
+            } catch (error) {
+                showResult('❌ <strong>Error al conectar por IP</strong><br>' + error.message + '<br><br>Espera 2-3 minutos más para que Dokploy termine el deployment.', false);
+            }
+        }
+        
+        async function testBackendDomain() {
+            showLoader();
+            try {
+                const response = await fetch('https://api-recuiva.duckdns.org/api/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('✅ <strong>Backend API DuckDNS funciona!</strong><br>Status: ' + data.status + '<br>Modelo: ' + data.model_loaded, true);
+                } else {
+                    showResult('❌ Backend DuckDNS respondió con error: ' + response.status, false);
+                }
+            } catch (error) {
+                showResult('❌ <strong>Error al conectar con Backend DuckDNS</strong><br>' + error.message, false);
+            }
+        }
+        
+        async function testBackendIP() {
+            showLoader();
+            try {
+                const response = await fetch('http://147.182.226.170:8001/api/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('✅ <strong>Backend API por IP funciona!</strong><br>Status: ' + data.status + '<br>Modelo: ' + data.model_loaded + '<br><br>API URL: <code>http://147.182.226.170:8001</code>', true);
+                } else {
+                    showResult('❌ Backend por IP respondió con error: ' + response.status, false);
+                }
+            } catch (error) {
+                showResult('❌ <strong>Error al conectar Backend por IP</strong><br>' + error.message + '<br><br>El puerto 8001 podría estar bloqueado. Espera el deployment o verifica en Dokploy.', false);
+            }
+        }
+    </script>
+</body>
+</html>
