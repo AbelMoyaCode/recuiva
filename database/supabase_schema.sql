@@ -1130,7 +1130,6 @@ CREATE TABLE IF NOT EXISTS public.topics (
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
-    folder_id UUID REFERENCES public.folders(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -1148,3 +1147,283 @@ CREATE TABLE IF NOT EXISTS public.generated_questions (
 
 ALTER TABLE public.materials 
 ADD COLUMN IF NOT EXISTS topic_id UUID REFERENCES public.topics(id) ON DELETE SET NULL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public';
+
+
+
+
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'materials';
+
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'answers';
+
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'questions';
+
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'material_embeddings';
+
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'generated_questions';
+
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'topics';
+
+
+
+
+
+
+SELECT * FROM pg_extension WHERE extname = 'vector';
+
+
+
+
+SELECT policyname, cmd, roles 
+FROM pg_policies 
+WHERE tablename IN (
+  'materials', 
+  'material_embeddings', 
+  'folders', 
+  'material_folders', 
+  'questions', 
+  'answers', 
+  'user_profiles', 
+  'spaced_repetition'
+)
+ORDER BY tablename, policyname;
+
+
+
+
+
+
+SELECT indexname, indexdef 
+FROM pg_indexes 
+WHERE tablename IN (
+  'materials', 
+  'material_embeddings', 
+  'questions', 
+  'answers', 
+  'spaced_repetition'
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ========================================
+-- SPRINT 2: CREAR TABLAS Y COLUMNAS FALTANTES
+-- ========================================
+
+-- 1. Crear tabla TOPICS
+CREATE TABLE IF NOT EXISTS public.topics (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    folder_id UUID REFERENCES public.folders(id) ON DELETE CASCADE, -- NUEVO: relación con carpeta
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. Crear tabla GENERATED_QUESTIONS
+CREATE TABLE IF NOT EXISTS public.generated_questions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    material_id UUID REFERENCES public.materials(id) ON DELETE CASCADE,
+    topic_id UUID REFERENCES public.topics(id) ON DELETE CASCADE,
+    question_text TEXT NOT NULL,
+    question_type TEXT NOT NULL,
+    reference_chunk_index INTEGER,
+    concepts TEXT[],
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. Agregar columna TOPIC_ID a tabla MATERIALS
+ALTER TABLE public.materials 
+ADD COLUMN IF NOT EXISTS topic_id UUID REFERENCES public.topics(id) ON DELETE SET NULL;
+
+-- 4. Crear índices para TOPICS
+CREATE INDEX IF NOT EXISTS idx_topics_user_id ON public.topics(user_id);
+CREATE INDEX IF NOT EXISTS idx_topics_folder_id ON public.topics(folder_id);
+
+-- 5. Crear índices para GENERATED_QUESTIONS
+CREATE INDEX IF NOT EXISTS idx_generated_questions_material_id ON public.generated_questions(material_id);
+CREATE INDEX IF NOT EXISTS idx_generated_questions_topic_id ON public.generated_questions(topic_id);
+
+-- 6. Habilitar RLS en TOPICS
+ALTER TABLE public.topics ENABLE ROW LEVEL SECURITY;
+
+-- 7. Crear políticas RLS para TOPICS
+CREATE POLICY "Users can view own topics" 
+    ON public.topics FOR SELECT 
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own topics" 
+    ON public.topics FOR INSERT 
+    TO authenticated
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own topics" 
+    ON public.topics FOR UPDATE 
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own topics" 
+    ON public.topics FOR DELETE 
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+-- 8. Habilitar RLS en GENERATED_QUESTIONS
+ALTER TABLE public.generated_questions ENABLE ROW LEVEL SECURITY;
+
+-- 9. Crear políticas RLS para GENERATED_QUESTIONS
+CREATE POLICY "Users can view own generated questions" 
+    ON public.generated_questions FOR SELECT 
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.materials m 
+            WHERE m.id = material_id AND m.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can insert own generated questions" 
+    ON public.generated_questions FOR INSERT 
+    TO authenticated
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.materials m 
+            WHERE m.id = material_id AND m.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can delete own generated questions" 
+    ON public.generated_questions FOR DELETE 
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.materials m 
+            WHERE m.id = material_id AND m.user_id = auth.uid()
+        )
+    );
+
+-- ========================================
+-- VERIFICACIÓN FINAL
+-- ========================================
+
+-- Verificar que las tablas nuevas existen
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+AND table_name IN ('topics', 'generated_questions');
+
+-- Verificar que topic_id existe en materials
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'materials' AND column_name = 'topic_id';
+
+-- Verificar políticas de topics
+SELECT policyname 
+FROM pg_policies 
+WHERE tablename = 'topics';
+
+-- Verificar políticas de generated_questions
+SELECT policyname 
+FROM pg_policies 
+WHERE tablename = 'generated_questions';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- Agregar columna folder_id a tabla topics (relación con carpetas)
+ALTER TABLE public.topics 
+ADD COLUMN IF NOT EXISTS folder_id UUID REFERENCES public.folders(id) ON DELETE CASCADE;
+
+-- Crear índice para folder_id
+CREATE INDEX IF NOT EXISTS idx_topics_folder_id ON public.topics(folder_id);
+
+-- Verificar que se agregó
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'topics' AND column_name = 'folder_id';
+
+
+-- Ver todas las columnas de topics
+SELECT column_name, data_type 
+FROM information_schema.columns 
+WHERE table_name = 'topics';
