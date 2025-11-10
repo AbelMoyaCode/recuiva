@@ -33,6 +33,7 @@ try:
     from embeddings_module import generate_embeddings, calculate_similarity, load_model
     from chunking import chunk_text, extract_text_from_pdf, get_text_stats
     from semantic_validator import SemanticValidator
+    from advanced_validator import AdvancedValidator, validate_with_advanced_system  # NUEVO: Sistema mejorado
     from supabase_client import get_supabase_client, test_connection
     MODULES_LOADED = True
     SUPABASE_ENABLED = True
@@ -572,30 +573,55 @@ async def validate_answer(answer: Answer):
             user_embedding = generate_embeddings(answer.user_answer)
             print(f"🧠 Embedding generado (dim: {len(user_embedding)})")
             
-            # Validar con SemanticValidator
-            classification, top_chunks, best_match = semantic_validator.validate_answer(
+            # ===== NUEVO: VALIDACIÓN AVANZADA MULTI-NIVEL =====
+            # Sistema mejorado con:
+            # - Filtrado de chunks por keywords
+            # - Validación contra TOP 3 chunks
+            # - Scoring multi-nivel (literal, inferencial, crítico)
+            # - Justificación transparente
+            
+            print(f"\n🔬 Validando con sistema AVANZADO (multi-nivel)...")
+            classification = validate_with_advanced_system(
                 user_embedding=user_embedding,
                 material_chunks=material_embeddings,
                 user_answer=answer.user_answer,
-                question_text=question_text
+                question_text=question_text,
+                use_advanced=True  # ✅ ACTIVAR SISTEMA MEJORADO
             )
             
             # Imprimir desglose del scoring
-            print(f"\n📊 DESGLOSE DEL SCORE:")
-            details = classification['scoring_details']
-            print(f"   Base (similitud):     {details['base_similarity']}%")
-            print(f"   + Contexto amplio:    {details['context_bonus']}%")
-            print(f"   + Palabras clave:     {details['keyword_bonus']}%")
-            print(f"   + Elaboración:        {details['length_bonus']}%")
-            print(f"   + Boost inteligencia: {details['intelligence_boost']}%")
+            print(f"\n📊 DESGLOSE DEL SCORE (Sistema Avanzado):")
+            details = classification.get('scoring_details', {})
+            print(f"   Base (similitud):     {details.get('base_similarity', 0):.1f}%")
+            print(f"   + Keywords:           {details.get('keyword_bonus', 0):.1f}%")
+            print(f"   + Contexto:           {details.get('context_bonus', 0):.1f}%")
+            print(f"   + Razonamiento:       {details.get('reasoning_bonus', 0):.1f}%")
             print(f"   {'─'*40}")
             print(f"   SCORE FINAL:          {classification['score_porcentaje']}%")
+            print(f"\n🧠 Nivel de lectura:      {classification.get('reading_level', 'N/A').upper()}")
+            print(f"🔍 Keywords encontradas:  {len(classification.get('keywords_found', []))}")
+            
+            # Obtener best_match del resultado avanzado
+            best_chunk_id = classification.get('best_chunk_id', 0)
+            
+            # Encontrar chunk correspondiente
+            best_match = next(
+                (c for c in material_embeddings if c.get('chunk_id') == best_chunk_id),
+                material_embeddings[0] if material_embeddings else {}
+            )
+            
+            # Top chunks desde resultado avanzado
+            top_chunks = classification.get('alternative_chunks', [])
+            if not top_chunks and material_embeddings:
+                # Fallback: usar primeros 3 chunks
+                top_chunks = material_embeddings[:3]
+            
             print(f"\n✅ Validación completada: {classification['score_porcentaje']}% {'✓' if classification['es_correcto'] else '✗'}")
             print(f"{'='*70}\n")
             
             # Calcular posición del chunk
             total_chunks = len(material_embeddings)
-            best_chunk_position = best_match["chunk_id"]
+            best_chunk_position = best_chunk_id
             
             # Calcular página estimada correctamente:
             # Si tenemos 397 chunks en 25 páginas, cada página tiene ~15.88 chunks
@@ -604,30 +630,34 @@ async def validate_answer(answer: Answer):
             
             print(f"📍 Chunk más relevante: {best_chunk_position + 1}/{total_chunks} → Página ~{estimated_page}/{real_pages}")
             
-            # Construir resultado
+            # Construir resultado con datos del validador avanzado
             result = ValidationResult(
                 score=classification['score_porcentaje'],
                 is_correct=classification['es_correcto'],
-                similarity=float(best_match['similarity']),
+                similarity=details.get('base_similarity', 0) / 100,  # Normalizar a [0, 1]
                 feedback=classification['feedback'],
                 relevant_chunks=[
                     {
-                        "text": chunk["text_short"],
-                        "text_full": chunk["text"],
-                        "similarity": chunk["similarity"],
-                        "position": chunk["chunk_id"],
+                        "text": chunk.get("text_preview", chunk.get("text_short", ""))[:200],
+                        "text_full": chunk.get("text_preview", ""),
+                        "similarity": chunk.get("similarity", 0),
+                        "position": chunk.get("chunk_id", idx),
                         "total_chunks": total_chunks
                     }
-                    for chunk in top_chunks
+                    for idx, chunk in enumerate(top_chunks)
                 ],
                 best_match_chunk={
-                    "text": best_match["text"],
-                    "text_short": best_match["text_short"],
-                    "similarity": best_match["similarity"],
+                    "text": best_match.get("text", ""),
+                    "text_short": best_match.get("text", "")[:200] + ("..." if len(best_match.get("text", "")) > 200 else ""),
+                    "similarity": details.get('base_similarity', 0),
                     "chunk_id": best_chunk_position,
                     "total_chunks": total_chunks,
                     "estimated_page": estimated_page,
-                    "total_pages": real_pages
+                    "total_pages": real_pages,
+                    # NUEVO: Transparencia
+                    "justification": classification.get('justificacion', ''),
+                    "reading_level": classification.get('reading_level', 'literal'),
+                    "keywords_found": classification.get('keywords_found', [])
                 }
             )
             
