@@ -202,8 +202,7 @@
 <button 
   id="btn-generate-questions"
   onclick="generateQuestionsAuto()"
-  class="w-full px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-2 text-sm font-semibold shadow-md hover:shadow-lg"
-  style="display: none;">
+  class="w-full mb-3 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 flex items-center justify-center gap-2 text-sm font-semibold shadow-md hover:shadow-lg">
   <span class="material-symbols-outlined text-lg">auto_awesome</span>
   Generar Preguntas Auto
 </button>
@@ -2508,13 +2507,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 <script>
 // Mostrar botón de generación automática cuando hay un material activo
 function updateGenerateButton() {
+  console.log('🔧 updateGenerateButton llamada - Sprint 2');
   const materialId = localStorage.getItem('recuiva_active_material_id');
   const btn = document.getElementById('btn-generate-questions');
   
+  console.log('📦 Material ID:', materialId);
+  console.log('🔘 Botón encontrado:', !!btn);
+  
   if (materialId && btn) {
     btn.style.display = 'flex';
+    console.log('✅ Botón mostrado');
   } else if (btn) {
     btn.style.display = 'none';
+    console.log('❌ Botón ocultado (sin material)');
   }
 }
 
