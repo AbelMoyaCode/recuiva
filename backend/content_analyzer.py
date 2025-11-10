@@ -226,24 +226,45 @@ class ContentAnalyzer:
         """
         entities = []
         
-        # PASO 1: EXTRACCIÓN UNIVERSAL CON INDICADORES
+        # PASO 1: EXTRACCIÓN UNIVERSAL CON INDICADORES  
         # Buscar entidades usando indicadores de TODOS los tipos
+        
+        # Stopwords que NO deben aparecer inmediatamente después del indicador
+        INDICATOR_STOPWORDS = {
+            'se', 'que', 'con', 'sin', 'por', 'para', 'como', 'pero',
+            'cuando', 'donde', 'quien', 'cual', 'es', 'son', 'fue', 'fueron'
+        }
+        
         for entity_type, indicators in UNIVERSAL_INDICATORS.items():
             for indicator in indicators:
-                # Patrón: [artículo opcional] + indicador + entidad
-                # Ejemplos: 
-                #   "el doctor García" → doctor (PERSON)
-                #   "la proteína BRCA1" → proteína (OBJECT)
-                #   "algoritmo QuickSort" → algoritmo (PROCESS)
-                #   "teoría de la relatividad" → teoría (CONCEPT)
+                # Patrón SIMPLIFICADO: indicador + 1-3 PALABRAS (no oraciones completas)
+                # Ejemplos correctos: 
+                #   "método inductivo" → inductivo ✅
+                #   "teoría de la relatividad" → relatividad ✅
+                #   "proteína BRCA1" → BRCA1 ✅
+                #   "algoritmo QuickSort" → QuickSort ✅
                 
-                pattern = rf'\b(?:el|la|los|las|un|una)?\s*{re.escape(indicator)}\s+([A-ZÁÉÍÓÚÑ0-9][\wáéíóúñ\-]+(?:\s+(?:de|del|y|con)\s+[\wáéíóúñA-ZÁÉÍÓÚÑ0-9\-]+)*(?:\s+[A-ZÁÉÍÓÚÑ0-9][\wáéíóúñ\-]+)*)'
+                # Captura: palabra1 [de/del palabra2] [palabra3]
+                pattern = rf'\b(?:el|la|los|las|un|una)?\s*{re.escape(indicator)}\s+([A-ZÁÉÍÓÚÑ][\wáéíóúñ]+(?:\s+(?:de|del)\s+[A-ZÁÉÍÓÚÑ][\wáéíóúñ]+)?(?:\s+[A-ZÁÉÍÓÚÑ][\wáéíóúñ]+)?)\b'
                 
                 for match in re.finditer(pattern, text, re.IGNORECASE):
                     entity_text = match.group(1).strip()
                     
-                    # Validar que no sea palabra funcional
-                    first_word = entity_text.split()[0]
+                    # FILTRO 1: Truncar en stopwords (eliminar todo después de stopword)
+                    words = entity_text.split()
+                    clean_words = []
+                    for word in words:
+                        if word.lower() in INDICATOR_STOPWORDS:
+                            break  # Detener en stopword
+                        clean_words.append(word)
+                    
+                    if not clean_words:
+                        continue
+                    
+                    entity_text = ' '.join(clean_words)
+                    first_word = entity_text.split()[0].lower()
+                    
+                    # FILTRO 2: NO debe ser palabra funcional
                     if not is_function_word(first_word):
                         # Limpiar conectores finales
                         entity_text = re.sub(r'\s+(?:de|del|y|con)\s*$', '', entity_text)
@@ -301,12 +322,17 @@ class ContentAnalyzer:
                 if name_clean and name_clean not in entities:
                     entities.append(name_clean)
         
-        # PASO 3: Términos entre comillas (conceptos definidos)
+        # PASO 3: Términos entre comillas (SOLO si son conceptos técnicos, no ejemplos)
         quoted_terms = re.findall(r'["«]([^"»]{5,40})["»]', text)
         for term in quoted_terms:
             term_clean = term.strip()
+            # FILTRO: Solo agregar si NO es un ejemplo o frase completa
+            # Rechazar si tiene verbos conjugados comunes o artículos al inicio
             if len(term_clean.split()) <= 5 and term_clean not in entities:
-                entities.append(term_clean)
+                # Validar que NO sea una oración (no debe tener verbo)
+                common_verbs = {'es', 'son', 'está', 'están', 'fue', 'fueron', 'era', 'eran', 'tiene', 'tienen', 'hay'}
+                if not any(verb in term_clean.lower().split() for verb in common_verbs):
+                    entities.append(term_clean)
         
         # PASO 4: Deduplicar preservando orden
         seen = set()
