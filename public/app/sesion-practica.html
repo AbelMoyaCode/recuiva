@@ -2542,11 +2542,8 @@ async function generateQuestionsAuto() {
     return;
   }
 
-  const numQuestions = prompt('¿Cuántas preguntas deseas generar?', '5');
-  if (!numQuestions || parseInt(numQuestions) < 1) return;
-
-  const strategy = confirm('¿Usar estrategia diversa? (OK = Sí, Cancelar = Aleatoria)') ? 'diverse' : 'random';
-
+  // ✅ DIRECTO: Sin preguntar cantidad ni estrategia
+  // El backend genera automáticamente según el contenido
   const btn = document.getElementById('btn-generate-questions');
   const originalText = btn.innerHTML;
   btn.disabled = true;
@@ -2556,6 +2553,7 @@ async function generateQuestionsAuto() {
     const token = localStorage.getItem('sb-access-token');
     const backendUrl = api.baseUrl; // ✅ Usar la URL del cliente API
     
+    // ✅ Generar automáticamente (1 pregunta por sección del material)
     const response = await fetch(`${backendUrl}/api/materials/${materialId}/generate-questions`, {
       method: 'POST',
       headers: {
@@ -2563,8 +2561,8 @@ async function generateQuestionsAuto() {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        num_questions: parseInt(numQuestions),
-        strategy: strategy
+        num_questions: 5,  // Cantidad por defecto
+        strategy: 'diverse'  // Estrategia diversa por defecto
       })
     });
 
