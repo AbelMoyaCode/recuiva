@@ -22,6 +22,14 @@ from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 from collections import Counter
 
+# Importar analizador gramatical español
+try:
+    from spanish_grammar_analyzer import SpanishGrammarAnalyzer, extract_validated_names
+    GRAMMAR_ANALYZER_AVAILABLE = True
+except ImportError:
+    GRAMMAR_ANALYZER_AVAILABLE = False
+    print("⚠️ SpanishGrammarAnalyzer no disponible, usando regex básico")
+
 @dataclass
 class ChunkAnalysis:
     """Resultado del análisis profundo de un chunk"""
@@ -204,26 +212,61 @@ class ContentAnalyzer:
         )
     
     def _extract_entities(self, text: str) -> List[str]:
-        """Extrae entidades clave (nombres propios, conceptos)"""
+        """
+        Extrae entidades clave (nombres propios, conceptos) con validación gramatical
+        
+        MEJORA vs versión anterior:
+        ✅ Usa SpanishGrammarAnalyzer para validar contexto
+        ✅ Distingue nombres propios de objetos comunes
+        ✅ Evita "Toca", "Collar", "Ventana" como nombres
+        ✅ Detecta títulos nobiliarios ("condesa de X")
+        """
         entities = []
         
-        # Nombres propios (2-3 palabras capitalizadas)
-        proper_names = re.findall(
-            r'\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){0,2})\b',
-            text
-        )
-        entities.extend(proper_names)
+        # MÉTODO 1: Analizador gramatical (PREFERIDO)
+        if GRAMMAR_ANALYZER_AVAILABLE:
+            try:
+                validated_names = extract_validated_names(text)
+                entities.extend(validated_names)
+            except Exception as e:
+                print(f"⚠️ Error en analizador gramatical: {e}, usando fallback")
         
-        # Conceptos técnicos (palabras capitalizadas sueltas de 4+ letras)
+        # MÉTODO 2: Regex mejorado (FALLBACK)
+        # Solo si no hay suficientes entidades del analizador
+        if len(entities) < 3:
+            # Nombres propios con validación básica
+            # Patrón: 1-3 palabras capitalizadas, permitiendo "de", "del", "y"
+            proper_names = re.findall(
+                r'\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+(?:de|del|la|y)\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){0,2})\b',
+                text
+            )
+            
+            # Filtrar objetos comunes que empiezan con mayúscula
+            blacklist = {
+                'Toca', 'Collar', 'Ventana', 'Puerta', 'Habitación', 'Patio',
+                'Gabinete', 'Edificio', 'Diamante', 'Montura', 'Noche', 'Día',
+                'Dos', 'Tres', 'Cuatro', 'Varios', 'Muchos', 'Era', 'Fue'
+            }
+            
+            for name in proper_names:
+                first_word = name.split()[0]
+                if first_word not in blacklist and name not in entities:
+                    entities.append(name)
+        
+        # MÉTODO 3: Conceptos técnicos (palabras capitalizadas sueltas)
         technical_terms = re.findall(r'\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{3,}\b', text)
-        entities.extend(technical_terms)
+        for term in technical_terms:
+            if term not in entities and len(entities) < 10:
+                # Validar que no sea inicio de oración común
+                if not re.search(r'^' + re.escape(term) + r'\s+(?:es|fue|era|está)', text):
+                    entities.append(term)
         
-        # Términos entre comillas (conceptos definidos)
+        # MÉTODO 4: Términos entre comillas (conceptos definidos)
         quoted_terms = re.findall(r'"([^"]{3,30})"', text)
         entities.extend(quoted_terms)
         
         # Deduplicar y filtrar
-        entities = list(set([e.strip() for e in entities if len(e.strip()) > 3]))
+        entities = list(dict.fromkeys([e.strip() for e in entities if len(e.strip()) > 3]))
         return entities[:10]  # Top 10
     
     def _extract_verbs(self, text: str) -> List[str]:

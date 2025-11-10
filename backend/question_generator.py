@@ -154,29 +154,38 @@ def _generate_narrative_question(
     verbs: List[tuple],
     patterns: List[str]
 ) -> str:
-    """Genera pregunta para contenido NARRATIVO (historias, novelas)"""
+    """
+    Genera pregunta para contenido NARRATIVO (historias, novelas)
+    
+    MEJORAS:
+    ✅ Preguntas completas y naturales (sin límites artificiales)
+    ✅ Usa nombres completos validados gramaticalmente
+    ✅ Adapta longitud según complejidad
+    """
     
     # Si hay diálogo
     if 'dialogue' in patterns and entities:
         character = entities[0]
-        return f"Según el texto, ¿qué dice o hace {character} en esta parte?"
+        # Pregunta natural sobre diálogo
+        return f"Según el texto, ¿qué dice o hace {character} en esta parte de la narración?"
     
     # Si hay verbos narrativos
     if verbs:
         verb_type, verb = verbs[0]
         if entities:
             subject = entities[0]
-            return f"¿Qué {verb} {subject} en el fragmento?"
+            # Pregunta con contexto completo
+            return f"En el fragmento mencionado, ¿qué {verb} {subject} y cuál es el significado de esta acción en la historia?"
         else:
-            return f"¿Qué se {verb} en esta parte de la historia?"
+            return f"¿Qué se {verb} en esta parte de la historia y cómo se relaciona con el contexto general?"
     
-    # Pregunta general narrativa
+    # Pregunta general narrativa con detalle
     if len(entities) >= 2:
-        return f"¿Qué sucede con {entities[0]} en relación a {entities[1]}?"
+        return f"Explica detalladamente la relación entre {entities[0]} y {entities[1]} según lo descrito en el fragmento"
     elif entities:
-        return f"Resume los eventos que involucran a {entities[0]}"
+        return f"Resume los eventos más importantes que involucran a {entities[0]} en este fragmento del material"
     else:
-        return "¿Qué acontecimientos se narran en este fragmento?"
+        return "¿Qué acontecimientos se narran en este fragmento y cuál es su importancia en el contexto de la historia?"
 
 
 def _generate_academic_question(
@@ -184,35 +193,44 @@ def _generate_academic_question(
     entities: List[str],
     patterns: List[str]
 ) -> str:
-    """Genera pregunta para contenido ACADÉMICO (ensayos, papers)"""
+    """
+    Genera pregunta para contenido ACADÉMICO (ensayos, papers)
+    
+    MEJORAS:
+    ✅ Preguntas elaboradas sin restricciones de longitud
+    ✅ Múltiples entidades en preguntas complejas
+    """
     
     # Si hay definición
     if 'definition' in patterns:
         if entities:
-            return f"¿Cómo se define {entities[0]} según el material?"
+            return f"¿Cómo se define el concepto de {entities[0]} según el material? Explica con detalle los aspectos más importantes mencionados"
         else:
-            return "¿Qué concepto se define en este fragmento?"
+            return "¿Qué concepto se define en este fragmento y cuáles son sus características principales según el texto?"
     
     # Si hay comparación
     if 'comparison' in patterns and len(entities) >= 2:
-        return f"Compara {entities[0]} y {entities[1]} según el texto"
+        return f"Compara y contrasta {entities[0]} con {entities[1]} según lo explicado en el material, destacando las diferencias y similitudes clave"
     
     # Si hay causalidad
     if 'causality' in patterns:
         if entities:
-            return f"¿Por qué ocurre {entities[0]} según el material?"
+            return f"¿Por qué ocurre {entities[0]} según el material? Explica las causas y consecuencias mencionadas en el texto"
         else:
-            return "Explica la relación causa-efecto mencionada en el texto"
+            return "Explica la relación causa-efecto descrita en el texto y analiza los factores involucrados"
     
     # Si hay ejemplos
     if 'example' in patterns and entities:
-        return f"¿Qué ejemplos se presentan sobre {entities[0]}?"
+        return f"¿Qué ejemplos se presentan sobre {entities[0]} y cómo ilustran el concepto explicado en el material?"
     
-    # Pregunta académica general
-    if entities:
-        return f"Explica el concepto de {entities[0]} mencionado en el material"
+    # Pregunta académica general con múltiples entidades
+    if len(entities) >= 2:
+        entities_str = ", ".join(entities[:3])
+        return f"Explica la relación entre {entities_str} según el análisis presentado en el fragmento"
+    elif entities:
+        return f"Desarrolla y explica el concepto de {entities[0]} mencionado en el material, incluyendo sus aspectos más relevantes"
     else:
-        return "¿Qué idea principal se desarrolla en este fragmento?"
+        return "¿Qué idea principal se desarrolla en este fragmento y cuáles son los argumentos o evidencias que la sustentan?"
 
 
 def _generate_technical_question(
