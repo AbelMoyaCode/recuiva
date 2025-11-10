@@ -8,7 +8,7 @@ SIN usar LLMs externos - usa ContentAnalyzer para análisis inteligente.
 CARACTERÍSTICAS:
 - Filtra chunks de metadata automáticamente
 - Detecta tipo de contenido (narrativo, académico, técnico, etc.)
-- Genera preguntas contextualizadas al tipo detectado
+- NUEVO: Genera preguntas basadas en TIPO DE ENTIDAD (universal)
 - Justifica cada decisión con razonamiento explícito
 - Compatible con UTF-8, emojis, múltiples idiomas
 
@@ -22,6 +22,8 @@ import random
 from typing import List, Dict, Optional
 from dataclasses import dataclass
 from content_analyzer import ContentAnalyzer, ChunkAnalysis
+from spanish_grammar_analyzer import get_entity_type
+from universal_entity_types import EntityType
 
 @dataclass
 class GeneratedQuestion:
@@ -92,50 +94,89 @@ def _generate_intelligent_question(
     """
     Genera pregunta inteligente basada en el análisis del chunk
     
-    MEJORA CRÍTICA:
-    ✅ Valida que entidades sean nombres reales (no "Como", "Pero", etc.)
-    ✅ Si no hay entidades válidas, genera pregunta genérica
-    ✅ Previene preguntas absurdas como "relación entre Como y Cierto"
+    MEJORAS:
+    ✅ Valida entidades (no "Como", "Pero", etc.)
+    ✅ Clasifica entidades por tipo UNIVERSAL (persona, concepto, objeto, proceso)
+    ✅ Genera preguntas ESPECÍFICAS al tipo de entidad
+    ✅ Funciona para literatura, ciencia, técnico, académico
     """
     content_type = analysis.content_type
     entities = analysis.key_entities
     patterns = analysis.patterns_detected
     features = analysis.linguistic_features
     
-    # VALIDACIÓN CRÍTICA: Filtrar entidades inválidas
+    # VALIDACIÓN: Filtrar entidades inválidas
     valid_entities = []
     INVALID_WORDS = {
         'como', 'pero', 'cuando', 'donde', 'porque', 'aunque', 'cierto',
         'verdad', 'inmediatamente', 'entonces', 'mientras', 'después', 'antes',
-        'esper', 'cabal', 'loro', 'eux', 'mot', 'te'  # Fragmentos rotos
+        'esper', 'cabal', 'loro', 'eux', 'mot', 'te'
     }
     
     for entity in entities:
-        # Validar que no sea palabra inválida
         words = entity.lower().split()
         if not any(w in INVALID_WORDS for w in words):
-            # Validar longitud mínima razonable
             if len(entity) >= 4 and len(entity.split()) >= 1:
                 valid_entities.append(entity)
     
-    # Actualizar análisis con entidades válidas
     entities = valid_entities
     
-    # Generar pregunta según tipo
-    if content_type == 'narrative':
-        question = _generate_narrative_question(chunk, entities, analysis.main_verbs, patterns)
+    # NUEVO: CLASIFICAR ENTIDADES POR TIPO UNIVERSAL
+    entity_types_map = {}
+    for entity in entities[:3]:  # Solo primeras 3 para eficiencia
+        entity_type = get_entity_type(entity, chunk)
+        entity_types_map[entity] = entity_type
     
-    elif content_type == 'academic':
-        question = _generate_academic_question(chunk, entities, patterns)
+    # NUEVO: GENERAR PREGUNTA BASADA EN TIPO DE ENTIDAD (prioridad)
+    for entity, entity_type in entity_types_map.items():
+        
+        if entity_type == EntityType.PERSON:
+            question = f"¿Quién fue {entity} y qué papel desempeñó en los acontecimientos descritos?"
+            question_type = 'entity_person'
+            break
+        
+        elif entity_type == EntityType.CONCEPT:
+            question = f"Define y explica el concepto de {entity} según el material presentado"
+            question_type = 'entity_concept'
+            break
+        
+        elif entity_type == EntityType.OBJECT:
+            question = f"Describe las características y función de {entity} mencionadas en el texto"
+            question_type = 'entity_object'
+            break
+        
+        elif entity_type == EntityType.PROCESS:
+            question = f"Explica paso a paso cómo funciona el proceso de {entity}"
+            question_type = 'entity_process'
+            break
+        
+        elif entity_type == EntityType.LOCATION:
+            question = f"¿Qué importancia tiene {entity} en el contexto descrito?"
+            question_type = 'entity_location'
+            break
+        
+        elif entity_type == EntityType.ORGANIZATION:
+            question = f"¿Cuál es el rol de {entity} según lo mencionado en el material?"
+            question_type = 'entity_organization'
+            break
     
-    elif content_type == 'technical':
-        question = _generate_technical_question(chunk, entities, patterns)
-    
-    elif content_type == 'procedural':
-        question = _generate_procedural_question(chunk, entities, patterns)
-    
-    else:  # descriptive
-        question = _generate_descriptive_question(chunk, entities, patterns)
+    else:
+        # FALLBACK: Si no hay entidades tipadas, usar método por content_type
+        if content_type == 'narrative':
+            question = _generate_narrative_question(chunk, entities, analysis.main_verbs, patterns)
+            question_type = content_type
+        elif content_type == 'academic':
+            question = _generate_academic_question(chunk, entities, patterns)
+            question_type = content_type
+        elif content_type == 'technical':
+            question = _generate_technical_question(chunk, entities, patterns)
+            question_type = content_type
+        elif content_type == 'procedural':
+            question = _generate_procedural_question(chunk, entities, patterns)
+            question_type = content_type
+        else:
+            question = _generate_descriptive_question(chunk, entities, patterns)
+            question_type = content_type
     
     # Preparar razonamiento
     reasoning = {
@@ -143,7 +184,8 @@ def _generate_intelligent_question(
         'confidence': analysis.confidence,
         'patterns_detected': patterns,
         'entities_found': len(entities),
-        'entities_valid': entities,  # NUEVO: Lista de entidades válidas
+        'entities_valid': entities,
+        'entity_types': {k: v.value for k, v in entity_types_map.items()},  # NUEVO
         'main_verbs_count': len(analysis.main_verbs),
         'justification': analysis.justification,
         'linguistic_features': {
@@ -157,8 +199,8 @@ def _generate_intelligent_question(
         'question': question,
         'reference_chunk': chunk,
         'chunk_index': chunk_index,
-        'question_type': content_type,
-        'concepts': entities,  # Solo entidades válidas
+        'question_type': question_type,  # Actualizado con tipo específico
+        'concepts': entities,
         'reasoning': reasoning,
         'confidence': analysis.confidence
     }

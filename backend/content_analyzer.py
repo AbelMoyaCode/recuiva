@@ -15,6 +15,7 @@ CARACTERÍSTICAS:
 - Clasificación semántica basada en reglas
 - Compatible con UTF-8, emojis, caracteres especiales
 - Robusto ante imágenes/tablas en PDFs
+- UNIVERSAL: Funciona para literatura, ciencia, técnico
 """
 
 import re
@@ -22,7 +23,14 @@ from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 from collections import Counter
 
-# NO usar import externo, implementar directamente aquí para evitar errores
+# Importar indicadores universales
+from universal_entity_types import (
+    UNIVERSAL_INDICATORS,
+    FUNCTION_WORDS,
+    EntityType,
+    is_function_word,
+    get_all_indicators
+)
 
 @dataclass
 class ChunkAnalysis:
@@ -207,88 +215,78 @@ class ContentAnalyzer:
     
     def _extract_entities(self, text: str) -> List[str]:
         """
-        Extrae entidades clave (nombres propios, conceptos) con validación ESTRICTA
+        MEJORADO: Extrae entidades usando INDICADORES UNIVERSALES
         
-        PROBLEMA RESUELTO:
-        ❌ ANTES: "Como y Cierto", "Dr eux", "Pero" (palabras aleatorias)
-        ✅ AHORA: Solo nombres completos validados en contexto
+        ANTES: Solo nombres con títulos de nobleza (conde, rey, cardenal)
+        AHORA: Entidades de CUALQUIER dominio:
+        ✅ Literatura: "señor Dreux", "reina María Antonieta"
+        ✅ Ciencia: "proteína BRCA1", "enzima catalasa", "compuesto X"
+        ✅ Técnico: "algoritmo QuickSort", "método Agile"
+        ✅ Académico: "teoría de la relatividad", "ley de Newton"
         """
         entities = []
         
-        # LISTA NEGRA: Palabras comunes que NO son nombres (aunque empiecen con mayúscula)
-        BLACKLIST_WORDS = {
-            # Objetos comunes
-            'Toca', 'Collar', 'Ventana', 'Puerta', 'Habitación', 'Patio', 'Gabinete', 
-            'Edificio', 'Diamante', 'Montura', 'Noche', 'Día', 'Casa', 'Calle',
-            
-            # Conectores/adverbios que a veces aparecen con mayúscula
-            'Como', 'Pero', 'Cuando', 'Donde', 'Porque', 'Aunque', 'Mientras',
-            'Después', 'Antes', 'Siempre', 'Nunca', 'También', 'Además',
-            
-            # Cuantificadores
-            'Dos', 'Tres', 'Cuatro', 'Cinco', 'Varios', 'Muchos', 'Algunos',
-            
-            # Temporales
-            'Era', 'Fue', 'Había', 'Mañana', 'Tarde',
-            
-            # Abstracciones que no son nombres
-            'Verdad', 'Cierto', 'Inmediatamente', 'Esper', 'Cabal'
-        }
-        
-        # TÍTULOS que indican nombre de persona
-        PERSON_TITLES = {
-            'señor', 'señora', 'don', 'doña', 'conde', 'condesa',
-            'duque', 'duquesa', 'rey', 'reina', 'cardenal', 'príncipe', 'princesa'
-        }
-        
-        # PASO 1: Buscar nombres CON TÍTULO (alta confianza)
-        # Patrón: "señor/condesa + Nombre(s) + de + Apellido(s)"
-        title_pattern = r'\b(?:señor|señora|don|doña|conde|condesa|duque|duquesa|rey|reina|cardenal)\s+(?:de\s+)?([A-ZÁÉÍÓÚÑ][\wáéíóúñ]+(?:\s+(?:de|del|y)\s+[A-ZÁÉÍÓÚÑ][\wáéíóúñ]+)*(?:\s+[A-ZÁÉÍÓÚÑ][\wáéíóúñ]+)*)\b'
-        
-        for match in re.finditer(title_pattern, text, re.IGNORECASE):
-            name = match.group(1).strip()
-            
-            # Validar que no sea una sola palabra corta
-            if len(name.split()) >= 1 and len(name) > 3:
-                # Limpiar conectores al inicio/final
-                name = re.sub(r'^(?:de|del|y)\s+', '', name)
-                name = re.sub(r'\s+(?:de|del|y)$', '', name)
+        # PASO 1: EXTRACCIÓN UNIVERSAL CON INDICADORES
+        # Buscar entidades usando indicadores de TODOS los tipos
+        for entity_type, indicators in UNIVERSAL_INDICATORS.items():
+            for indicator in indicators:
+                # Patrón: [artículo opcional] + indicador + entidad
+                # Ejemplos: 
+                #   "el doctor García" → doctor (PERSON)
+                #   "la proteína BRCA1" → proteína (OBJECT)
+                #   "algoritmo QuickSort" → algoritmo (PROCESS)
+                #   "teoría de la relatividad" → teoría (CONCEPT)
                 
-                if name and name not in entities:
-                    entities.append(name)
+                pattern = rf'\b(?:el|la|los|las|un|una)?\s*{re.escape(indicator)}\s+([A-ZÁÉÍÓÚÑ0-9][\wáéíóúñ\-]+(?:\s+(?:de|del|y|con)\s+[\wáéíóúñA-ZÁÉÍÓÚÑ0-9\-]+)*(?:\s+[A-ZÁÉÍÓÚÑ0-9][\wáéíóúñ\-]+)*)'
+                
+                for match in re.finditer(pattern, text, re.IGNORECASE):
+                    entity_text = match.group(1).strip()
+                    
+                    # Validar que no sea palabra funcional
+                    first_word = entity_text.split()[0]
+                    if not is_function_word(first_word):
+                        # Limpiar conectores finales
+                        entity_text = re.sub(r'\s+(?:de|del|y|con)\s*$', '', entity_text)
+                        
+                        # Agregar si tiene longitud razonable y no está duplicado
+                        if len(entity_text) >= 3 and entity_text not in entities:
+                            entities.append(entity_text)
         
-        # PASO 2: Buscar nombres propios SIN título (con validación ESTRICTA)
-        # Patrón mejorado: 2-4 palabras capitalizadas
+        # PASO 2: NOMBRES PROPIOS SIN INDICADOR (para casos como "María Antonieta dijo...")
+        # Blacklist UNIVERSAL (no específica de dominio)
+        UNIVERSAL_BLACKLIST = FUNCTION_WORDS | {
+            'Como', 'Pero', 'Cuando', 'Cierto', 'Verdad', 'Inmediatamente',
+            'Esper', 'Cabal', 'Loro', 'Eux', 'Mot', 'Te', 'Hasta'
+        }
+        
+        # Patrón: 2-4 palabras capitalizadas con alta confianza
         name_pattern = r'\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}(?:\s+(?:de|del|y)\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})*(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}){1,2})\b'
         
         for match in re.finditer(name_pattern, text):
             name_candidate = match.group(1).strip()
             words = name_candidate.split()
             
-            # VALIDACIÓN 1: Mínimo 2 palabras (nombres + apellido)
+            # VALIDACIÓN 1: Mínimo 2 palabras
             if len(words) < 2:
                 continue
             
-            # VALIDACIÓN 2: Cada palabra debe tener mínimo 3 caracteres
+            # VALIDACIÓN 2: Cada palabra mínimo 3 caracteres
             if any(len(w) < 3 for w in words if w.lower() not in {'de', 'del', 'y'}):
                 continue
             
-            # VALIDACIÓN 3: Primera palabra NO debe estar en blacklist
-            first_word = words[0]
-            if first_word in BLACKLIST_WORDS:
+            # VALIDACIÓN 3: Primera palabra NO en blacklist
+            if words[0] in UNIVERSAL_BLACKLIST or words[0].lower() in UNIVERSAL_BLACKLIST:
                 continue
             
-            # VALIDACIÓN 4: NO debe contener palabras blacklist intermedias
-            if any(w in BLACKLIST_WORDS for w in words):
+            # VALIDACIÓN 4: NO contener blacklist intermedias
+            if any(w in UNIVERSAL_BLACKLIST or w.lower() in UNIVERSAL_BLACKLIST for w in words):
                 continue
             
-            # VALIDACIÓN 5: Buscar contexto verbal (debe estar cerca de un verbo)
-            # Extraer contexto (50 caracteres antes y después)
+            # VALIDACIÓN 5: Contexto verbal (cerca de verbo de persona)
             start = max(0, match.start() - 50)
             end = min(len(text), match.end() + 50)
             context = text[start:end].lower()
             
-            # Verbos que indican persona como sujeto
             person_verbs = {
                 'dijo', 'preguntó', 'respondió', 'pensó', 'miró', 'vio',
                 'entró', 'salió', 'caminó', 'hizo', 'fue', 'era', 'estaba',
@@ -296,12 +294,9 @@ class ContentAnalyzer:
             }
             
             has_verb_context = any(verb in context for verb in person_verbs)
-            
-            # VALIDACIÓN 6: Si no hay verbo cerca, debe haber artículo de persona
             has_person_article = re.search(r'\b(?:el|la)\s+' + re.escape(words[0].lower()), context)
             
             if has_verb_context or has_person_article:
-                # Limpiar y agregar
                 name_clean = re.sub(r'\s+(?:de|del|y)\s*$', '', name_candidate)
                 if name_clean and name_clean not in entities:
                     entities.append(name_clean)
@@ -310,7 +305,7 @@ class ContentAnalyzer:
         quoted_terms = re.findall(r'["«]([^"»]{5,40})["»]', text)
         for term in quoted_terms:
             term_clean = term.strip()
-            if len(term_clean.split()) <= 5:  # Máximo 5 palabras
+            if len(term_clean.split()) <= 5 and term_clean not in entities:
                 entities.append(term_clean)
         
         # PASO 4: Deduplicar preservando orden
@@ -322,7 +317,7 @@ class ContentAnalyzer:
                 seen.add(entity_lower)
                 unique_entities.append(entity.strip())
         
-        return unique_entities[:8]  # Top 8 (reducido para mayor calidad)
+        return unique_entities[:10]  # Top 10 entidades
     
     def _extract_verbs(self, text: str) -> List[str]:
         """Extrae verbos principales del chunk"""

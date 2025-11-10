@@ -7,6 +7,7 @@ Módulo especializado en gramática española para distinguir:
 - Sujeto vs predicado vs complementos
 - Sustantivos vs verbos vs adjetivos
 - Género y número gramatical
+- NUEVO: Clasificación UNIVERSAL de entidades (persona, concepto, objeto, proceso)
 
 PROBLEMA RESUELTO:
 ❌ ANTES: "Estaba y Ahol", "Henriet y Ancuet" (nombres mal formados)
@@ -21,6 +22,14 @@ import re
 from typing import List, Dict, Tuple, Set, Optional
 from dataclasses import dataclass
 from enum import Enum
+
+# Importar tipos universales
+from universal_entity_types import (
+    EntityType,
+    UNIVERSAL_INDICATORS,
+    CONTEXT_VERBS,
+    is_function_word
+)
 
 
 class WordType(Enum):
@@ -486,3 +495,97 @@ if __name__ == "__main__":
     print(f"   Predicado: {analysis['predicate']}")
     
     print("\n" + "="*80)
+
+
+# =============================================================================
+# FUNCIÓN PRINCIPAL PARA CLASIFICACIÓN UNIVERSAL DE ENTIDADES
+# =============================================================================
+
+def get_entity_type(entity: str, context: str) -> EntityType:
+    """
+    Clasifica entidad en tipo UNIVERSAL basándose en contexto
+    
+    Funciona para CUALQUIER dominio (literatura, ciencia, técnico, académico)
+    
+    Args:
+        entity: Nombre de la entidad ("García", "BRCA1", "QuickSort", "relatividad")
+        context: Oración o párrafo completo donde aparece la entidad
+    
+    Returns:
+        EntityType: PERSON | CONCEPT | OBJECT | PROCESS | LOCATION | ORGANIZATION | UNKNOWN
+    
+    Ejemplos:
+        >>> get_entity_type("García", "el doctor García estudió medicina")
+        EntityType.PERSON
+        
+        >>> get_entity_type("BRCA1", "la proteína BRCA1 regula el ciclo celular")
+        EntityType.OBJECT
+        
+        >>> get_entity_type("QuickSort", "el algoritmo QuickSort ordena en O(n log n)")
+        EntityType.PROCESS
+        
+        >>> get_entity_type("relatividad", "la teoría de la relatividad explica")
+        EntityType.CONCEPT
+    """
+    context_lower = context.lower()
+    entity_lower = entity.lower()
+    
+    # MÉTODO 1: Buscar INDICADOR en contexto (máxima confianza)
+    # Ejemplo: "la proteína BRCA1" → indicador "proteína" → OBJECT
+    for entity_type, indicators in UNIVERSAL_INDICATORS.items():
+        for indicator in indicators:
+            # Patrón: "indicador + entidad" o "entidad + indicador"
+            pattern_before = rf'\b{re.escape(indicator)}\s+{re.escape(entity_lower)}'
+            pattern_after = rf'\b{re.escape(entity_lower)}\s+{re.escape(indicator)}'
+            
+            if re.search(pattern_before, context_lower) or re.search(pattern_after, context_lower):
+                return entity_type
+    
+    # MÉTODO 2: Buscar VERBO de contexto (alta confianza)
+    # Ejemplo: "BRCA1 regula el ciclo" → verbo "regula" → OBJECT
+    for entity_type, verbs in CONTEXT_VERBS.items():
+        for verb in verbs:
+            # Patrón: "entidad + verbo" (sujeto-verbo)
+            pattern_subject = rf'\b{re.escape(entity_lower)}\s+{verb}'
+            # Patrón: "verbo + entidad" (menos común pero válido)
+            pattern_object = rf'\b{verb}\s+(?:el|la|los|las|un|una)?\s*{re.escape(entity_lower)}'
+            
+            if re.search(pattern_subject, context_lower) or re.search(pattern_object, context_lower):
+                return entity_type
+    
+    # MÉTODO 3: Heurísticas por estructura y contexto
+    entity_words = entity.split()
+    
+    # Si tiene ≥2 palabras capitalizadas y verbo de persona → PERSON
+    if len(entity_words) >= 2 and entity[0].isupper():
+        person_verbs = CONTEXT_VERBS.get(EntityType.PERSON, set())
+        if any(verb in context_lower for verb in person_verbs):
+            return EntityType.PERSON
+        
+        # Si no tiene verbo de persona pero tiene "de" o "del" → posiblemente LOCATION
+        if 'de' in entity_words or 'del' in entity_words:
+            return EntityType.LOCATION
+    
+    # Si contiene números/letras (ej: "BRCA1", "QuickSort") → OBJECT o PROCESS
+    if re.search(r'\d', entity) or re.search(r'[A-Z]{2,}', entity):
+        # Si tiene verbo técnico cerca → PROCESS
+        technical_verbs = {'implementa', 'ejecuta', 'calcula', 'procesa', 'ordena'}
+        if any(verb in context_lower for verb in technical_verbs):
+            return EntityType.PROCESS
+        # Si no → OBJECT
+        return EntityType.OBJECT
+    
+    # Si tiene artículo determinado + sustantivo abstracto → CONCEPT
+    if re.search(rf'\b(?:el|la)\s+{re.escape(entity_lower)}\s+(?:de|del|que|es|consiste)', context_lower):
+        return EntityType.CONCEPT
+    
+    # Si todo falla → UNKNOWN
+    return EntityType.UNKNOWN
+
+
+# Función auxiliar para compatibilidad con código existente
+def classify_entity(entity: str, context: str) -> str:
+    """Wrapper que retorna string en lugar de enum (compatibilidad)"""
+    entity_type = get_entity_type(entity, context)
+    return entity_type.value
+
