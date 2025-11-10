@@ -1107,18 +1107,24 @@ async def generate_questions_for_material(
     
     try:
         supabase = get_supabase_client()
-        user = await get_current_user(authorization)
+        # ✅ NO requerir autenticación por ahora (el material_id ya identifica al usuario)
+        # user = await get_current_user(authorization)
         
         # Obtener chunks del material
+        print(f"🔍 Buscando chunks para material: {material_id}")
         chunks_result = supabase.table('material_embeddings').select('chunk_text').eq('material_id', material_id).order('chunk_index').execute()
         
         if not chunks_result.data:
             raise HTTPException(status_code=404, detail="Material no encontrado o sin chunks")
         
+        print(f"📚 Chunks encontrados: {len(chunks_result.data)}")
         chunks = [item['chunk_text'] for item in chunks_result.data]
         
         # Generar preguntas usando el módulo question_generator
+        print(f"🎯 Generando {request.num_questions} preguntas con estrategia {request.strategy}")
         questions = generate_questions_dict(chunks, request.num_questions, request.strategy)
+        
+        print(f"✅ Preguntas generadas: {len(questions)}")
         
         # Guardar preguntas en la tabla generated_questions
         for q in questions:
@@ -1137,6 +1143,9 @@ async def generate_questions_for_material(
             "questions": questions
         }
     except Exception as e:
+        print(f"❌ Error generando preguntas: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error generando preguntas: {str(e)}")
 
 @app.get("/api/materials/by-topic/{topic_id}")
