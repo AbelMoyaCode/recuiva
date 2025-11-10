@@ -19,46 +19,8 @@ class GeneratedQuestion:
     question_type: str
     concepts: List[str]
 
-QUESTION_TEMPLATES = {
-    'narrative': [
-        # ✅ PREGUNTAS LITERALES que requieren citar el texto exacto
-        '¿Qué dice exactamente el texto sobre {context}?',
-        'Según el fragmento, ¿qué ocurre con {context}?',
-        'Cita textualmente qué se menciona acerca de {context}',
-        '¿Cómo describe el texto la situación de {context}?',
-        'Reproduce lo que el texto dice sobre {context}'
-    ],
-    'character': [
-        # ✅ PREGUNTAS ESPECÍFICAS sobre acciones/diálogos literales
-        'Según el texto, ¿qué dice o hace {concept}?',
-        '¿Qué acciones específicas realiza {concept} en este fragmento?',
-        'Cita textualmente las palabras o acciones de {concept}',
-        '¿Cómo se describe a {concept} en esta parte del texto?',
-        'Reproduce el diálogo o las acciones de {concept}'
-    ],
-    'concept': [
-        # ✅ PREGUNTAS que piden DEFINICIÓN LITERAL del texto
-        '¿Cómo define el texto el concepto de {concept}?',
-        'Según el material, ¿qué es {concept}?',
-        'Cita la definición textual de {concept} que aparece en el fragmento',
-        '¿Qué características de {concept} menciona específicamente el texto?',
-        'Reproduce la explicación literal de {concept} del material'
-    ],
-    'formula': [
-        # ✅ PREGUNTAS TÉCNICAS sobre ecuaciones específicas
-        '¿Qué fórmula o ecuación aparece en este fragmento?',
-        'Transcribe la expresión matemática que se presenta',
-        '¿Para qué sirve la fórmula mencionada en el texto?',
-        'Según el material, ¿cómo se aplica esta ecuación?'
-    ],
-    'factual': [
-        # ✅ PREGUNTAS FACTUALES para contenido informativo
-        '¿Qué información específica presenta este fragmento?',
-        'Menciona los datos concretos que aparecen en el texto',
-        '¿Qué hechos o detalles específicos se describen?',
-        'Resume la información factual contenida en este fragmento'
-    ]
-}
+# ✅ NO SE USAN TEMPLATES ESTÁTICOS
+# El sistema ahora genera preguntas DINÁMICAMENTE analizando el chunk
 
 def detect_content_type(text: str) -> str:
     """Detecta el tipo de contenido del chunk con análisis PROFUNDO del texto"""
@@ -168,17 +130,20 @@ def extract_key_concepts(text: str, max_concepts: int = 5) -> List[str]:
 
 def generate_questions_dict(chunks: List[str], num_questions: int = 5, strategy: str = 'random') -> List[Dict]:
     """
-    Genera preguntas ULTRA-ESPECÍFICAS extrayendo CITAS LITERALES del chunk
+    Generador INTELIGENTE de preguntas basadas en análisis profundo del chunk
     
-    ESTRATEGIA RAG:
-    1. Toma fragmento TEXTUAL del chunk (50-100 caracteres)
-    2. Genera pregunta que REQUIERA citar ese fragmento exacto
-    3. La respuesta correcta DEBE contener palabras del chunk
+    ESTRATEGIA MEJORADA:
+    1. Analiza el chunk completo (no solo primera oración)
+    2. Identifica: definiciones, acciones, personajes, datos, conceptos
+    3. Genera pregunta COMPLETA (sin "...") y NATURAL
+    4. Cada llamada retorna pregunta de chunk DIFERENTE (aleatorio)
     
-    Esto garantiza:
-    - Alta similitud semántica (pregunta y respuesta comparten chunk)
-    - Preguntas contextualizadas al material REAL
-    - Validación RAG precisa (embedding de respuesta cerca del chunk)
+    TIPOS DE PREGUNTAS GENERADAS:
+    - Definiciones: "¿Qué es X según el texto?"
+    - Narrativa: "¿Qué ocurre cuando X hace Y?"
+    - Personajes: "¿Cuál es el papel de X en esta situación?"
+    - Conceptos: "Explica el concepto de X mencionado en el material"
+    - Datos: "¿Qué información específica se presenta sobre X?"
     """
     if not chunks:
         return []
@@ -186,69 +151,114 @@ def generate_questions_dict(chunks: List[str], num_questions: int = 5, strategy:
     num_questions = min(num_questions, len(chunks))
     questions = []
     
-    if strategy == 'random':
-        selected_indices = random.sample(range(len(chunks)), num_questions)
-    elif strategy == 'diverse':
-        step = max(1, len(chunks) // num_questions)
-        selected_indices = [i * step for i in range(num_questions)]
-    else:  # sequential
-        selected_indices = list(range(num_questions))
+    # ✅ SIEMPRE aleatorio para que cada clic genere pregunta diferente
+    selected_indices = random.sample(range(len(chunks)), num_questions)
     
     for idx in selected_indices:
         chunk = chunks[idx]
         
-        # ✅ ESTRATEGIA 1: Extraer CITA LITERAL del chunk (primera oración completa)
-        first_sentence = chunk.split('.')[0].strip()
-        if len(first_sentence) < 20:  # Si es muy corta, tomar más
-            sentences = chunk.split('.')
-            first_sentence = ('.'.join(sentences[:2])).strip()
-        
-        # Limitar longitud de la cita (50-150 caracteres)
-        citation = first_sentence[:150] if len(first_sentence) > 150 else first_sentence
-        
-        # ✅ ESTRATEGIA 2: Identificar concepto/personaje/término clave
+        # ✅ ANÁLISIS PROFUNDO del chunk
         content_type = detect_content_type(chunk)
-        key_concepts = extract_key_concepts(chunk, max_concepts=3)
-        main_concept = key_concepts[0] if key_concepts else "este fragmento"
+        key_elements = extract_key_concepts(chunk, max_concepts=5)
         
-        # ✅ ESTRATEGIA 3: Generar pregunta ESPECÍFICA que requiera el chunk
-        question_templates = {
-            'narrative': [
-                f'Según el texto que dice "{citation[:80]}...", ¿qué sucede después?',
-                f'El fragmento menciona "{citation[:80]}...". Explica qué ocurre en esta parte',
-                f'¿Qué dice el texto sobre {main_concept}? (Cita el fragmento completo)',
-            ],
-            'character': [
-                f'Según el texto: "{citation[:80]}...", ¿qué hace {main_concept}?',
-                f'El material dice "{citation[:80]}...". ¿Cuál es el papel de {main_concept}?',
-                f'Cita textualmente qué menciona el texto sobre {main_concept}',
-            ],
-            'concept': [
-                f'El texto define: "{citation[:80]}...". Completa la definición',
-                f'¿Cómo explica el material {main_concept}? (Cita el fragmento)',
-                f'Según el texto que menciona "{citation[:80]}...", explica {main_concept}',
-            ],
-            'formula': [
-                f'¿Qué fórmula o ecuación se presenta en el fragmento que dice "{citation[:60]}..."?',
-                f'Transcribe y explica la expresión matemática del texto',
-            ],
-            'factual': [
-                f'El texto menciona: "{citation[:80]}...". ¿Qué datos específicos presenta?',
-                f'Según el fragmento "{citation[:80]}...", ¿qué información factual contiene?',
-            ]
-        }
-        
-        # Seleccionar template según tipo de contenido
-        templates = question_templates.get(content_type, question_templates['concept'])
-        question = random.choice(templates)
+        # ✅ GENERAR PREGUNTA INTELIGENTE según análisis
+        question = _generate_smart_question(chunk, content_type, key_elements)
         
         questions.append({
             'question': question,
-            'reference_chunk': chunk,  # ✅ Chunk completo para validación RAG
+            'reference_chunk': chunk,
             'chunk_index': idx,
             'question_type': content_type,
-            'concepts': key_concepts,
-            'citation': citation  # ✅ Cita literal incluida en la pregunta
+            'concepts': key_elements
         })
     
     return questions
+
+def _generate_smart_question(chunk: str, content_type: str, key_elements: List[str]) -> str:
+    """
+    Genera pregunta INTELIGENTE Y COMPLETA basada en análisis del chunk
+    
+    NO usa "..." ni fragmentos cortados
+    Genera pregunta NATURAL que requiera entender el chunk
+    """
+    
+    # Elemento principal del chunk
+    main_element = key_elements[0] if key_elements else "el contenido de este fragmento"
+    
+    # ✅ ESTRATEGIA 1: Buscar DEFINICIONES en el chunk
+    definition_match = re.search(
+        r'(?:es|son|se define como|se entiende por|consiste en|significa)\s+([^.!?]{20,100})',
+        chunk,
+        re.IGNORECASE
+    )
+    if definition_match and content_type in ['concept', 'factual']:
+        defined_term = main_element
+        return f"¿Qué es {defined_term} según el material?"
+    
+    # ✅ ESTRATEGIA 2: Detectar ACCIONES/EVENTOS en narrativa
+    if content_type == 'narrative':
+        # Buscar verbos de acción
+        action_verbs = ['examinó', 'descubrió', 'observó', 'encontró', 'decidió', 
+                       'pensó', 'concluyó', 'investigó', 'reveló', 'demostró']
+        
+        for verb in action_verbs:
+            if verb in chunk.lower():
+                # Extraer sujeto (nombre propio antes del verbo)
+                subject_match = re.search(
+                    r'([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?)\s+' + verb,
+                    chunk
+                )
+                if subject_match:
+                    subject = subject_match.group(1)
+                    return f"¿Qué {verb} {subject} en esta parte del texto?"
+                else:
+                    return f"¿Qué se {verb} en este fragmento del material?"
+        
+        # Si no hay verbo específico, pregunta general sobre eventos
+        if len(key_elements) >= 2:
+            return f"¿Qué ocurre con {key_elements[0]} en relación a {key_elements[1]}?"
+        else:
+            return f"¿Qué sucede en la parte que habla sobre {main_element}?"
+    
+    # ✅ ESTRATEGIA 3: Preguntas sobre PERSONAJES
+    if content_type == 'character':
+        character_name = main_element
+        
+        # Buscar acciones del personaje
+        character_actions = re.findall(
+            rf'{re.escape(character_name)}\s+([\w]+)',
+            chunk,
+            re.IGNORECASE
+        )
+        
+        if character_actions:
+            return f"¿Cuál es el papel de {character_name} en esta situación?"
+        else:
+            return f"¿Qué información se presenta sobre {character_name}?"
+    
+    # ✅ ESTRATEGIA 4: Preguntas sobre DATOS/HECHOS
+    if content_type == 'factual':
+        # Buscar números, fechas, porcentajes
+        has_numbers = re.search(r'\d+', chunk)
+        if has_numbers:
+            return f"¿Qué datos numéricos específicos se mencionan sobre {main_element}?"
+        else:
+            return f"¿Qué información factual se presenta acerca de {main_element}?"
+    
+    # ✅ ESTRATEGIA 5: Preguntas sobre FÓRMULAS
+    if content_type == 'formula':
+        return "¿Qué fórmula o expresión matemática se presenta y para qué sirve?"
+    
+    # ✅ ESTRATEGIA 6: Preguntas sobre CONCEPTOS (default)
+    # Detectar si es explicación o descripción
+    if any(word in chunk.lower() for word in ['porque', 'debido a', 'causa', 'razón', 'motivo']):
+        return f"¿Por qué ocurre o se menciona {main_element} en el texto?"
+    
+    if any(word in chunk.lower() for word in ['cómo', 'manera', 'forma', 'método', 'proceso']):
+        return f"¿Cómo se describe o explica {main_element} en el material?"
+    
+    # Pregunta general bien formulada
+    if len(key_elements) >= 2:
+        return f"Explica la relación entre {key_elements[0]} y {key_elements[1]} según el texto"
+    else:
+        return f"¿Qué se menciona específicamente sobre {main_element} en el material?"
