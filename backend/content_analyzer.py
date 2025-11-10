@@ -22,13 +22,7 @@ from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 from collections import Counter
 
-# Importar analizador gramatical español
-try:
-    from spanish_grammar_analyzer import SpanishGrammarAnalyzer, extract_validated_names
-    GRAMMAR_ANALYZER_AVAILABLE = True
-except ImportError:
-    GRAMMAR_ANALYZER_AVAILABLE = False
-    print("⚠️ SpanishGrammarAnalyzer no disponible, usando regex básico")
+# NO usar import externo, implementar directamente aquí para evitar errores
 
 @dataclass
 class ChunkAnalysis:
@@ -213,61 +207,122 @@ class ContentAnalyzer:
     
     def _extract_entities(self, text: str) -> List[str]:
         """
-        Extrae entidades clave (nombres propios, conceptos) con validación gramatical
+        Extrae entidades clave (nombres propios, conceptos) con validación ESTRICTA
         
-        MEJORA vs versión anterior:
-        ✅ Usa SpanishGrammarAnalyzer para validar contexto
-        ✅ Distingue nombres propios de objetos comunes
-        ✅ Evita "Toca", "Collar", "Ventana" como nombres
-        ✅ Detecta títulos nobiliarios ("condesa de X")
+        PROBLEMA RESUELTO:
+        ❌ ANTES: "Como y Cierto", "Dr eux", "Pero" (palabras aleatorias)
+        ✅ AHORA: Solo nombres completos validados en contexto
         """
         entities = []
         
-        # MÉTODO 1: Analizador gramatical (PREFERIDO)
-        if GRAMMAR_ANALYZER_AVAILABLE:
-            try:
-                validated_names = extract_validated_names(text)
-                entities.extend(validated_names)
-            except Exception as e:
-                print(f"⚠️ Error en analizador gramatical: {e}, usando fallback")
+        # LISTA NEGRA: Palabras comunes que NO son nombres (aunque empiecen con mayúscula)
+        BLACKLIST_WORDS = {
+            # Objetos comunes
+            'Toca', 'Collar', 'Ventana', 'Puerta', 'Habitación', 'Patio', 'Gabinete', 
+            'Edificio', 'Diamante', 'Montura', 'Noche', 'Día', 'Casa', 'Calle',
+            
+            # Conectores/adverbios que a veces aparecen con mayúscula
+            'Como', 'Pero', 'Cuando', 'Donde', 'Porque', 'Aunque', 'Mientras',
+            'Después', 'Antes', 'Siempre', 'Nunca', 'También', 'Además',
+            
+            # Cuantificadores
+            'Dos', 'Tres', 'Cuatro', 'Cinco', 'Varios', 'Muchos', 'Algunos',
+            
+            # Temporales
+            'Era', 'Fue', 'Había', 'Mañana', 'Tarde',
+            
+            # Abstracciones que no son nombres
+            'Verdad', 'Cierto', 'Inmediatamente', 'Esper', 'Cabal'
+        }
         
-        # MÉTODO 2: Regex mejorado (FALLBACK)
-        # Solo si no hay suficientes entidades del analizador
-        if len(entities) < 3:
-            # Nombres propios con validación básica
-            # Patrón: 1-3 palabras capitalizadas, permitiendo "de", "del", "y"
-            proper_names = re.findall(
-                r'\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+(?:de|del|la|y)\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){0,2})\b',
-                text
-            )
+        # TÍTULOS que indican nombre de persona
+        PERSON_TITLES = {
+            'señor', 'señora', 'don', 'doña', 'conde', 'condesa',
+            'duque', 'duquesa', 'rey', 'reina', 'cardenal', 'príncipe', 'princesa'
+        }
+        
+        # PASO 1: Buscar nombres CON TÍTULO (alta confianza)
+        # Patrón: "señor/condesa + Nombre(s) + de + Apellido(s)"
+        title_pattern = r'\b(?:señor|señora|don|doña|conde|condesa|duque|duquesa|rey|reina|cardenal)\s+(?:de\s+)?([A-ZÁÉÍÓÚÑ][\wáéíóúñ]+(?:\s+(?:de|del|y)\s+[A-ZÁÉÍÓÚÑ][\wáéíóúñ]+)*(?:\s+[A-ZÁÉÍÓÚÑ][\wáéíóúñ]+)*)\b'
+        
+        for match in re.finditer(title_pattern, text, re.IGNORECASE):
+            name = match.group(1).strip()
             
-            # Filtrar objetos comunes que empiezan con mayúscula
-            blacklist = {
-                'Toca', 'Collar', 'Ventana', 'Puerta', 'Habitación', 'Patio',
-                'Gabinete', 'Edificio', 'Diamante', 'Montura', 'Noche', 'Día',
-                'Dos', 'Tres', 'Cuatro', 'Varios', 'Muchos', 'Era', 'Fue'
-            }
-            
-            for name in proper_names:
-                first_word = name.split()[0]
-                if first_word not in blacklist and name not in entities:
+            # Validar que no sea una sola palabra corta
+            if len(name.split()) >= 1 and len(name) > 3:
+                # Limpiar conectores al inicio/final
+                name = re.sub(r'^(?:de|del|y)\s+', '', name)
+                name = re.sub(r'\s+(?:de|del|y)$', '', name)
+                
+                if name and name not in entities:
                     entities.append(name)
         
-        # MÉTODO 3: Conceptos técnicos (palabras capitalizadas sueltas)
-        technical_terms = re.findall(r'\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{3,}\b', text)
-        for term in technical_terms:
-            if term not in entities and len(entities) < 10:
-                # Validar que no sea inicio de oración común
-                if not re.search(r'^' + re.escape(term) + r'\s+(?:es|fue|era|está)', text):
-                    entities.append(term)
+        # PASO 2: Buscar nombres propios SIN título (con validación ESTRICTA)
+        # Patrón mejorado: 2-4 palabras capitalizadas
+        name_pattern = r'\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}(?:\s+(?:de|del|y)\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})*(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}){1,2})\b'
         
-        # MÉTODO 4: Términos entre comillas (conceptos definidos)
-        quoted_terms = re.findall(r'"([^"]{3,30})"', text)
-        entities.extend(quoted_terms)
+        for match in re.finditer(name_pattern, text):
+            name_candidate = match.group(1).strip()
+            words = name_candidate.split()
+            
+            # VALIDACIÓN 1: Mínimo 2 palabras (nombres + apellido)
+            if len(words) < 2:
+                continue
+            
+            # VALIDACIÓN 2: Cada palabra debe tener mínimo 3 caracteres
+            if any(len(w) < 3 for w in words if w.lower() not in {'de', 'del', 'y'}):
+                continue
+            
+            # VALIDACIÓN 3: Primera palabra NO debe estar en blacklist
+            first_word = words[0]
+            if first_word in BLACKLIST_WORDS:
+                continue
+            
+            # VALIDACIÓN 4: NO debe contener palabras blacklist intermedias
+            if any(w in BLACKLIST_WORDS for w in words):
+                continue
+            
+            # VALIDACIÓN 5: Buscar contexto verbal (debe estar cerca de un verbo)
+            # Extraer contexto (50 caracteres antes y después)
+            start = max(0, match.start() - 50)
+            end = min(len(text), match.end() + 50)
+            context = text[start:end].lower()
+            
+            # Verbos que indican persona como sujeto
+            person_verbs = {
+                'dijo', 'preguntó', 'respondió', 'pensó', 'miró', 'vio',
+                'entró', 'salió', 'caminó', 'hizo', 'fue', 'era', 'estaba',
+                'tenía', 'había', 'lucía', 'llevaba', 'ofrecía', 'creyó'
+            }
+            
+            has_verb_context = any(verb in context for verb in person_verbs)
+            
+            # VALIDACIÓN 6: Si no hay verbo cerca, debe haber artículo de persona
+            has_person_article = re.search(r'\b(?:el|la)\s+' + re.escape(words[0].lower()), context)
+            
+            if has_verb_context or has_person_article:
+                # Limpiar y agregar
+                name_clean = re.sub(r'\s+(?:de|del|y)\s*$', '', name_candidate)
+                if name_clean and name_clean not in entities:
+                    entities.append(name_clean)
         
-        # Deduplicar y filtrar
-        entities = list(dict.fromkeys([e.strip() for e in entities if len(e.strip()) > 3]))
-        return entities[:10]  # Top 10
+        # PASO 3: Términos entre comillas (conceptos definidos)
+        quoted_terms = re.findall(r'["«]([^"»]{5,40})["»]', text)
+        for term in quoted_terms:
+            term_clean = term.strip()
+            if len(term_clean.split()) <= 5:  # Máximo 5 palabras
+                entities.append(term_clean)
+        
+        # PASO 4: Deduplicar preservando orden
+        seen = set()
+        unique_entities = []
+        for entity in entities:
+            entity_lower = entity.lower().strip()
+            if entity_lower not in seen and len(entity) > 3:
+                seen.add(entity_lower)
+                unique_entities.append(entity.strip())
+        
+        return unique_entities[:8]  # Top 8 (reducido para mayor calidad)
     
     def _extract_verbs(self, text: str) -> List[str]:
         """Extrae verbos principales del chunk"""
