@@ -2576,14 +2576,33 @@ async function generateQuestionsAuto() {
     console.log(`✅ Pregunta generada automáticamente`);
     console.log('Pregunta recibida:', result.questions);
     
-    // ✅ COLOCAR LA PREGUNTA EN EL TEXTAREA (NO GUARDAR AUTOMÁTICAMENTE)
+    // ✅ COLOCAR LA PREGUNTA EN EL TEXTAREA CORRECTO
     if (result.questions && result.questions.length > 0) {
       const preguntaGenerada = result.questions[0].question;
-      const textarea = document.getElementById('question-input');
+      const textarea = document.getElementById('user-question'); // ✅ ID CORRECTO
       if (textarea) {
         textarea.value = preguntaGenerada;
-        textarea.dispatchEvent(new Event('input')); // Activar contador y validación
+        textarea.focus(); // ✅ Dar foco al textarea
+        
+        // ✅ Disparar eventos para activar validaciones
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        textarea.dispatchEvent(new Event('change', { bubbles: true }));
+        
         console.log('✅ Pregunta colocada en textarea:', preguntaGenerada);
+        
+        // ✅ Mostrar notificación visual
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+        notification.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined">check_circle</span>
+            <span class="font-semibold">Pregunta generada del material</span>
+          </div>
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+      } else {
+        console.error('❌ No se encontró el textarea user-question');
       }
     }
     
