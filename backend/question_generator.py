@@ -167,7 +167,19 @@ def extract_key_concepts(text: str, max_concepts: int = 5) -> List[str]:
     return unique_concepts[:max_concepts]
 
 def generate_questions_dict(chunks: List[str], num_questions: int = 5, strategy: str = 'random') -> List[Dict]:
-    """Genera preguntas LITERALES y ESPECÍFICAS basadas en el contenido real de los chunks"""
+    """
+    Genera preguntas ULTRA-ESPECÍFICAS extrayendo CITAS LITERALES del chunk
+    
+    ESTRATEGIA RAG:
+    1. Toma fragmento TEXTUAL del chunk (50-100 caracteres)
+    2. Genera pregunta que REQUIERA citar ese fragmento exacto
+    3. La respuesta correcta DEBE contener palabras del chunk
+    
+    Esto garantiza:
+    - Alta similitud semántica (pregunta y respuesta comparten chunk)
+    - Preguntas contextualizadas al material REAL
+    - Validación RAG precisa (embedding de respuesta cerca del chunk)
+    """
     if not chunks:
         return []
     
@@ -177,7 +189,7 @@ def generate_questions_dict(chunks: List[str], num_questions: int = 5, strategy:
     if strategy == 'random':
         selected_indices = random.sample(range(len(chunks)), num_questions)
     elif strategy == 'diverse':
-        step = len(chunks) // num_questions
+        step = max(1, len(chunks) // num_questions)
         selected_indices = [i * step for i in range(num_questions)]
     else:  # sequential
         selected_indices = list(range(num_questions))
@@ -185,50 +197,58 @@ def generate_questions_dict(chunks: List[str], num_questions: int = 5, strategy:
     for idx in selected_indices:
         chunk = chunks[idx]
         
-        # Detectar tipo de contenido
+        # ✅ ESTRATEGIA 1: Extraer CITA LITERAL del chunk (primera oración completa)
+        first_sentence = chunk.split('.')[0].strip()
+        if len(first_sentence) < 20:  # Si es muy corta, tomar más
+            sentences = chunk.split('.')
+            first_sentence = ('.'.join(sentences[:2])).strip()
+        
+        # Limitar longitud de la cita (50-150 caracteres)
+        citation = first_sentence[:150] if len(first_sentence) > 150 else first_sentence
+        
+        # ✅ ESTRATEGIA 2: Identificar concepto/personaje/término clave
         content_type = detect_content_type(chunk)
+        key_concepts = extract_key_concepts(chunk, max_concepts=3)
+        main_concept = key_concepts[0] if key_concepts else "este fragmento"
         
-        # Extraer conceptos/fragmentos LITERALES del chunk
-        concepts = extract_key_concepts(chunk)
+        # ✅ ESTRATEGIA 3: Generar pregunta ESPECÍFICA que requiera el chunk
+        question_templates = {
+            'narrative': [
+                f'Según el texto que dice "{citation[:80]}...", ¿qué sucede después?',
+                f'El fragmento menciona "{citation[:80]}...". Explica qué ocurre en esta parte',
+                f'¿Qué dice el texto sobre {main_concept}? (Cita el fragmento completo)',
+            ],
+            'character': [
+                f'Según el texto: "{citation[:80]}...", ¿qué hace {main_concept}?',
+                f'El material dice "{citation[:80]}...". ¿Cuál es el papel de {main_concept}?',
+                f'Cita textualmente qué menciona el texto sobre {main_concept}',
+            ],
+            'concept': [
+                f'El texto define: "{citation[:80]}...". Completa la definición',
+                f'¿Cómo explica el material {main_concept}? (Cita el fragmento)',
+                f'Según el texto que menciona "{citation[:80]}...", explica {main_concept}',
+            ],
+            'formula': [
+                f'¿Qué fórmula o ecuación se presenta en el fragmento que dice "{citation[:60]}..."?',
+                f'Transcribe y explica la expresión matemática del texto',
+            ],
+            'factual': [
+                f'El texto menciona: "{citation[:80]}...". ¿Qué datos específicos presenta?',
+                f'Según el fragmento "{citation[:80]}...", ¿qué información factual contiene?',
+            ]
+        }
         
-        # ✅ Generar pregunta LITERAL Y ESPECÍFICA del chunk real
-        if content_type == 'narrative':
-            # Para narrativa: usar fragmento LITERAL del texto
-            context = concepts[0] if concepts else chunk.split('.')[0][:60]
-            template = random.choice(QUESTION_TEMPLATES['narrative'])
-            question = template.format(context=context)
-        
-        elif content_type == 'character' and concepts:
-            # Para personajes: usar nombre EXACTO del personaje
-            character = concepts[0]  # Primer nombre propio encontrado
-            template = random.choice(QUESTION_TEMPLATES['character'])
-            question = template.format(concept=character)
-        
-        elif content_type == 'formula':
-            # Para fórmulas: pregunta técnica sobre ecuación
-            question = random.choice(QUESTION_TEMPLATES['formula'])
-        
-        elif content_type == 'factual':
-            # Para contenido factual: pregunta sobre datos específicos
-            question = random.choice(QUESTION_TEMPLATES['factual'])
-        
-        else:
-            # Para conceptos: usar término ESPECÍFICO del chunk
-            if concepts:
-                concept = concepts[0]  # Fragmento literal o término clave
-            else:
-                # Extraer fragmento inicial como concepto
-                concept = ' '.join(chunk.split()[:5])
-            
-            template = random.choice(QUESTION_TEMPLATES['concept'])
-            question = template.format(concept=concept)
+        # Seleccionar template según tipo de contenido
+        templates = question_templates.get(content_type, question_templates['concept'])
+        question = random.choice(templates)
         
         questions.append({
             'question': question,
-            'reference_chunk': chunk,
+            'reference_chunk': chunk,  # ✅ Chunk completo para validación RAG
             'chunk_index': idx,
             'question_type': content_type,
-            'concepts': concepts
+            'concepts': key_concepts,
+            'citation': citation  # ✅ Cita literal incluida en la pregunta
         })
     
     return questions
