@@ -213,26 +213,6 @@
       </p>
     </div>
 
-    <!-- Selector de Tópico/Tema (NUEVO - Sprint 2) -->
-    <div class="mb-8 bg-[var(--base-gray)] rounded-xl p-6">
-      <label for="topic-selector" class="block text-sm font-semibold text-[var(--secondary-color)] mb-3">
-        📂 Asignar a un Tópico/Tema (Opcional)
-      </label>
-      <div class="flex gap-3">
-        <select id="topic-selector" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent">
-          <option value="">Sin tópico asignado</option>
-          <!-- Los tópicos se cargan dinámicamente -->
-        </select>
-        <button onclick="openCreateTopicModal()" class="px-4 py-2 bg-[var(--secondary-color)] text-white rounded-lg hover:bg-opacity-90 flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">add</span>
-          Nuevo Tópico
-        </button>
-      </div>
-      <p class="text-xs text-[var(--text-secondary)] mt-2">
-        Los tópicos te permiten organizar materiales por tema y generar preguntas automáticas basadas en contenido relacionado.
-      </p>
-    </div>
-
     <!-- Sección de Materiales Existentes -->
     <div id="existing-materials-section" class="mb-8">
       <div class="flex items-center justify-between mb-4">
@@ -837,120 +817,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Cargar materiales al iniciar la página
   refreshMaterials();
-  
-  // SPRINT 2: Cargar tópicos disponibles
-  loadTopics();
 });
-
-// ==================== SPRINT 2: FUNCIONES DE TÓPICOS ====================
-
-async function loadTopics() {
-  try {
-    const token = localStorage.getItem('sb-access-token');
-    if (!token) return;
-
-    const response = await fetch(`${API_BASE_URL}/api/topics`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    if (!response.ok) throw new Error('Error cargando tópicos');
-
-    const topics = await response.json();
-    const selector = document.getElementById('topic-selector');
-    
-    // Limpiar opciones previas (excepto la primera)
-    selector.innerHTML = '<option value="">Sin tópico asignado</option>';
-    
-    // Agregar tópicos
-    topics.forEach(topic => {
-      const option = document.createElement('option');
-      option.value = topic.id;
-      option.textContent = topic.name;
-      selector.appendChild(option);
-    });
-  } catch (error) {
-    console.error('Error cargando tópicos:', error);
-  }
-}
-
-function openCreateTopicModal() {
-  const name = prompt('Nombre del nuevo tópico/tema:');
-  if (!name || name.trim() === '') return;
-
-  const description = prompt('Descripción (opcional):');
-
-  createTopic(name.trim(), description ? description.trim() : null);
-}
-
-async function createTopic(name, description) {
-  try {
-    const token = localStorage.getItem('sb-access-token');
-    if (!token) {
-      alert('Debes iniciar sesión para crear tópicos');
-      return;
-    }
-
-    const response = await fetch(`${API_BASE_URL}/api/topics`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ name, description })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Error creando tópico');
-    }
-
-    const newTopic = await response.json();
-    alert(`✅ Tópico "${newTopic.name}" creado exitosamente`);
-    
-    // Recargar lista de tópicos
-    await loadTopics();
-    
-    // Seleccionar el nuevo tópico
-    document.getElementById('topic-selector').value = newTopic.id;
-  } catch (error) {
-    console.error('Error creando tópico:', error);
-    alert(`❌ Error al crear tópico:\n\n${error.message}`);
-  }
-}
-
-// Modificar la función procesarArchivo para incluir el topic_id
-async function procesarArchivoConTopic(file) {
-  const topicId = document.getElementById('topic-selector').value;
-  
-  // Llamar a la función original de procesamiento
-  // y luego asignar el tópico si fue seleccionado
-  await procesarArchivo(file);
-  
-  // Si hay un tópico seleccionado y el material fue subido exitosamente,
-  // asignar el tópico al material
-  if (topicId && window.lastUploadedMaterialId) {
-    try {
-      const token = localStorage.getItem('sb-access-token');
-      const response = await fetch(`${API_BASE_URL}/api/materials/${window.lastUploadedMaterialId}/assign-topic?topic_id=${topicId}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        console.log('✅ Tópico asignado al material');
-      }
-    } catch (error) {
-      console.error('Error asignando tópico:', error);
-    }
-  }
-}
-
-// ==================== FIN SPRINT 2 ====================
-
 </script>
 
 <!-- Scripts del Backend API -->
