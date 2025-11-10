@@ -921,3 +921,229 @@ WHERE name = 'avatars';
 UPDATE user_profiles 
 SET avatar_url = 'https://xqicgzqgluslzleddmfv.supabase.co/storage/...'
 WHERE id = 'user_id';
+
+
+-- Verificar que la extensión pgvector está instalada
+SELECT * FROM pg_extension WHERE extname = 'vector';
+
+
+
+-- Query corregido dimension de embeddings 
+SELECT 
+  chunk_index,
+  LEFT(chunk_text, 50) AS preview,
+  array_length(embedding, 1) AS dimensions
+FROM material_embeddings
+LIMIT 5;
+
+
+SELECT 
+  m.title AS material,
+  COUNT(me.id) AS num_chunks,
+  ROUND(COUNT(me.id) * 1.5, 2) AS size_kb
+FROM materials m
+LEFT JOIN material_embeddings me ON m.id = me.material_id
+GROUP BY m.id, m.title
+ORDER BY num_chunks DESC;
+
+
+SELECT 
+  indexname,
+  indexdef
+FROM pg_indexes
+WHERE tablename = 'material_embeddings';
+
+SELECT proname 
+FROM pg_proc 
+WHERE proname = 'match_material_chunks';
+
+
+
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE IF NOT EXISTS public.materials (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    file_name TEXT NOT NULL,
+    file_path TEXT,
+    file_type TEXT NOT NULL,
+    total_chunks INTEGER DEFAULT 0,
+    total_characters INTEGER DEFAULT 0,
+    estimated_pages INTEGER DEFAULT 0,
+    storage_bucket TEXT DEFAULT 'materials',
+    storage_path TEXT,
+    processing_status TEXT DEFAULT 'pending',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.material_embeddings (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    material_id UUID NOT NULL REFERENCES public.materials(id) ON DELETE CASCADE,
+    chunk_index INTEGER NOT NULL,
+    chunk_text TEXT NOT NULL,
+    embedding vector(384) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(material_id, chunk_index)
+);
+
+CREATE TABLE IF NOT EXISTS public.folders (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    parent_folder_id UUID REFERENCES public.folders(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    path TEXT,
+    color TEXT DEFAULT '#FF6B35',
+    icon TEXT DEFAULT 'folder',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.material_folders (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    material_id UUID NOT NULL REFERENCES public.materials(id) ON DELETE CASCADE,
+    folder_id UUID NOT NULL REFERENCES public.folders(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(material_id, folder_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.questions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    material_id UUID NOT NULL REFERENCES public.materials(id) ON DELETE CASCADE,
+    question_text TEXT NOT NULL,
+    topic TEXT,
+    difficulty TEXT DEFAULT 'medium',
+    expected_answer TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.answers (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    question_id UUID NOT NULL REFERENCES public.questions(id) ON DELETE CASCADE,
+    answer_text TEXT NOT NULL,
+    score DECIMAL(5,2) NOT NULL,
+    similarity DECIMAL(5,4),
+    is_correct BOOLEAN DEFAULT FALSE,
+    classification TEXT NOT NULL,
+    feedback TEXT,
+    best_match_chunk TEXT,
+    relevant_chunks JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.user_profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    full_name TEXT,
+    avatar_url TEXT,
+    bio TEXT,
+    institution TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.spaced_repetition (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    question_id UUID NOT NULL REFERENCES public.questions(id) ON DELETE CASCADE,
+    next_review DATE NOT NULL,
+    interval_days INT NOT NULL DEFAULT 1,
+    ease_factor DECIMAL(4,2) NOT NULL DEFAULT 2.5,
+    repetitions INT NOT NULL DEFAULT 0,
+    last_score DECIMAL(5,2),
+    last_review DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, question_id)
+);
+
+
+CREATE INDEX IF NOT EXISTS idx_materials_user_id ON public.materials(user_id);
+CREATE INDEX IF NOT EXISTS idx_materials_status ON public.materials(processing_status);
+
+CREATE INDEX IF NOT EXISTS idx_embeddings_ivfflat
+ON public.material_embeddings 
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+CREATE INDEX IF NOT EXISTS idx_embeddings_material_id ON public.material_embeddings(material_id);
+
+CREATE INDEX IF NOT EXISTS idx_folders_user_id ON public.folders(user_id);
+CREATE INDEX IF NOT EXISTS idx_folders_parent_id ON public.folders(parent_folder_id);
+
+CREATE INDEX IF NOT EXISTS idx_material_folders_material ON public.material_folders(material_id);
+CREATE INDEX IF NOT EXISTS idx_material_folders_folder ON public.material_folders(folder_id);
+
+CREATE INDEX IF NOT EXISTS idx_questions_user_id ON public.questions(user_id);
+CREATE INDEX IF NOT EXISTS idx_questions_material_id ON public.questions(material_id);
+
+CREATE INDEX IF NOT EXISTS idx_answers_user_id ON public.answers(user_id);
+CREATE INDEX IF NOT EXISTS idx_answers_question_id ON public.answers(question_id);
+CREATE INDEX IF NOT EXISTS idx_answers_score ON public.answers(score);
+
+CREATE INDEX IF NOT EXISTS idx_spaced_user_id ON public.spaced_repetition(user_id);
+CREATE INDEX IF NOT EXISTS idx_spaced_question_id ON public.spaced_repetition(question_id);
+CREATE INDEX IF NOT EXISTS idx_spaced_next_review ON public.spaced_repetition(next_review);
+
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_materials_updated_at 
+    BEFORE UPDATE ON public.materials 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_folders_updated_at 
+    BEFORE UPDATE ON public.folders 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_profiles_updated_at 
+    BEFORE UPDATE ON public.user_profiles 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_spaced_repetition_updated_at 
+    BEFORE UPDATE ON public.spaced_repetition 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+
+
+
+SELECT * FROM information_schema.tables WHERE table_schema = 'public';
+SELECT * FROM pg_extension WHERE extname = 'vector';
+SELECT policyname, cmd, roles FROM pg_policies WHERE tablename = 'materials' ORDER BY policyname;
+
+
+
+CREATE TABLE IF NOT EXISTS public.topics (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.generated_questions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    material_id UUID REFERENCES public.materials(id) ON DELETE CASCADE,
+    topic_id UUID REFERENCES public.topics(id) ON DELETE CASCADE,
+    question_text TEXT NOT NULL,
+    question_type TEXT NOT NULL,
+    reference_chunk_index INTEGER,
+    concepts TEXT[],
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
+ALTER TABLE public.materials 
+ADD COLUMN IF NOT EXISTS topic_id UUID REFERENCES public.topics(id) ON DELETE SET NULL;
