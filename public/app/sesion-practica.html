@@ -1565,6 +1565,11 @@ async function loadQuestionsFromSupabase() {
       window.updateQuestionsList();
     }
     
+    // 🆕 SPRINT 2: Mostrar botón de generación automática
+    if (typeof updateGenerateButton === 'function') {
+      updateGenerateButton();
+    }
+    
   } catch (error) {
     console.error('❌ Error cargando preguntas desde Supabase:', error);
     questionsHistory = [];
@@ -2009,6 +2014,11 @@ async function loadMaterialInfo(materialId) {
         if (typeof window.addValidationLog === 'function') {
           window.addValidationLog(`📚 Material activo: ${materialFileName}`, 'success');
           window.addValidationLog(`📍 ${rutaCompleta}`, 'info');
+        }
+        
+        // 🆕 SPRINT 2: Mostrar botón de generación automática
+        if (typeof updateGenerateButton === 'function') {
+          updateGenerateButton();
         }
       } else {
         console.warn(`⚠️ Material UUID ${materialId} no encontrado en Supabase`);
