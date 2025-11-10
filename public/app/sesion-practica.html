@@ -2553,7 +2553,7 @@ async function generateQuestionsAuto() {
     const token = localStorage.getItem('sb-access-token');
     const backendUrl = api.baseUrl; // ✅ Usar la URL del cliente API
     
-    // ✅ Generar automáticamente (1 pregunta por sección del material)
+    // ✅ Generar 1 pregunta a la vez (iterativo como "Nueva Pregunta")
     const response = await fetch(`${backendUrl}/api/materials/${materialId}/generate-questions`, {
       method: 'POST',
       headers: {
@@ -2561,8 +2561,8 @@ async function generateQuestionsAuto() {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        num_questions: 5,  // Cantidad por defecto
-        strategy: 'diverse'  // Estrategia diversa por defecto
+        num_questions: 1,  // ✅ 1 pregunta a la vez
+        strategy: 'diverse'  // Estrategia diversa
       })
     });
 
@@ -2573,7 +2573,8 @@ async function generateQuestionsAuto() {
 
     const result = await response.json();
     
-    alert(`✅ Se generaron ${result.questions_generated} preguntas automáticamente`);
+    // ✅ Mensaje claro: 1 pregunta generada (iterativo)
+    console.log(`✅ Pregunta generada automáticamente del material`);
     
     // Agregar las preguntas generadas a Supabase como preguntas normales
     for (const q of result.questions) {
