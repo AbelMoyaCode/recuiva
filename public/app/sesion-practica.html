@@ -2588,7 +2588,14 @@ async function generateQuestionsAuto() {
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
         textarea.dispatchEvent(new Event('change', { bubbles: true }));
         
+        // ✅ CRÍTICO: Llamar explícitamente a checkValidateButton()
+        if (typeof window.checkValidateButton === 'function') {
+          window.checkValidateButton();
+          console.log('✅ checkValidateButton() llamado manualmente');
+        }
+        
         console.log('✅ Pregunta colocada en textarea:', preguntaGenerada);
+        console.log('📝 Longitud de pregunta:', preguntaGenerada.length, 'caracteres');
         
         // ✅ Mostrar notificación visual
         const notification = document.createElement('div');
@@ -2596,7 +2603,7 @@ async function generateQuestionsAuto() {
         notification.innerHTML = `
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined">check_circle</span>
-            <span class="font-semibold">Pregunta generada del material</span>
+            <span class="font-semibold">✅ Pregunta generada del material (${preguntaGenerada.length} caracteres)</span>
           </div>
         `;
         document.body.appendChild(notification);
