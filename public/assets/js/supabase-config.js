@@ -28,6 +28,9 @@ function initSupabase() {
 // Inicializar automáticamente
 supabaseClient = initSupabase();
 
+// ✅ Hacerlo disponible globalmente en window
+window.supabaseClient = supabaseClient;
+
 // Helper functions
 async function getCurrentUser() {
   if (!supabaseClient) {

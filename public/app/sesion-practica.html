@@ -2593,13 +2593,21 @@ async function generateQuestionsAuto() {
 async function loadQuestionsFromGeneratedTable(materialId) {
   // ✅ Cargar preguntas desde generated_questions (tabla Sprint 2)
   try {
-    // ✅ VERIFICAR que supabaseClient esté disponible
-    if (typeof window.supabaseClient === 'undefined' || !window.supabaseClient) {
-      console.error('❌ supabaseClient no está disponible');
+    // ✅ ESPERAR a que supabaseClient esté disponible (máximo 5 segundos)
+    let attempts = 0;
+    while ((!window.supabaseClient || typeof window.supabaseClient === 'undefined') && attempts < 50) {
+      console.log('⏳ Esperando a que supabaseClient se cargue...');
+      await new Promise(resolve => setTimeout(resolve, 100)); // Esperar 100ms
+      attempts++;
+    }
+    
+    if (!window.supabaseClient) {
+      console.error('❌ supabaseClient no está disponible después de 5 segundos');
       return;
     }
     
     const supabase = window.supabaseClient;
+    console.log('✅ supabaseClient encontrado, cargando preguntas...');
     
     const { data, error } = await supabase
       .from('generated_questions')
@@ -2607,7 +2615,10 @@ async function loadQuestionsFromGeneratedTable(materialId) {
       .eq('material_id', materialId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Error de Supabase:', error);
+      throw error;
+    }
     
     console.log(`📚 ${data.length} preguntas automáticas cargadas`);
     
