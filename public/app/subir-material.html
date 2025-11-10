@@ -574,6 +574,26 @@ document.addEventListener('DOMContentLoaded', function() {
         if (carpetaActiva.id && supabaseMaterialId) {
           await SupabaseOperations.linkMaterialToFolder(supabaseMaterialId, carpetaActiva.id);
           console.log(`📂 Material asociado a carpeta en Supabase:`, carpetaActiva);
+          
+          // SPRINT 2: Asignar tópico automáticamente
+          const topicId = localStorage.getItem(`folder_topic_${carpetaActiva.id}`);
+          if (topicId) {
+            try {
+              const token = localStorage.getItem('sb-access-token');
+              const topicResponse = await fetch(`${API_BASE_URL}/api/materials/${supabaseMaterialId}/assign-topic?topic_id=${topicId}`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              });
+              
+              if (topicResponse.ok) {
+                console.log('✅ Material asignado al tópico de la carpeta:', topicId);
+              }
+            } catch (topicError) {
+              console.warn('⚠️ Error asignando tópico (no crítico):', topicError);
+            }
+          }
         }
         
       } catch (supabaseError) {

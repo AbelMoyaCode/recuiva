@@ -1305,6 +1305,34 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const folder = await SupabaseOperations.createFolder(nombre, parentId, options);
       console.log('✅ Carpeta guardada en Supabase:', folder);
+      
+      // SPRINT 2: Crear tópico asociado a la carpeta
+      try {
+        const token = localStorage.getItem('sb-access-token');
+        const response = await fetch(`${API_BASE_URL}/api/topics`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            name: nombre,
+            description: `Tópico asociado a la carpeta: ${nombre}`,
+            folder_id: folder.id
+          })
+        });
+        
+        if (response.ok) {
+          const topic = await response.json();
+          console.log('✅ Tópico creado y asociado a carpeta:', topic);
+          // Guardar relación carpeta-tópico en localStorage para acceso rápido
+          localStorage.setItem(`folder_topic_${folder.id}`, topic.id);
+        }
+      } catch (topicError) {
+        console.warn('⚠️ Error creando tópico (no crítico):', topicError);
+        // No fallar si no se puede crear el tópico, la carpeta ya está creada
+      }
+      
       return folder;
     } catch (error) {
       console.error('❌ Error al guardar carpeta:', error);

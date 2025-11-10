@@ -1020,11 +1020,13 @@ except ImportError:
 class TopicCreate(BaseModel):
     name: str
     description: Optional[str] = None
+    folder_id: Optional[str] = None  # SPRINT 2: Relación con carpeta
 
 class TopicResponse(BaseModel):
     id: str
     name: str
     description: Optional[str]
+    folder_id: Optional[str]  # SPRINT 2: Relación con carpeta
     created_at: str
 
 class GenerateQuestionsRequest(BaseModel):
@@ -1041,11 +1043,17 @@ async def create_topic(topic: TopicCreate, authorization: Optional[str] = Header
         supabase = get_supabase_client()
         user = await get_current_user(authorization)
         
-        result = supabase.table('topics').insert({
+        topic_data = {
             'user_id': user['id'],
             'name': topic.name,
             'description': topic.description
-        }).execute()
+        }
+        
+        # SPRINT 2: Incluir folder_id si está presente
+        if topic.folder_id:
+            topic_data['folder_id'] = topic.folder_id
+        
+        result = supabase.table('topics').insert(topic_data).execute()
         
         return result.data[0]
     except Exception as e:

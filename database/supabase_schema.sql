@@ -1130,6 +1130,7 @@ CREATE TABLE IF NOT EXISTS public.topics (
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
+    folder_id UUID REFERENCES public.folders(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
