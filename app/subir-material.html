@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <title>Subir Material - Recuiva</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      
+      /* Estilo global para el logo Recuiva */
+      .recuiva-logo {
+        font-family: 'Manrope', sans-serif !important;
+        font-weight: 800 !important;
+        font-size: 1.5rem !important;
+      }
+      .upload-zone {
+        border: 2px dashed var(--accent-color);
+        transition: all 0.3s ease;
+      }
+      .upload-zone.dragover {
+        border-color: var(--primary-color);
+        background-color: rgba(255, 102, 0, 0.05);
+      }
+      .menu-btn {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+      .menu-btn:hover {
+        transform: scale(1.1);
+      }
+      .mobile-menu {
+        transform-origin: top;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform: scaleY(0);
+        opacity: 0;
+        pointer-events: none;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .mobile-menu.active {
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #menu-btn.active .menu-icon {
+        transform: rotate(180deg);
+      }
+      .profile-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        padding: 0.75rem 0;
+        min-width: 14rem;
+        z-index: 50;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+      }
+      .profile-dropdown.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      .profile-dropdown a, .profile-dropdown button {
+        transition: all 0.2s ease;
+      }
+      .profile-dropdown a:hover, .profile-dropdown button:hover {
+        transform: translateX(4px);
+      }
+      .notification-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        padding: 0.1rem 0.4rem;
+        min-width: 1.2rem;
+        text-align: center;
+      }
+      
+      /* Modal de notificaciones mejorado - Estilo elegante */
+      .notification-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      .notification-modal.show {
+        opacity: 1;
+        visibility: visible;
+      }
+      .notification-modal-content {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        max-width: 26rem;
+        margin: 1rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.8) translateY(30px);
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .notification-modal.show .notification-modal-content {
+        transform: scale(1) translateY(0);
+      }
+      .notification-icon-container {
+        background: linear-gradient(135deg, #FF6600, #FF8533);
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 8px 16px rgba(255, 102, 0, 0.3);
+      }
+      .notification-modal h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.75rem;
+        text-align: center;
+      }
+      .notification-modal p {
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: #6b7280;
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .modal-button {
+        background: linear-gradient(135deg, #FF6600, #FF8533);
+        color: white;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+        width: 100%;
+      }
+      .modal-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 102, 0, 0.4);
+      }
+      .processing {
+        animation: pulse 2s infinite;
+      }
+    </style>
+</head>
+<body class="bg-[var(--base-gray)] min-h-screen">
+
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <a href="../index.html" class="flex items-center gap-2">
+      <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  <nav class="hidden md:flex items-center gap-4">
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../index.html">Inicio</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="materiales.html">Materiales</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../dashboard.html">Dashboard</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="repasos.html">Repasos</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="sesion-practica.html">Práctica</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <!-- Notifications (solo desktop) -->
+    <button onclick="showBackendModal('notifications', 'Notificaciones', 'Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor.')" class="hidden md:inline-block relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none transition-all">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="notification-badge">3</span>
+    </button>
+    <!-- Profile Dropdown (solo desktop) -->
+    <div class="hidden md:inline-block relative">
+      <button id="profile-btn" class="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus:outline-none">
+        <img alt="User profile picture" class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR"/>
+        <span class="material-symbols-outlined text-gray-500">expand_more</span>
+      </button>
+      <div id="profile-dropdown" class="profile-dropdown">
+        <div class="px-4 py-3 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <img class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR" alt="Foto de perfil"/>
+            <div>
+              <div class="font-medium text-gray-900">Juan Pérez</div>
+              <div class="text-sm text-gray-500">juan@ejemplo.com</div>
+            </div>
+          </div>
+        </div>
+        <a href="mi-perfil.html" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+          <span class="material-symbols-outlined mr-2">person</span>
+          Mi Perfil
+        </a>
+        <hr class="my-1 border-gray-200">
+        <button onclick="logout()" class="flex w-full items-center px-4 py-2 text-red-600 hover:bg-red-50">
+          <span class="material-symbols-outlined mr-2">logout</span>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+    <!-- Botón menú móvil (solo móvil) -->
+    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
+      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)] menu-icon">menu</span>
+    </button>
+  </div>
+</div>
+<!-- Mobile Menu -->
+<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
+<div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-8">
+  <!-- Perfil y configuración arriba de navegación -->
+  <div class="flex flex-col items-center w-full mb-2 py-2">
+    <div class="flex flex-col items-center w-full px-6 py-2 hover:bg-gray-100 rounded-xl cursor-pointer transition-all">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR" alt="Perfil" class="w-10 h-10 rounded-full border-2 border-blue-700 mx-auto object-cover" />
+      <span class="text-base font-semibold text-gray-800 mt-2 text-center">Mi perfil</span>
+    </div>
+    <div class="flex flex-col items-center w-full px-6 py-2 hover:bg-gray-100 rounded-xl cursor-pointer transition-all">
+      <span class="material-symbols-outlined mx-auto">settings</span>
+    </div>
+  </div>
+  <hr class="w-2/3 border-gray-300 my-2" />
+  <!-- Navegación principal -->
+  <nav class="flex flex-col items-center gap-6 w-full">
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../index.html">Inicio</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="materiales.html">Materiales</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../dashboard.html">Dashboard</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="repasos.html">Repasos</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="sesion-practica.html">Práctica</a>
+  </nav>
+  <hr class="w-2/3 border-gray-300 my-2" />
+  <button onclick="logout()" class="flex items-center gap-2 text-base text-red-600 font-semibold">
+    <span class="material-symbols-outlined">logout</span>
+    Cerrar sesión
+  </button>
+</div>
+</div>
+</header>
+
+<main class="container mx-auto px-4 py-8 max-w-4xl">
+  
+  <!-- Breadcrumb -->
+  <div class="mb-6">
+    <nav class="text-sm text-[var(--text-secondary)]">
+      <a href="../dashboard.html" class="hover:text-[var(--primary-color)]">Dashboard</a>
+      <span class="mx-2">></span>
+      <span id="carpeta-nombre" class="text-[var(--text-primary)] font-semibold"></span>
+      <span class="mx-2">></span>
+      <span>Subir Material</span>
+    </nav>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-lg p-8">
+    
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <span class="material-symbols-outlined text-4xl text-[var(--primary-color)] mb-4">upload_file</span>
+      <h1 class="text-2xl font-bold text-[var(--secondary-color)] mb-2">
+        Subir Material de Estudio
+      </h1>
+      <p class="text-[var(--text-secondary)]">
+        Sube tu PDF o imágenes para generar el índice vectorial y habilitar la validación semántica
+      </p>
+    </div>
+
+    <!-- Zona de Upload -->
+    <div id="upload-zone" class="upload-zone rounded-xl p-12 text-center mb-6">
+      <span class="material-symbols-outlined text-6xl text-[var(--accent-color)] mb-4">cloud_upload</span>
+      <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-2">
+        Arrastra y suelta tu archivo aquí
+      </h3>
+      <p class="text-[var(--text-secondary)] mb-4">
+        o haz clic para seleccionar
+      </p>
+      <p class="text-sm text-[var(--text-secondary)]">
+        Formatos soportados: PDF, JPG, PNG (max 50MB)
+      </p>
+      <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" class="hidden" />
+      <button onclick="document.getElementById('file-input').click()" 
+              class="mt-4 px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90">
+        Seleccionar Archivo
+      </button>
+    </div>
+
+    <!-- Progress -->
+    <div id="progress-section" class="hidden mb-6">
+      <div class="bg-[var(--base-gray)] rounded-lg p-4">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="material-symbols-outlined text-[var(--primary-color)] processing">settings</span>
+          <span class="font-semibold text-[var(--text-primary)]">Procesando material...</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div id="progress-bar" class="bg-[var(--primary-color)] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p id="progress-text" class="text-sm text-[var(--text-secondary)] mt-2">Iniciando...</p>
+      </div>
+    </div>
+
+    <!-- File Info -->
+    <div id="file-info" class="hidden mb-6">
+      <div class="bg-[var(--base-gray)] rounded-lg p-4">
+        <div class="flex items-center gap-3">
+          <span id="file-icon" class="material-symbols-outlined text-2xl text-[var(--primary-color)]"></span>
+          <div class="flex-1">
+            <div id="file-name" class="font-semibold text-[var(--text-primary)]"></div>
+            <div id="file-size" class="text-sm text-[var(--text-secondary)]"></div>
+          </div>
+          <button onclick="removerArchivo()" class="text-red-500 hover:text-red-700">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div id="success-section" class="hidden text-center">
+      <span class="material-symbols-outlined text-4xl text-green-500 mb-4">check_circle</span>
+      <h3 class="text-lg font-bold text-[var(--secondary-color)] mb-2">
+        ¡Material procesado exitosamente!
+      </h3>
+      <p class="text-[var(--text-secondary)] mb-6">
+        Se ha generado el índice vectorial. Ahora puedes crear tu primera pregunta.
+      </p>
+      <div class="flex gap-4 justify-center">
+        <button onclick="volverDashboard()" 
+                class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+          Volver al Dashboard
+        </button>
+        <button onclick="crearPrimeraPregunta()" 
+                class="px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90">
+          Crear Primera Pregunta
+        </button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // === FUNCIONES MODALES BACKEND MEJORADAS ===
+  window.showBackendModal = function(icon, title, description) {
+    showAdvancedModal(icon, title, description);
+  };
+  
+  // Modal avanzado con mejor UX
+  window.showAdvancedModal = function(icon, title, description) {
+    // Crear modal si no existe
+    let modal = document.getElementById('advanced-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'advanced-modal';
+      modal.className = 'notification-modal';
+      modal.innerHTML = `
+        <div class="notification-modal-content">
+          <div class="notification-icon-container">
+            <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">notifications</span>
+          </div>
+          <h3 id="modal-title">🔔 Notificaciones</h3>
+          <p id="modal-description">Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor. Por ahora puedes explorar la funcionalidad simulada. En la versión completa con backend, esto funcionará en tiempo real.</p>
+          <button onclick="closeAdvancedModal()" class="modal-button">
+            Aceptar
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // Cerrar con escape
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+          closeAdvancedModal();
+        }
+      });
+      
+      // Cerrar clickeando fuera
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          closeAdvancedModal();
+        }
+      });
+    }
+    
+    // Actualizar contenido
+    const iconMap = {
+      'notifications': '🔔',
+      'settings': '⚙️',
+      'dashboard': '📊',
+      'analytics': '📈'
+    };
+    
+    document.getElementById('modal-icon').textContent = icon;
+    document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
+    document.getElementById('modal-description').textContent = description;
+    
+    // Mostrar modal con animación
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  };
+  
+  window.closeAdvancedModal = function() {
+    const modal = document.getElementById('advanced-modal');
+    if (modal) {
+      modal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  };
+  
+  // === FUNCIONES NAVEGACIÓN ===
+  window.logout = function() {
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+      localStorage.removeItem('recuiva_user');
+      window.location.href = '../auth/iniciar-sesion.html';
+    }
+  };
+
+  // Menú móvil animación
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = menuBtn?.querySelector('.material-symbols-outlined');
+  let isMenuOpen = false;
+
+  function toggleMenu() {
+    isMenuOpen = !isMenuOpen;
+    mobileMenu.classList.toggle('active');
+    document.body.classList.toggle('overflow-hidden');
+    if (!menuIcon) return;
+    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+    menuIcon.style.transform = 'rotate(90deg)';
+    menuIcon.style.opacity = '0';
+    setTimeout(() => {
+      menuIcon.textContent = isMenuOpen ? 'close' : 'menu';
+      menuIcon.style.transform = 'rotate(0deg)';
+      menuIcon.style.opacity = '1';
+    }, 150);
+  }
+
+  menuBtn?.addEventListener('click', toggleMenu);
+  mobileMenu?.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('click', () => { if (isMenuOpen) toggleMenu(); });
+  });
+  window.addEventListener('keydown', (e) => { if (isMenuOpen && e.key === 'Escape') toggleMenu(); });
+
+  // Menú de perfil
+  const profileBtn = document.getElementById('profile-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  function toggleProfileMenu(e) {
+    e.stopPropagation();
+    profileDropdown.classList.toggle('active');
+  }
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener('click', toggleProfileMenu);
+    document.addEventListener('click', (e) => {
+      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+        profileDropdown.classList.remove('active');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        profileDropdown.classList.remove('active');
+      }
+    });
+  }
+
+  // Obtener parámetros URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const carpetaId = urlParams.get('carpeta');
+  const carpetaNombre = urlParams.get('nombre');
+  
+  if (carpetaNombre) {
+    document.getElementById('carpeta-nombre').textContent = decodeURIComponent(carpetaNombre);
+  }
+
+  const uploadZone = document.getElementById('upload-zone');
+  const fileInput = document.getElementById('file-input');
+  const progressSection = document.getElementById('progress-section');
+  const fileInfo = document.getElementById('file-info');
+  const successSection = document.getElementById('success-section');
+
+  // Drag and drop
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+  });
+
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('dragover');
+  });
+
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFile(files[0]);
+    }
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFile(e.target.files[0]);
+    }
+  });
+
+  function handleFile(file) {
+    // Validar tipo de archivo
+    const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      alert('Formato no soportado. Solo PDF, JPG o PNG.');
+      return;
+    }
+
+    // Validar tamaño (50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      alert('Archivo demasiado grande. Máximo 50MB.');
+      return;
+    }
+
+    mostrarInfoArchivo(file);
+    procesarArchivo(file);
+  }
+
+  function mostrarInfoArchivo(file) {
+    uploadZone.style.display = 'none';
+    fileInfo.classList.remove('hidden');
+    
+    const icon = file.type === 'application/pdf' ? 'picture_as_pdf' : 'image';
+    document.getElementById('file-icon').textContent = icon;
+    document.getElementById('file-name').textContent = file.name;
+    document.getElementById('file-size').textContent = formatFileSize(file.size);
+  }
+
+  function procesarArchivo(file) {
+    progressSection.classList.remove('hidden');
+    
+    // Simular procesamiento
+    const steps = [
+      { progress: 20, text: 'Analizando archivo...' },
+      { progress: 40, text: 'Extrayendo texto (OCR)...' },
+      { progress: 60, text: 'Segmentando en chunks...' },
+      { progress: 80, text: 'Generando embeddings...' },
+      { progress: 100, text: 'Creando índice vectorial...' }
+    ];
+
+    let currentStep = 0;
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+
+    function nextStep() {
+      if (currentStep < steps.length) {
+        const step = steps[currentStep];
+        progressBar.style.width = step.progress + '%';
+        progressText.textContent = step.text;
+        currentStep++;
+        setTimeout(nextStep, 1500);
+      } else {
+        // Finalizar procesamiento
+        setTimeout(() => {
+          progressSection.classList.add('hidden');
+          fileInfo.classList.add('hidden');
+          successSection.classList.remove('hidden');
+          
+          // Guardar en localStorage que el material fue procesado
+          const materiales = JSON.parse(localStorage.getItem('recuiva_materiales') || '[]');
+          materiales.push({
+            carpetaId,
+            carpetaNombre: decodeURIComponent(carpetaNombre || ''),
+            archivo: file.name,
+            tipo: file.type,
+            fechaProcesamiento: new Date().toISOString()
+          });
+          localStorage.setItem('recuiva_materiales', JSON.stringify(materiales));
+        }, 1000);
+      }
+    }
+
+    nextStep();
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  window.removerArchivo = function() {
+    fileInfo.classList.add('hidden');
+    uploadZone.style.display = 'block';
+    fileInput.value = '';
+  };
+
+  window.volverDashboard = function() {
+    window.location.href = 'dashboard.html';
+  };
+
+  window.crearPrimeraPregunta = function() {
+    // Ir de vuelta al dashboard con parámetro para abrir modal de pregunta
+    window.location.href = `dashboard.html?crear-pregunta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre || '')}&material=pdf`;
+  };
+});
+</script>
+
+</body>
+</html>

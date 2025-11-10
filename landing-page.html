@@ -1,0 +1,579 @@
+<html><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>Recuiva: Domina tus estudios con Active Recall</title>
+<link rel="icon" type="image/x-icon" href="assets/img/Icon-Recuiva.ico"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      /* Flecha textual grande y bold, naranja oscuro y hover más oscuro */
+      .arrow-text {
+        color: #e65100 !important; /* naranja oscuro */
+        background: rgba(230,81,0,0.12);
+        transition: background 0.3s, color 0.3s;
+      }
+      .arrow-text:hover {
+        color: #b34700 !important; /* aún más oscuro */
+        background: rgba(180,71,0,0.22); /* fondo más profundo y oscuro */
+      }
+      /* Botón flotante SVG más ancho y efecto after de cover oscuro */
+      #floating-arrow {
+        width: 120px !important;
+        height: 100px !important;
+        position: relative;
+        z-index: 1;
+      }
+      #floating-arrow-wrapper {
+        position: relative;
+        display: inline-block;
+      }
+      #floating-arrow::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.38) 100%);
+        border-radius: 1.5rem;
+        opacity: 1;
+        pointer-events: none;
+        transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+        z-index: 2;
+      }
+      #floating-arrow:hover::after {
+        width: 100%;
+      }
+      /* Efecto hover naranja en los controles del carrusel */
+      #carousel button:hover {
+        border-color: var(--primary-color) !important;
+        background: var(--primary-color) !important;
+        color: var(--base-white) !important;
+        box-shadow: 0 0 0 4px rgba(255,102,0,0.18);
+        transition: background 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
+      }
+      .menu-btn {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+      .menu-btn:hover {
+        transform: scale(1.1);
+      }
+      .mobile-menu {
+        transform-origin: top;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        transform: scaleY(0);
+        opacity: 0;
+        pointer-events: none;
+      }
+      .mobile-menu.active {
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+        /* Carrusel: ajuste responsivo del contenido dentro del cuadro naranja */
+        #carousel .carousel-content {
+          width: 100%;
+          max-width: 700px;
+          margin: 0 auto;
+          padding: 1.5rem 1rem;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          transition: max-width 0.3s, padding 0.3s;
+        }
+        @media (max-width: 1024px) {
+          #carousel .carousel-content {
+            max-width: 500px;
+            padding: 1rem 0.5rem;
+          }
+        }
+        @media (max-width: 768px) {
+          #carousel .carousel-content {
+            max-width: 340px;
+            padding: 0.5rem 0.25rem;
+          }
+          #carousel .carousel-content h3 {
+            font-size: 1.1rem !important;
+          }
+          #carousel .carousel-content p {
+            font-size: 0.95rem !important;
+          }
+          #carousel .carousel-content .material-symbols-outlined {
+            font-size: 3.5rem !important;
+          }
+        }
+        @media (max-width: 480px) {
+          #carousel .carousel-content {
+            max-width: 220px;
+            padding: 0.25rem 0.1rem;
+          }
+          #carousel .carousel-content h3 {
+            font-size: 0.95rem !important;
+          }
+          #carousel .carousel-content p {
+            font-size: 0.85rem !important;
+          }
+          #carousel .carousel-content .material-symbols-outlined {
+            font-size: 2.2rem !important;
+          }
+        }
+    </style>
+</head>
+<body class="bg-[var(--base-white)]" style='font-family: Manrope, "Noto Sans", sans-serif;'>
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-6 py-4 flex justify-between items-center">
+    <!-- Logo -->
+    <div class="flex items-center gap-2">
+      <a href="landing-page.html" class="flex items-center gap-2">
+        <img src="assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+        <span class="text-2xl font-black text-[var(--text-primary)]">Recuiva</span>
+      </a>
+    </div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="landing-page.html">Inicio</a>
+<a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="#como-funciona">Cómo funciona</a>
+</nav>
+<div class="hidden md:flex items-center gap-4">
+<a href="auth/iniciar-sesion.html" style="display:inline-block">
+  <button type="button" class="border border-[var(--secondary-color)] text-[var(--secondary-color)] font-bold py-2 px-6 rounded-full hover:bg-gray-100 transition-all cursor-pointer">
+    Iniciar sesión
+  </button>
+</a>
+
+<a href="auth/crear-cuenta.html" style="display:inline-block">
+  <button type="button" class="bg-[var(--secondary-color)] text-[var(--base-white)] font-bold py-2 px-6 rounded-full hover:bg-opacity-90 transition-all cursor-pointer">
+    Crear cuenta
+  </button>
+</a>
+</div>
+<div class="md:hidden">
+<button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100" id="menu-btn">
+<span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
+</button>
+</div>
+</div>
+<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
+<div class="flex flex-col items-center justify-center h-screen gap-8">
+<a class="text-2xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="#inicio">Inicio</a>
+<a class="text-2xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="#como-funciona">Cómo funciona</a>
+<div class="flex flex-col gap-4 mt-8 w-full px-8">
+<a href="auth/iniciar-sesion.html" style="display:block">
+  <button type="button" class="w-full border border-[var(--secondary-color)] text-[var(--secondary-color)] font-bold py-3 px-6 rounded-full hover:bg-gray-100 transition-all cursor-pointer">
+    Iniciar sesión
+  </button>
+</a>
+<a href="auth/crear-cuenta.html" style="display:block">
+  <button type="button" class="w-full bg-[var(--secondary-color)] text-[var(--base-white)] font-bold py-3 px-6 rounded-full hover:bg-opacity-90 transition-all cursor-pointer">
+    Crear cuenta
+  </button>
+</a>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow">
+<section class="bg-[var(--base-white)] py-24 md:py-40 px-6" id="inicio">
+  <div class="container mx-auto grid md:grid-cols-2 gap-12 items-center">
+    <div class="flex flex-col gap-6 text-left">
+      <h1 class="text-5xl md:text-6xl font-extrabold text-[var(--text-primary)] leading-tight tracking-tighter" style="font-family: 'Noto Sans', sans-serif;">
+        Domina tus estudios con <span class="text-[var(--primary-color)]">Active</span> <span class="text-[var(--secondary-color)]">Recall</span>
+      </h1>
+      <p class="text-lg text-[var(--text-secondary)]">
+        Transforma tu aprendizaje con Recuiva, la plataforma diseñada para ayudarte a retener información de forma más rápida y eficaz. Practica de forma más inteligente, no más dura.
+      </p>
+    </div>
+    <div class="relative flex justify-center items-center order-first md:order-last">
+      <svg class="absolute left-0 top-0 w-full h-full z-0" viewBox="0 0 800 300" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width:100%; min-height:100%;">
+        <defs>
+          <linearGradient id="heroGradient" x1="0" y1="0" x2="800" y2="300" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FF6600"/>
+            <stop offset="1" stop-color="#A5CDED"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,220 Q200,280 400,220 T800,220 L800,0 L0,0 Z" fill="url(#heroGradient)" opacity="0.85"/>
+      </svg>
+      <img alt="Simpático personaje de entrenador sonriendo" class="relative z-10 w-full max-w-xs md:max-w-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0PzEaxiHISfRwn2D0omw9AmRn4POa_JP9qBCH3UIxc5EBWKBvKhLNEisyyQ8O9rvT_F8UkUTs1DuN5yVM4JUP78GxL4yY5RKSSh4bGAGOgBNUrAvioj1z-C_cbuiXjRn68yNgckQnWJnYLjqx9ksPgsGVFGV8lZbOXb6JNKWT6FhsZkHYwRakWwyJifQIY8FI5OdzkkM7WM9TDxXJV1s73SPEu-TpyZtc6BxsjB9iarP_SDouOlf2cnoP68IaPpQu7qdIur26EcJf"/>
+    </div>
+  </div>
+</section>
+<!-- Flecha textual animada para guiar hacia abajo -->
+<div class="w-full flex justify-center items-center" style="margin-top:-2.5rem; position:relative; z-index:10;">
+  <a href="#active-recall" aria-label="Ir a la sección ¿Qué es Active Recall?" id="floating-arrow-wrapper" style="display:inline-block;">
+    <span id="text-arrow" class="arrow-text animate-float cursor-pointer transition-transform hover:scale-110" style="display:inline-block; font-size:6rem; font-weight:900; color:#e65100; line-height:1; padding:0.5rem 1.5rem; border-radius:2rem; transition:background 0.3s, color 0.3s;">&#8595;</span>
+  </a>
+</div>
+<style>
+@keyframes floatArrow {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(18px); }
+  100% { transform: translateY(0); }
+}
+.animate-float {
+  animation: floatArrow 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 4px 12px rgba(255,102,0,0.15));
+}
+#carousel {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+#carousel-images > div, #carousel-images > img {
+  min-width: 100%;
+  max-width: 100%;
+  flex-shrink: 0;
+  flex-grow: 0;
+  box-sizing: border-box;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+#carousel-images {
+  display: flex;
+  transition: transform 0.7s cubic-bezier(0.4,0,0.2,1);
+}
+#carousel button {
+  z-index: 2;
+}
+@media (max-width: 768px) {
+  #carousel {
+    max-width: 100%;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  #carousel-images > div, #carousel-images > img {
+    min-width: 100%;
+    max-width: 100%;
+    height: 16rem !important;
+    font-size: 1rem !important;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  #carousel {
+    position: relative;
+  }
+  #carousel button {
+    position: static !important;
+    display: inline-block;
+    margin: 0 1rem;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+  }
+  #carousel .carousel-controls {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+@media (min-width: 769px) {
+  #carousel {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  #carousel-images > div, #carousel-images > img {
+    min-width: 100%;
+    max-width: 100%;
+    height: 28rem !important;
+    font-size: 1.2rem !important;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  #carousel .carousel-controls {
+    display: none;
+  }
+}
+</style>
+<!-- Separador decorativo: onda SVG justo después del hero -->
+<div class="w-full overflow-hidden" style="margin-top:-1px; background:white;">
+  <svg viewBox="0 0 1920 180" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-44 min-w-full" preserveAspectRatio="none" style="display:block;">
+    <defs>
+      <linearGradient id="waveGradient" x1="0" y1="0" x2="1920" y2="120" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#FF6600"/>
+        <stop offset="1" stop-color="#A5CDED"/>
+      </linearGradient>
+    </defs>
+    <path d="M0,90 Q480,180 960,90 T1920,90 V180 H0 Z" fill="url(#waveGradient)" opacity="0.85"/>
+  </svg>
+</div>
+<section class="py-20 px-6 bg-[var(--base-white)] mt-8" id="active-recall">
+  <div class="container mx-auto">
+    <div class="text-center mb-12">
+      <h2 class="text-4xl font-bold text-[var(--text-primary)]" style="font-family: 'Noto Sans', sans-serif;">¿Qué es Recuiva?</h2>
+    </div>
+    <div class="bg-gradient-to-br from-[var(--accent-color)] via-[var(--base-white)] to-[var(--primary-color)] p-8 rounded-3xl shadow-2xl flex flex-col items-center border-4 border-[var(--secondary-color)]">
+      <div class="w-full max-w-6xl mx-auto mb-8">
+        <div id="carousel" class="relative overflow-hidden rounded-2xl shadow-2xl border-2 border-[var(--primary-color)]">
+          <div class="flex" id="carousel-images">
+            <!-- Slide 1: ¿Qué es la app Recuiva? -->
+            <div class="carousel-content flex flex-col items-center justify-center w-full h-[28rem] bg-white">
+              <span class="material-symbols-outlined text-[6rem] text-[var(--primary-color)] mb-4">school</span>
+              <h3 class="text-2xl font-bold mb-2 text-[var(--text-primary)]">¿Qué es Recuiva?</h3>
+              <p class="text-lg text-[var(--text-secondary)] max-w-xl">Recuiva es una plataforma web que te permite practicar, repasar y retener información de manera activa y personalizada mediante <b>Active Recall</b>. Ideal para estudiantes que buscan resultados reales.</p>
+            </div>
+            <!-- Slide 2: ¿Qué es Active Recall? -->
+            <div class="carousel-content flex flex-col items-center justify-center w-full h-[28rem] bg-white">
+              <span class="material-symbols-outlined text-[6rem] text-[var(--secondary-color)] mb-4">psychology</span>
+              <h3 class="text-2xl font-bold mb-2 text-[var(--text-primary)]">¿Qué es Active Recall?</h3>
+              <p class="text-lg text-[var(--text-secondary)] max-w-xl">Active Recall es una técnica de estudio que consiste en recordar activamente la información, en vez de solo leer o repasar. ¡Así retienes más y aprendes mejor!</p>
+            </div>
+            <!-- Slide 3: ¿Por qué es el mejor método? -->
+            <div class="carousel-content flex flex-col items-center justify-center w-full h-[28rem] bg-white">
+              <span class="material-symbols-outlined text-[6rem] text-[var(--accent-color)] mb-4">workspace_premium</span>
+              <h3 class="text-2xl font-bold mb-2 text-[var(--text-primary)]">¿Por qué es el mejor método?</h3>
+              <p class="text-lg text-[var(--text-secondary)] max-w-xl">Estudios demuestran que Active Recall mejora la memoria a largo plazo y el rendimiento académico. Es el método preferido por expertos y estudiantes exitosos.</p>
+            </div>
+            <!-- Slide 4: Interfaz principal / casos de uso -->
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZFNOefN-nR4r7utCDOqzk5EFKXfmHtzyNn52G6SCnibENtXIjnPZGhij2ZNID3l1oHclazq2pP3IoXNkPF45wP57BktMS4LubC-ThNfB0cbqTkxuGqv2FZ77czbWWdOfYkhIQyHwoofFDBtvWLGcEAa4pmgr-VO1Bdmv_I19JEP75qu12roGQ80lsDxtePPzPdCHwBgnuOdfc8OowEzli-TFPyhHRchiMJruc4NyX3uIYe9AR_4IBgCBjLIQhk6LT34xJhk-Sa4sT" alt="Vista práctica Recuiva" class="w-full h-[28rem] object-cover"/>
+            <!-- Slide 5: Interfaz secundaria / otros casos -->
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0PzEaxiHISfRwn2D0omw9AmRn4POa_JP9qBCH3UIxc5EBWKBvKhLNEisyyQ8O9rvT_F8UkUTs1DuN5yVM4JUP78GxL4yY5RKSSh4bGAGOgBNUrAvioj1z-C_cbuiXjRn68yNgckQnWJnYLjqx9ksPgsGVFGV8lZbOXb6JNKWT6FhsZkHYwRakWwyJifQIY8FI5OdzkkM7WM9TDxXJV1s73SPEu-TpyZtc6BxsjB9iarP_SDouOlf2cnoP68IaPpQu7qdIur26EcJf" alt="Vista interfaz Recuiva" class="w-full h-[28rem] object-cover"/>
+          </div>
+          <button id="prev" class="absolute left-4 top-1/2 -translate-y-1/2 bg-[var(--base-white)] bg-opacity-80 border-2 border-[var(--primary-color)] text-[var(--primary-color)] rounded-full p-3 shadow-lg hover:bg-opacity-100 transition">&#8592;</button>
+          <button id="next" class="absolute right-4 top-1/2 -translate-y-1/2 bg-[var(--base-white)] bg-opacity-80 border-2 border-[var(--primary-color)] text-[var(--primary-color)] rounded-full p-3 shadow-lg hover:bg-opacity-100 transition">&#8594;</button>
+        </div>
+      </div>
+      <div class="text-center w-full mt-6 mb-4">
+        <p class="text-lg text-[var(--secondary-color)] font-semibold">Navega por los slides para conocer Recuiva, entender Active Recall y ver cómo puedes estudiar en diferentes situaciones y casos de uso. Usa las flechas para moverte.</p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-6 justify-center w-full mt-2">
+        <a href="iniciar-sesion.html" class="w-full sm:w-auto">
+          <button type="button" class="bg-[var(--primary-color)] text-[var(--base-white)] font-bold py-4 px-10 rounded-full shadow-lg hover:bg-opacity-90 transition-all cursor-pointer w-full text-xl">Comenzar</button>
+        </a>
+      </div>
+      <div class="flex justify-center gap-4 mt-8">
+        <span class="inline-block w-8 h-8 rounded-full bg-[var(--primary-color)] opacity-30"></span>
+        <span class="inline-block w-8 h-8 rounded-full bg-[var(--accent-color)] opacity-30"></span>
+        <span class="inline-block w-8 h-8 rounded-full bg-[var(--secondary-color)] opacity-30"></span>
+      </div>
+    </div>
+    <!-- Carrusel controles debajo en móvil -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const carouselImages = document.getElementById('carousel-images');
+        const slides = Array.from(carouselImages.children);
+        let currentIndex = 0;
+        const totalSlides = slides.length;
+        function showImage(index) {
+          carouselImages.style.transform = `translateX(-${index * 100}%)`;
+            // Ocultar botón 'next' si es el último slide
+            const nextBtn = document.getElementById('next');
+            if (nextBtn) {
+              if (index >= totalSlides - 1) {
+                nextBtn.style.display = 'none';
+              } else {
+                nextBtn.style.display = '';
+              }
+            }
+              // Ocultar botón 'prev' si es el primer slide
+              const prevBtn = document.getElementById('prev');
+              if (prevBtn) {
+                if (index <= 0) {
+                  prevBtn.style.display = 'none';
+                } else {
+                  prevBtn.style.display = '';
+                }
+              }
+        }
+        document.getElementById('prev').addEventListener('click', function() {
+          if (currentIndex > 0) {
+            currentIndex--;
+            showImage(currentIndex);
+          }
+        });
+        document.getElementById('next').addEventListener('click', function() {
+          if (currentIndex < totalSlides - 1) {
+            currentIndex++;
+            showImage(currentIndex);
+          }
+        });
+        showImage(currentIndex);
+        // Mover controles debajo en móvil
+        function moveControls() {
+          const prevBtn = document.getElementById('prev');
+          const nextBtn = document.getElementById('next');
+          let controls = document.querySelector('#carousel .carousel-controls');
+          if (window.innerWidth <= 768) {
+            if (!controls) {
+              controls = document.createElement('div');
+              controls.className = 'carousel-controls';
+              prevBtn.parentNode.appendChild(controls);
+              controls.appendChild(prevBtn);
+              controls.appendChild(nextBtn);
+            }
+          } else {
+            // Volver a posición original en desktop
+            const carousel = document.getElementById('carousel');
+            if (controls) {
+              carousel.insertBefore(prevBtn, carouselImages);
+              carousel.appendChild(nextBtn);
+              controls.remove();
+            }
+          }
+        }
+        moveControls();
+        window.addEventListener('resize', moveControls);
+      });
+    </script>
+  </div>
+</section>
+<section class="py-20 px-6 bg-[var(--base-white)]" id="como-funciona">
+<div class="container mx-auto">
+<div class="text-center mb-12">
+<h2 class="text-4xl font-bold text-[var(--text-primary)]" style="font-family: 'Noto Sans', sans-serif;">Cómo funciona</h2>
+<p class="text-lg text-[var(--text-secondary)] mt-2">Un camino simple y efectivo hacia una mejor retención.</p>
+</div>
+<div class="grid md:grid-cols-3 gap-8">
+<div class="bg-[var(--base-white)] p-8 rounded-xl shadow-md flex flex-col items-center text-center hover-lift">
+<div class="bg-[var(--accent-color)] p-4 rounded-full mb-6">
+<span class="material-symbols-outlined text-4xl text-[var(--secondary-color)]">psychology</span>
+</div>
+<h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">Práctica personalizada</h3>
+<p class="text-[var(--text-secondary)]">Recuiva crea sesiones adaptadas a tu estilo de aprendizaje, asegurando que te centres en lo que más importa.</p>
+</div>
+<div class="bg-[var(--base-white)] p-8 rounded-xl shadow-md flex flex-col items-center text-center hover-lift">
+<div class="bg-[var(--accent-color)] p-4 rounded-full mb-6">
+<span class="material-symbols-outlined text-4xl text-[var(--secondary-color)]">model_training</span>
+</div>
+<h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">Retos adaptativos</h3>
+<p class="text-[var(--text-secondary)]">Nuestro sistema ajusta la dificultad de las preguntas en función de tu rendimiento para un desafío óptimo.</p>
+</div>
+<div class="bg-[var(--base-white)] p-8 rounded-xl shadow-md flex flex-col items-center text-center hover-lift">
+<div class="bg-[var(--accent-color)] p-4 rounded-full mb-6">
+<span class="material-symbols-outlined text-4xl text-[var(--secondary-color)]">monitoring</span>
+</div>
+<h3 class="text-xl font-bold text-[var(--text-primary)] mb-2">Seguimiento de progreso</h3>
+<p class="text-[var(--text-secondary)]">Sigue tu progreso con métricas detalladas, identifica puntos débiles y celebra tus logros.</p>
+</div>
+</div>
+</div>
+</section>
+
+</main>
+<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
+<div class="container mx-auto text-center">
+<div class="flex justify-center items-center gap-2 mb-6">
+<img src="assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<span class="text-2xl font-black">Recuiva</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="institucional/diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
+</div>
+<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
+</div>
+
+</footer>
+</div>
+<script>
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = menuBtn.querySelector('.material-symbols-outlined');
+    let isMenuOpen = false;
+
+    function toggleMenu() {
+      isMenuOpen = !isMenuOpen;
+      mobileMenu.classList.toggle('active');
+      document.body.classList.toggle('overflow-hidden');
+      
+      menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+      
+      if (isMenuOpen) {
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = 'close';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      } else {
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = 'menu';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      }
+    }
+
+    menuBtn.addEventListener('click', toggleMenu);
+
+    // Cerrar menú cuando se hace clic en un enlace
+    const menuLinks = mobileMenu.querySelectorAll('a');
+    menuLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        if (isMenuOpen) {
+          toggleMenu();
+        }
+      });
+    });
+
+    // Animación de deslizamiento suave al hacer clic en el botón flotante
+    const textArrow = document.getElementById('text-arrow');
+    if (textArrow) {
+      textArrow.addEventListener('click', function(e) {
+        // No usar preventDefault para que el evento no se bloquee por el <a>
+        const target = document.getElementById('active-recall');
+        if (!target) return;
+        // Calcular la posición final de la sección destino
+        const rect = target.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const endY = rect.top + scrollTop - 40;
+        const startY = window.scrollY;
+      const duration = 5500; // Mucho más lento y efecto "fotograma"
+        let start = null;
+        function easeInOutCubic(t) {
+          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+          function step(timestamp) {
+            if (!start) start = timestamp;
+            const elapsed = timestamp - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easeInOutCubic(progress);
+            // Simula "fotogramas" bajando en pequeños saltos
+            const currentY = startY + (endY - startY) * eased;
+            window.scrollTo(0, currentY);
+            if (progress < 1) {
+              setTimeout(() => {
+                window.requestAnimationFrame(step);
+              }, 18); // ~55fps, más lento que el estándar para simular fotogramas
+            }
+          }
+          window.requestAnimationFrame(step);
+      });
+    }
+</script>
+</body></html>

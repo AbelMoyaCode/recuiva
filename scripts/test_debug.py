@@ -1,0 +1,1 @@
+import numpy as np; print("DEBUGGING SCORE"); validacion = {"validaciones": [{"score_validacion": 75}, {"score_validacion": 60}]}; scores = [v["score_validacion"] for v in validacion["validaciones"]]; promedio = float(np.mean(scores)); validacion["score_general"] = promedio; print("Score calculado:", promedio); print("Keys finales:", list(validacion.keys())); print("SUCCESS")

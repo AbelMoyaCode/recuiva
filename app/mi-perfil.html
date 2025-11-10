@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <title>Recuiva - Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #FF6600;
+        --secondary-color: #004EAA;
+        --accent-color: #A5CDED;
+        --base-white: #FFFFFF;
+        --base-gray: #F1F3F5;
+        --text-primary: #181410;
+        --text-secondary: #575757;
+      }
+      
+      /* Estilo global para el logo Recuiva */
+      .recuiva-logo {
+        font-family: 'Manrope', sans-serif !important;
+        font-weight: 800 !important;
+        font-size: 1.5rem !important;
+      }
+      .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      }
+      .menu-btn {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+      .menu-btn:hover {
+        transform: scale(1.1);
+      }
+      .mobile-menu {
+        transform-origin: top;
+        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease;
+        transform: scaleY(0);
+        opacity: 0;
+        pointer-events: none;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .mobile-menu.active {
+        transform: scaleY(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #menu-btn.active .menu-icon {
+        transform: rotate(180deg);
+      }
+      .profile-dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        padding: 0.75rem 0;
+        min-width: 14rem;
+        z-index: 50;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+      }
+      .profile-dropdown.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      .profile-dropdown a, .profile-dropdown button {
+        transition: all 0.2s ease;
+      }
+      .profile-dropdown a:hover, .profile-dropdown button:hover {
+        transform: translateX(4px);
+      }
+      .notification-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        padding: 0.1rem 0.4rem;
+        min-width: 1.2rem;
+        text-align: center;
+      }
+      
+      /* Modal de notificaciones mejorado - Estilo elegante */
+      .notification-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      .notification-modal.show {
+        opacity: 1;
+        visibility: visible;
+      }
+      .notification-modal-content {
+        background: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        max-width: 26rem;
+        margin: 1rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.8) translateY(30px);
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .notification-modal.show .notification-modal-content {
+        transform: scale(1) translateY(0);
+      }
+      .notification-icon-container {
+        background: linear-gradient(135deg, #FF6600, #FF8533);
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 8px 16px rgba(255, 102, 0, 0.3);
+      }
+      .notification-modal h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.75rem;
+        text-align: center;
+      }
+      .notification-modal p {
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: #6b7280;
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .modal-button {
+        background: linear-gradient(135deg, #FF6600, #FF8533);
+        color: white;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+        width: 100%;
+      }
+      .modal-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 102, 0, 0.4);
+      }
+    </style>
+</head>
+<body class="bg-[var(--base-gray)]" style='font-family: Manrope, "Noto Sans", sans-serif;'>
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<header class="bg-[var(--base-white)] shadow-md sticky top-0 z-50">
+<div class="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <a href="../index.html" class="flex items-center gap-2">
+      <img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+      <span class="recuiva-logo text-[var(--text-primary)]">Recuiva</span>
+    </a>
+  </div>
+  <nav class="hidden md:flex items-center gap-4">
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../index.html">Inicio</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="materiales.html">Materiales</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="../dashboard.html">Dashboard</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="repasos.html">Repasos</a>
+    <a class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors px-2 py-1 rounded-lg" href="sesion-practica.html">Práctica</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <!-- Notifications (solo desktop) -->
+    <button class="hidden md:inline-block relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="notification-badge">3</span>
+    </button>
+    <!-- Profile Dropdown (solo desktop) -->
+    <div class="hidden md:inline-block relative">
+      <button id="profile-btn" class="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus:outline-none">
+        <img alt="User profile picture" class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR"/>
+        <span class="material-symbols-outlined text-gray-500">expand_more</span>
+      </button>
+      <div id="profile-dropdown" class="profile-dropdown">
+        <div class="px-4 py-3 border-b border-gray-100">
+          <div class="flex items-center gap-3">
+            <img class="h-10 w-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyGLORD72LxN41UVDA81HVOTMlzDwHkmzA2VA967ViruuCJi2GWPkaJZWBg6jKUb3EEInqAfLnwDb7X8JKy9NxA3xpKYnGqLnSPCFZTK7jPXl5-5b3KJmdHUujOgDYse9Ot1ytAsExi16vwZVLKXQFZSRJxHx9NMdIQ8PjucCFnApu7QGgJGzDiKcKBsZdsBH7V33SOTIlECl6u4f4QCkfbW-_QsCRV3EddCq478pupKgtJZQi74G8U1DdNn4IxfCTXnmZhbKfc8SR" alt="Foto de perfil"/>
+            <div>
+              <div class="font-medium text-gray-900">Juan Pérez</div>
+              <div class="text-sm text-gray-500">juan@ejemplo.com</div>
+            </div>
+          </div>
+        </div>
+        <a href="mi-perfil.html" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors">
+          <span class="material-symbols-outlined mr-2">person</span>
+          Mi Perfil
+        </a>
+        <hr class="my-1 border-gray-200">
+        <button onclick="logout()" class="flex w-full items-center px-4 py-2 text-red-600 hover:bg-red-50">
+          <span class="material-symbols-outlined mr-2"><a href="landing-page.html">logout</a></span>
+          <a href="landing-page.html">Cerrar sesión</a>
+        </button>
+      </div>
+    </div>
+    <!-- Botón menú móvil (solo móvil) -->
+    <button class="menu-btn z-50 p-2 rounded-full hover:bg-gray-100 md:hidden" id="menu-btn">
+      <span class="material-symbols-outlined text-3xl text-[var(--text-primary)]">menu</span>
+    </button>
+  </div>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu md:hidden fixed top-[73px] left-0 w-full bg-[var(--base-white)] z-40 shadow-lg" id="mobile-menu">
+<div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-8">
+  <!-- Perfil y configuración arriba de navegación -->
+  <div class="flex flex-col items-center w-full mb-2 py-2">
+    <a href="mi-perfil.html" class="flex flex-col items-center w-full px-6 py-2 hover:bg-gray-100 rounded-xl cursor-pointer transition-all">
+      <img src="img/profile.jpg" alt="Perfil" class="w-10 h-10 rounded-full border-2 border-blue-700 mx-auto" />
+      <span class="text-base font-semibold text-gray-800 mt-2 text-center">Mi perfil</span>
+    </a>
+  </div>
+  <hr class="w-2/3 border-gray-300 my-2" />
+  <!-- Navegación principal -->
+  <nav class="flex flex-col items-center gap-6 w-full">
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../index.html">Inicio</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="materiales.html">Materiales</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="../dashboard.html">Dashboard</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="repasos.html">Repasos</a>
+    <a class="text-xl text-[var(--text-secondary)] hover:text-[var(--primary-color)] transition-colors" href="sesion-practica.html">Práctica</a>
+  </nav>
+  <hr class="w-2/3 border-gray-300 my-2" />
+  <button onclick="logout()" class="flex items-center gap-2 text-base text-red-600 font-semibold">
+    <span class="material-symbols-outlined">logout</span>
+    <a href="landing-page.html">Cerrar sesión</a>
+  </button>
+</div>
+</header>
+
+
+
+
+
+<main class="flex flex-1 justify-center py-10 bg-[var(--base-gray)]">
+  <div class="w-full max-w-3xl mx-auto px-2 sm:px-4">
+    <div class="pb-8">
+      <h1 class="text-[var(--text-primary)] tracking-tight text-3xl font-bold text-center mb-2">Perfil y Configuración</h1>
+    </div>
+    <div class="flex flex-col gap-8">
+      <!-- Sección de Información Personal -->
+      <section class="bg-white rounded-xl shadow-md">
+        <div class="p-6 border-b border-gray-200">
+          <h3 class="text-xl font-bold text-[var(--text-primary)]">Información Personal</h3>
+        </div>
+        <div class="flex flex-col sm:flex-row items-center gap-6 p-6">
+          <div class="relative">
+            <img id="profile-image" alt="Avatar de usuario" class="w-24 h-24 rounded-full object-cover border-4 border-[var(--accent-color)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOmeBwmbErJRD7-cByPRK2iiLOkHroqFzhwTpj7-F8UqSf1hDYuHjPutSA733VjZv5OZ1Rb_mhlEbvjb5MGLfDFweeIKqWIf1XH4Cgz8K1f63D7lFhKWIj59Dxr5sINNpeFll2GMoEKnGm8ka301UDecXDgXz7BOCVOXtamf-u2QYZ7KYUHCBTcJlRTHXYJfJqUh9TQIEx85HhXftSeZRCtuNpyL901hmOPZk_RVHon5764GPVcAmQStjzMpg5fcp7FPn2VTFrTZn4"/>
+            <button onclick="changeProfilePicture()" class="absolute -bottom-1 -right-1 bg-[var(--primary-color)] text-white rounded-full p-2 hover:bg-opacity-90 transition-all shadow-lg">
+              <span class="material-symbols-outlined text-sm">photo_camera</span>
+            </button>
+          </div>
+          <div class="flex-1 min-w-0 text-center sm:text-left">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+              <h2 id="profile-name" class="text-2xl font-bold text-[var(--text-primary)]">Carlos Rodriguez</h2>
+              <button id="edit-name-btn" onclick="editName()" class="text-[var(--primary-color)] hover:text-opacity-80 transition-colors">
+                <span class="material-symbols-outlined text-lg">edit</span>
+              </button>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+              <div class="flex items-center gap-2">
+                <p id="profile-email" class="text-base text-gray-500">carlos.rodriguez@email.com</p>
+                <span id="account-type-badge" class="hidden px-2 py-1 text-xs font-medium rounded-full"></span>
+              </div>
+              <button id="edit-email-btn" onclick="editEmail()" class="text-[var(--primary-color)] hover:text-opacity-80 transition-colors">
+                <span class="material-symbols-outlined text-lg">edit</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="divide-y divide-gray-200">
+          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="changePassword()">
+            <div>
+              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Cambiar contraseña</p>
+              <p class="text-gray-500 text-sm font-normal leading-normal">Actualiza la seguridad de tu cuenta.</p>
+            </div>
+            <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección de Configuración de Estudio -->
+      <section class="bg-white rounded-xl shadow-md">
+        <div class="p-6 border-b border-gray-200">
+          <h3 class="text-xl font-bold text-[var(--text-primary)]">Configuración de Estudio</h3>
+          <p class="text-gray-500 text-sm mt-1">Personaliza tu experiencia de aprendizaje</p>
+        </div>
+        <div class="divide-y divide-gray-200">
+          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="showStudyModeModal()">
+            <div>
+              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Modalidad de estudio</p>
+              <p class="text-gray-500 text-sm font-normal leading-normal">Elige tu método de aprendizaje preferido.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="current-mode" class="text-[var(--primary-color)] font-medium">Intensivo</span>
+              <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+            </div>
+          </div>
+          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="showStudyRhythmModal()">
+            <div>
+              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Ritmo de estudio</p>
+              <p class="text-gray-500 text-sm font-normal leading-normal">Ajusta la frecuencia de tus sesiones.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="current-rhythm" class="text-[var(--primary-color)] font-medium">Diario</span>
+              <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+            </div>
+          </div>
+          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="configureReminders()">
+            <div>
+              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Recordatorios</p>
+              <p class="text-gray-500 text-sm font-normal leading-normal">Configura cuándo recibir notificaciones.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="reminder-status" class="text-green-600 font-medium">Activos</span>
+              <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sección de Preferencias Generales -->
+      <section class="bg-white rounded-xl shadow-md">
+        <div class="p-6 border-b border-gray-200">
+          <h3 class="text-xl font-bold text-[var(--text-primary)]">Preferencias Generales</h3>
+        </div>
+        <div class="divide-y divide-gray-200">
+          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="changeLanguage()">
+            <div>
+              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Idioma</p>
+              <p class="text-gray-500 text-sm font-normal leading-normal">Selecciona tu idioma preferido.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <p class="text-gray-500">Español</p>
+              <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+            </div>
+          </div>
+          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="manageNotifications()">
+            <div>
+              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Gestionar notificaciones</p>
+              <p class="text-gray-500 text-sm font-normal leading-normal">Elige qué notificaciones quieres recibir.</p>
+            </div>
+            <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+          </div>
+          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="exportData()">
+            <div>
+              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Exportar datos</p>
+              <p class="text-gray-500 text-sm font-normal leading-normal">Descarga tu progreso y configuraciones.</p>
+            </div>
+            <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="flex justify-end px-2 py-4">
+        <button class="flex min-w-[120px] items-center justify-center rounded-md h-11 px-6 bg-[var(--primary-color)] text-white text-base font-bold transition-colors hover:bg-opacity-90">
+          <span class="truncate"><a href="landing-page.html">Cerrar sesión</a></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+
+
+
+
+
+<footer class="bg-[var(--secondary-color)] text-[var(--base-gray)] py-12 px-6 mt-16">
+<div class="container mx-auto text-center">
+<div class="flex justify-center items-center gap-2 mb-6">
+<img src="../assets/img/Icon-Recuiva.png" alt="Logo Recuiva" class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
+<span class="text-2xl font-black">Recuiva</span>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/active-recall.html">Active Recall</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/validacion-semantica.html">Validación Semántica</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="../institucional/diferencias.html">Diferencias</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Contacto</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Términos</a>
+<a class="hover:text-[var(--primary-color)] transition-colors" href="#">Privacidad</a>
+</div>
+<p class="text-sm">© 2025 Recuiva. Todos los derechos reservados.</p>
+</div>
+</footer>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // === FUNCIONES MODALES BACKEND MEJORADAS ===
+  window.showBackendModal = function(icon, title, description) {
+    showAdvancedModal(icon, title, description);
+  };
+  
+  // Modal avanzado con mejor UX
+  window.showAdvancedModal = function(icon, title, description) {
+    // Crear modal si no existe
+    let modal = document.getElementById('advanced-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'advanced-modal';
+      modal.className = 'notification-modal';
+      modal.innerHTML = `
+        <div class="notification-modal-content">
+          <div class="notification-icon-container">
+            <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">notifications</span>
+          </div>
+          <h3 id="modal-title">🔔 Notificaciones</h3>
+          <p id="modal-description">Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor. Por ahora puedes explorar la funcionalidad simulada. En la versión completa con backend, esto funcionará en tiempo real.</p>
+          <button onclick="closeAdvancedModal()" class="modal-button">
+            Aceptar
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // Cerrar con escape
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('show')) {
+          closeAdvancedModal();
+        }
+      });
+      
+      // Cerrar clickeando fuera
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          closeAdvancedModal();
+        }
+      });
+    }
+    
+    // Actualizar contenido
+    const iconMap = {
+      'notifications': '🔔',
+      'settings': '⚙️',
+      'dashboard': '📊',
+      'analytics': '📈'
+    };
+    
+    document.getElementById('modal-icon').textContent = icon;
+    document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
+    document.getElementById('modal-description').textContent = description;
+    
+    // Mostrar modal con animación
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  };
+  
+  window.closeAdvancedModal = function() {
+    const modal = document.getElementById('advanced-modal');
+    if (modal) {
+      modal.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+  };
+  
+  // === FUNCIONES NAVEGACIÓN ===
+  window.logout = function() {
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+      localStorage.removeItem('recuiva_user');
+      window.location.href = '../auth/iniciar-sesion.html';
+    }
+  };
+
+  // === FUNCIONES PERFIL ===
+  window.changeProfilePicture = function() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.onchange = function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const profileImg = document.getElementById('profile-image');
+          const navbarImg = document.querySelector('.w-8.h-8 img');
+          if (profileImg) profileImg.src = e.target.result;
+          if (navbarImg) navbarImg.src = e.target.result;
+          
+          // Guardar en localStorage para persistencia
+          localStorage.setItem('recuiva_profile_picture', e.target.result);
+          showSuccessMessage('Foto de perfil actualizada correctamente');
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    fileInput.click();
+  };
+
+  window.editName = function() {
+    const nameElement = document.getElementById('profile-name');
+    const currentName = nameElement.textContent;
+    showEditModal('Editar Nombre', 'Ingresa tu nuevo nombre:', currentName, (newName) => {
+      if (newName && newName.trim() !== '' && newName !== currentName) {
+        nameElement.textContent = newName;
+        // Actualizar también en el navbar si existe
+        const navbarName = document.querySelector('#profile-btn .hidden.md\\:block');
+        if (navbarName) navbarName.textContent = newName;
+        
+        // Guardar en localStorage
+        localStorage.setItem('recuiva_profile_name', newName);
+        showSuccessMessage('Nombre actualizado correctamente');
+      }
+    });
+  };
+
+  window.editEmail = function() {
+    const registrationType = localStorage.getItem('recuiva_registration_type');
+    const emailEditable = localStorage.getItem('recuiva_email_editable');
+    
+    if (registrationType === 'gmail' || emailEditable === 'false') {
+      // Mostrar mensaje de que no se puede editar
+      showErrorMessage('No puedes modificar el email de una cuenta enlazada con Gmail');
+      return;
+    }
+    
+    const emailElement = document.getElementById('profile-email');
+    const currentEmail = emailElement.textContent;
+    showEditModal('Editar Email', 'Ingresa tu nuevo email:', currentEmail, (newEmail) => {
+      if (newEmail && newEmail.trim() !== '' && newEmail !== currentEmail) {
+        // Validación básica de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (emailRegex.test(newEmail)) {
+          emailElement.textContent = newEmail;
+          // Guardar en localStorage
+          localStorage.setItem('recuiva_profile_email', newEmail);
+          showSuccessMessage('Email actualizado correctamente');
+        } else {
+          showErrorMessage('Por favor ingresa un email válido');
+        }
+      }
+    });
+  };
+
+  window.changePassword = function() {
+    const registrationType = localStorage.getItem('recuiva_registration_type');
+    
+    if (registrationType === 'gmail') {
+      // Mostrar mensaje especial para cuentas de Gmail
+      showGmailPasswordModal();
+    } else {
+      // Mostrar modal normal para cuentas manuales
+      showPasswordModal();
+    }
+  };
+
+  function showGmailPasswordModal() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+        <div class="text-center">
+          <span class="material-symbols-outlined text-4xl text-blue-600 mb-4">info</span>
+          <h3 class="text-lg font-semibold mb-4 text-gray-800">Cuenta enlazada con Gmail</h3>
+          <p class="text-gray-600 mb-6">Tu cuenta está enlazada con Gmail. Para cambiar la contraseña, debes hacerlo desde tu cuenta de Google.</p>
+          <div class="flex gap-3">
+            <button onclick="closeGmailPasswordModal()" class="flex-1 px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+              Cerrar
+            </button>
+            <button onclick="openGoogleAccount()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+              Ir a Google
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    window.closeGmailPasswordModal = function() {
+      document.body.removeChild(modal);
+    };
+    
+    window.openGoogleAccount = function() {
+      window.open('https://myaccount.google.com/security', '_blank');
+      document.body.removeChild(modal);
+    };
+    
+    // Cerrar con Escape
+    modal.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeGmailPasswordModal();
+      }
+    });
+    
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeGmailPasswordModal();
+      }
+    });
+  }
+
+  window.changeStudyMode = function(mode) {
+    // Actualizar la visualización
+    document.getElementById('current-mode').textContent = mode;
+    
+    // Guardar en localStorage
+    localStorage.setItem('recuiva_study_mode', mode);
+    showSuccessMessage(`Modalidad de estudio cambiada a: ${mode}`);
+  };
+
+  window.changeStudyRhythm = function(rhythm) {
+    // Actualizar la visualización
+    document.getElementById('current-rhythm').textContent = rhythm;
+    
+    // Guardar en localStorage
+    localStorage.setItem('recuiva_study_rhythm', rhythm);
+    showSuccessMessage(`Ritmo de estudio cambiado a: ${rhythm}`);
+  };
+
+  // Nuevas funciones para mostrar modales de selección
+  window.showStudyModeModal = function() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Selecciona tu Modalidad de Estudio</h3>
+        <div class="space-y-3">
+          <button onclick="selectStudyMode('Intensivo')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+            <div class="font-medium text-gray-800">Intensivo</div>
+            <div class="text-sm text-gray-600">Sesiones largas y enfocadas</div>
+          </button>
+          <button onclick="selectStudyMode('Moderado')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+            <div class="font-medium text-gray-800">Moderado</div>
+            <div class="text-sm text-gray-600">Balance entre estudio y descanso</div>
+          </button>
+          <button onclick="selectStudyMode('Relajado')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+            <div class="font-medium text-gray-800">Relajado</div>
+            <div class="text-sm text-gray-600">Sesiones cortas y frecuentes</div>
+          </button>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button onclick="closeStudyModeModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    window.closeStudyModeModal = function() {
+      document.body.removeChild(modal);
+    };
+    
+    window.selectStudyMode = function(mode) {
+      changeStudyMode(mode);
+      document.body.removeChild(modal);
+    };
+    
+    // Cerrar con Escape
+    modal.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeStudyModeModal();
+      }
+    });
+    
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeStudyModeModal();
+      }
+    });
+  };
+
+  window.showStudyRhythmModal = function() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Selecciona tu Ritmo de Estudio</h3>
+        <div class="space-y-3">
+          <button onclick="selectStudyRhythm('Diario')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+            <div class="font-medium text-gray-800">Diario</div>
+            <div class="text-sm text-gray-600">Estudia todos los días</div>
+          </button>
+          <button onclick="selectStudyRhythm('Semanal')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+            <div class="font-medium text-gray-800">Semanal</div>
+            <div class="text-sm text-gray-600">Varias sesiones por semana</div>
+          </button>
+          <button onclick="selectStudyRhythm('Personalizado')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+            <div class="font-medium text-gray-800">Personalizado</div>
+            <div class="text-sm text-gray-600">Define tu propio horario</div>
+          </button>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button onclick="closeStudyRhythmModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    window.closeStudyRhythmModal = function() {
+      document.body.removeChild(modal);
+    };
+    
+    window.selectStudyRhythm = function(rhythm) {
+      changeStudyRhythm(rhythm);
+      document.body.removeChild(modal);
+    };
+    
+    // Cerrar con Escape
+    modal.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeStudyRhythmModal();
+      }
+    });
+    
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeStudyRhythmModal();
+      }
+    });
+  };
+
+  window.toggleNotifications = function() {
+    const toggle = event.target;
+    const isEnabled = toggle.checked;
+    // Guardar en localStorage
+    localStorage.setItem('recuiva_notifications', isEnabled);
+    showSuccessMessage(`Notificaciones ${isEnabled ? 'activadas' : 'desactivadas'}`);
+  };
+
+  window.toggleDarkMode = function() {
+    const toggle = event.target;
+    const isEnabled = toggle.checked;
+    if (isEnabled) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+    // Guardar en localStorage
+    localStorage.setItem('recuiva_dark_mode', isEnabled);
+    showSuccessMessage(`Modo oscuro ${isEnabled ? 'activado' : 'desactivado'}`);
+  };
+
+  window.changeLanguage = function() {
+    const select = event.target;
+    const language = select.value;
+    // Guardar en localStorage
+    localStorage.setItem('recuiva_language', language);
+    showSuccessMessage(`Idioma cambiado a: ${language === 'es' ? 'Español' : 'English'}`);
+  };
+
+  // Función para configurar recordatorios
+  window.configureReminders = function() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Configurar Recordatorios</h3>
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-gray-700">Recordatorios de estudio</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="study-reminders" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-700">Recordatorios de repasos</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="review-reminders" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-gray-700">Recordatorios de progreso</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="progress-reminders" class="sr-only peer">
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button onclick="closeRemindersModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+            Cancelar
+          </button>
+          <button onclick="saveRemindersConfig()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            Guardar
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    window.closeRemindersModal = function() {
+      document.body.removeChild(modal);
+    };
+    
+    window.saveRemindersConfig = function() {
+      const studyReminders = document.getElementById('study-reminders').checked;
+      const reviewReminders = document.getElementById('review-reminders').checked;
+      const progressReminders = document.getElementById('progress-reminders').checked;
+      
+      // Guardar configuración
+      localStorage.setItem('recuiva_study_reminders', studyReminders);
+      localStorage.setItem('recuiva_review_reminders', reviewReminders);
+      localStorage.setItem('recuiva_progress_reminders', progressReminders);
+      
+      // Actualizar estado visual
+      const activeCount = [studyReminders, reviewReminders, progressReminders].filter(Boolean).length;
+      const statusElement = document.getElementById('reminder-status');
+      if (statusElement) {
+        if (activeCount === 0) {
+          statusElement.textContent = 'Inactivos';
+          statusElement.className = 'text-red-600 font-medium';
+        } else if (activeCount === 3) {
+          statusElement.textContent = 'Todos activos';
+          statusElement.className = 'text-green-600 font-medium';
+        } else {
+          statusElement.textContent = `${activeCount} activos`;
+          statusElement.className = 'text-yellow-600 font-medium';
+        }
+      }
+      
+      showSuccessMessage('Configuración de recordatorios guardada');
+      document.body.removeChild(modal);
+    };
+    
+    // Cargar configuración actual
+    setTimeout(() => {
+      const studyReminders = localStorage.getItem('recuiva_study_reminders');
+      const reviewReminders = localStorage.getItem('recuiva_review_reminders');
+      const progressReminders = localStorage.getItem('recuiva_progress_reminders');
+      
+      if (studyReminders !== null) document.getElementById('study-reminders').checked = studyReminders === 'true';
+      if (reviewReminders !== null) document.getElementById('review-reminders').checked = reviewReminders === 'true';
+      if (progressReminders !== null) document.getElementById('progress-reminders').checked = progressReminders === 'true';
+    }, 100);
+    
+    // Cerrar con Escape
+    modal.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeRemindersModal();
+      }
+    });
+    
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeRemindersModal();
+      }
+    });
+  };
+
+  // === FUNCIONES UTILIDADES ===
+  function showSuccessMessage(message) {
+    // Crear un toast de éxito
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 300);
+    }, 3000);
+  }
+
+  function showErrorMessage(message) {
+    // Crear un toast de error
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 300);
+    }, 3000);
+  }
+
+  // Modal elegante para edición
+  function showEditModal(title, placeholder, currentValue, callback) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">${title}</h3>
+        <input type="text" id="edit-input" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+               placeholder="${placeholder}" value="${currentValue}">
+        <div class="flex justify-end gap-3 mt-6">
+          <button onclick="closeEditModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+            Cancelar
+          </button>
+          <button onclick="confirmEdit()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            Guardar
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Función para cerrar el modal
+    window.closeEditModal = function() {
+      document.body.removeChild(modal);
+    };
+    
+    // Función para confirmar la edición
+    window.confirmEdit = function() {
+      const newValue = document.getElementById('edit-input').value;
+      callback(newValue);
+      document.body.removeChild(modal);
+    };
+    
+    // Cerrar con Escape
+    modal.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeEditModal();
+      }
+    });
+    
+    // Cerrar al hacer clic fuera
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeEditModal();
+      }
+    });
+    
+    // Focus en el input
+    setTimeout(() => {
+      document.getElementById('edit-input').focus();
+      document.getElementById('edit-input').select();
+    }, 100);
+  }
+
+  // Modal para cambio de contraseña
+  function showPasswordModal() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Cambiar Contraseña</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña actual</label>
+            <input type="password" id="current-password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+            <input type="password" id="new-password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar nueva contraseña</label>
+            <input type="password" id="confirm-password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button onclick="closePasswordModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+            Cancelar
+          </button>
+          <button onclick="confirmPasswordChange()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+            Cambiar Contraseña
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Función para cerrar el modal
+    window.closePasswordModal = function() {
+      document.body.removeChild(modal);
+    };
+    
+    // Función para confirmar el cambio de contraseña
+    window.confirmPasswordChange = function() {
+      const currentPassword = document.getElementById('current-password').value;
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      
+      if (!currentPassword) {
+        showErrorMessage('Ingresa tu contraseña actual');
+        return;
+      }
+      
+      if (newPassword.length < 6) {
+        showErrorMessage('La nueva contraseña debe tener al menos 6 caracteres');
+        return;
+      }
+      
+      if (newPassword !== confirmPassword) {
+        showErrorMessage('Las contraseñas no coinciden');
+        return;
+      }
+      
+      // Guardar en localStorage (simulando backend)
+      localStorage.setItem('recuiva_password_changed', new Date().toISOString());
+      showSuccessMessage('Contraseña actualizada correctamente');
+      document.body.removeChild(modal);
+    };
+    
+    // Cerrar con Escape
+    modal.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closePasswordModal();
+      }
+    });
+    
+    // Cerrar al hacer clic fuera
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closePasswordModal();
+      }
+    });
+    
+    // Focus en el primer input
+    setTimeout(() => {
+      document.getElementById('current-password').focus();
+    }, 100);
+  }
+
+  // Cargar datos guardados al iniciar
+  function loadSavedData() {
+    // Detectar tipo de registro y configurar interfaz
+    const registrationType = localStorage.getItem('recuiva_registration_type');
+    const emailEditable = localStorage.getItem('recuiva_email_editable');
+    
+    // Configurar badge del tipo de cuenta
+    const badge = document.getElementById('account-type-badge');
+    const editEmailBtn = document.getElementById('edit-email-btn');
+    
+    if (registrationType === 'gmail' || emailEditable === 'false') {
+      if (badge) {
+        badge.textContent = 'Gmail';
+        badge.className = 'px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800';
+        badge.classList.remove('hidden');
+      }
+      // Deshabilitar visualmente el botón de editar email
+      if (editEmailBtn) {
+        editEmailBtn.style.opacity = '0.4';
+        editEmailBtn.style.cursor = 'not-allowed';
+        editEmailBtn.title = 'No puedes modificar el email de una cuenta Gmail';
+      }
+    } else if (registrationType === 'manual') {
+      if (badge) {
+        badge.textContent = 'Manual';
+        badge.className = 'px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800';
+        badge.classList.remove('hidden');
+      }
+    }
+    
+    // Cargar foto de perfil
+    const savedPicture = localStorage.getItem('recuiva_profile_picture');
+    if (savedPicture) {
+      const profileImg = document.getElementById('profile-image');
+      const navbarImg = document.querySelector('.w-8.h-8 img');
+      if (profileImg) profileImg.src = savedPicture;
+      if (navbarImg) navbarImg.src = savedPicture;
+    }
+    
+    // Cargar nombre
+    const savedName = localStorage.getItem('recuiva_profile_name');
+    if (savedName) {
+      const nameElement = document.getElementById('profile-name');
+      const navbarName = document.querySelector('#profile-btn .hidden.md\\:block');
+      if (nameElement) nameElement.textContent = savedName;
+      if (navbarName) navbarName.textContent = savedName;
+    }
+    
+    // Cargar email
+    const savedEmail = localStorage.getItem('recuiva_profile_email');
+    if (savedEmail) {
+      const emailElement = document.getElementById('profile-email');
+      if (emailElement) emailElement.textContent = savedEmail;
+    }
+    
+    // Cargar modo de estudio
+    const savedStudyMode = localStorage.getItem('recuiva_study_mode');
+    if (savedStudyMode) {
+      const currentModeElement = document.getElementById('current-mode');
+      if (currentModeElement) currentModeElement.textContent = savedStudyMode;
+    }
+    
+    // Cargar ritmo de estudio
+    const savedStudyRhythm = localStorage.getItem('recuiva_study_rhythm');
+    if (savedStudyRhythm) {
+      const currentRhythmElement = document.getElementById('current-rhythm');
+      if (currentRhythmElement) currentRhythmElement.textContent = savedStudyRhythm;
+    }
+    
+    // Cargar configuraciones de toggles
+    const savedNotifications = localStorage.getItem('recuiva_notifications');
+    if (savedNotifications !== null) {
+      const notificationsToggle = document.querySelector('input[onchange*="toggleNotifications"]');
+      if (notificationsToggle) notificationsToggle.checked = savedNotifications === 'true';
+    }
+    
+    const savedDarkMode = localStorage.getItem('recuiva_dark_mode');
+    if (savedDarkMode !== null) {
+      const darkModeToggle = document.querySelector('input[onchange*="toggleDarkMode"]');
+      if (darkModeToggle) {
+        darkModeToggle.checked = savedDarkMode === 'true';
+        if (savedDarkMode === 'true') {
+          document.body.classList.add('dark');
+        }
+      }
+    }
+    
+    const savedLanguage = localStorage.getItem('recuiva_language');
+    if (savedLanguage) {
+      const languageSelect = document.querySelector('select[onchange*="changeLanguage"]');
+      if (languageSelect) languageSelect.value = savedLanguage;
+    }
+
+    // Cargar configuración de recordatorios
+    const studyReminders = localStorage.getItem('recuiva_study_reminders');
+    const reviewReminders = localStorage.getItem('recuiva_review_reminders');
+    const progressReminders = localStorage.getItem('recuiva_progress_reminders');
+    
+    if (studyReminders !== null || reviewReminders !== null || progressReminders !== null) {
+      const activeCount = [
+        studyReminders === 'true',
+        reviewReminders === 'true',
+        progressReminders === 'true'
+      ].filter(Boolean).length;
+      
+      const statusElement = document.getElementById('reminder-status');
+      if (statusElement) {
+        if (activeCount === 0) {
+          statusElement.textContent = 'Inactivos';
+          statusElement.className = 'text-red-600 font-medium';
+        } else if (activeCount === 3) {
+          statusElement.textContent = 'Todos activos';
+          statusElement.className = 'text-green-600 font-medium';
+        } else {
+          statusElement.textContent = `${activeCount} activos`;
+          statusElement.className = 'text-yellow-600 font-medium';
+        }
+      }
+    }
+  }
+
+  // Menú móvil animación landing-page
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = menuBtn.querySelector('.material-symbols-outlined');
+  let isMenuOpen = false;
+
+  function toggleMenu() {
+    isMenuOpen = !isMenuOpen;
+    mobileMenu.classList.toggle('active');
+    document.body.classList.toggle('overflow-hidden');
+    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+    if (isMenuOpen) {
+      menuIcon.style.transform = 'rotate(90deg)';
+      menuIcon.style.opacity = '0';
+      setTimeout(() => {
+        menuIcon.textContent = 'close';
+        menuIcon.style.transform = 'rotate(0deg)';
+        menuIcon.style.opacity = '1';
+      }, 150);
+    } else {
+      menuIcon.style.transform = 'rotate(90deg)';
+      menuIcon.style.opacity = '0';
+      setTimeout(() => {
+        menuIcon.textContent = 'menu';
+        menuIcon.style.transform = 'rotate(0deg)';
+        menuIcon.style.opacity = '1';
+      }, 150);
+    }
+  }
+
+  menuBtn.addEventListener('click', toggleMenu);
+  // Cerrar menú cuando se hace clic en un enlace
+  const menuLinks = mobileMenu.querySelectorAll('a');
+  menuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (isMenuOpen) {
+        toggleMenu();
+      }
+    });
+  });
+
+  // Menú de perfil
+  const profileBtn = document.getElementById('profile-btn');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  function toggleProfileMenu(e) {
+    e.stopPropagation();
+    profileDropdown.classList.toggle('active');
+  }
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener('click', toggleProfileMenu);
+    document.addEventListener('click', (e) => {
+      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+        profileDropdown.classList.remove('active');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        profileDropdown.classList.remove('active');
+      }
+    });
+  }
+
+  // Cargar datos guardados al inicializar la página
+  loadSavedData();
+});
+</script>
+</body></html>
