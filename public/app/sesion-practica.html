@@ -2592,9 +2592,15 @@ async function generateQuestionsAuto() {
 
 async function loadQuestionsFromGeneratedTable(materialId) {
   // ✅ Cargar preguntas desde generated_questions (tabla Sprint 2)
-  const supabase = window.supabaseClient;
-  
   try {
+    // ✅ VERIFICAR que supabaseClient esté disponible
+    if (typeof window.supabaseClient === 'undefined' || !window.supabaseClient) {
+      console.error('❌ supabaseClient no está disponible');
+      return;
+    }
+    
+    const supabase = window.supabaseClient;
+    
     const { data, error } = await supabase
       .from('generated_questions')
       .select('*')
@@ -2606,6 +2612,10 @@ async function loadQuestionsFromGeneratedTable(materialId) {
     console.log(`📚 ${data.length} preguntas automáticas cargadas`);
     
     // Convertir al formato que espera la UI
+    if (typeof questionsHistory === 'undefined') {
+      window.questionsHistory = [];
+    }
+    
     questionsHistory = data.map(q => ({
       id: q.id,
       question: q.question_text,
