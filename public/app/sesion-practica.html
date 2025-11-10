@@ -2508,10 +2508,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Mostrar botón de generación automática cuando hay un material activo
 function updateGenerateButton() {
   console.log('🔧 updateGenerateButton llamada - Sprint 2');
-  const materialId = localStorage.getItem('recuiva_active_material_id');
+  
+  // ✅ OBTENER MATERIAL ID DESDE URL (NO LOCALSTORAGE)
+  const urlParams = new URLSearchParams(window.location.search);
+  const materialId = urlParams.get('material') || urlParams.get('material_id');
   const btn = document.getElementById('btn-generate-questions');
   
-  console.log('📦 Material ID:', materialId);
+  console.log('📦 Material ID (desde URL):', materialId);
   console.log('🔘 Botón encontrado:', !!btn);
   
   if (materialId && btn) {
@@ -2524,7 +2527,9 @@ function updateGenerateButton() {
 }
 
 async function generateQuestionsAuto() {
-  const materialId = localStorage.getItem('recuiva_active_material_id');
+  // ✅ OBTENER MATERIAL ID DESDE URL (NO LOCALSTORAGE)
+  const urlParams = new URLSearchParams(window.location.search);
+  const materialId = urlParams.get('material') || urlParams.get('material_id');
   
   if (!materialId) {
     alert('⚠️ Selecciona un material primero');
