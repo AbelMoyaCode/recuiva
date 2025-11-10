@@ -102,6 +102,11 @@ class MaterialResponse(BaseModel):
     estimated_pages: int
     real_pages: Optional[int] = None  # Páginas reales del PDF (si aplica)
 
+class ValidateAnswerRequest(BaseModel):
+    question_text: str
+    user_answer: str
+    material_id: str  # UUID del material
+
 # ==================== CONFIGURACIÓN ====================
 
 # Rutas del sistema de archivos
@@ -136,6 +141,28 @@ semantic_validator = SemanticValidator(
     threshold_good=THRESHOLD_GOOD,
     threshold_acceptable=THRESHOLD_ACCEPTABLE
 )
+
+# ==================== FUNCIONES AUXILIARES ====================
+
+async def get_current_user(authorization: Optional[str]):
+    """Obtener usuario actual desde el token de Supabase"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="No autorizado - Token faltante")
+    
+    try:
+        # El token viene en formato "Bearer <token>"
+        token = authorization.replace("Bearer ", "")
+        supabase = get_supabase_client()
+        
+        # Verificar el token con Supabase
+        user_response = supabase.auth.get_user(token)
+        
+        if not user_response.user:
+            raise HTTPException(status_code=401, detail="Token inválido")
+        
+        return user_response.user
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Error de autenticación: {str(e)}")
 
 # ==================== ENDPOINTS ====================
 
@@ -979,6 +1006,233 @@ def load_existing_materials():
                     })
         except Exception as e:
             print(f"⚠️ Error cargando material {file}: {e}")
+
+# ==================== SPRINT 2: ENDPOINTS DE TÓPICOS Y GENERACIÓN AUTOMÁTICA ====================
+
+# Importar el generador de preguntas
+try:
+    from question_generator import generate_questions_dict
+    QUESTION_GENERATOR_ENABLED = True
+except ImportError:
+    print("⚠️ question_generator.py no encontrado. Funcionalidad de generación automática deshabilitada.")
+    QUESTION_GENERATOR_ENABLED = False
+
+class TopicCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class TopicResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str]
+    created_at: str
+
+class GenerateQuestionsRequest(BaseModel):
+    num_questions: int = 5
+    strategy: str = "random"  # random, diverse, sequential
+
+@app.post("/api/topics", response_model=TopicResponse)
+async def create_topic(topic: TopicCreate, authorization: Optional[str] = Header(None)):
+    """Crear un nuevo tópico/tema"""
+    if not SUPABASE_ENABLED:
+        raise HTTPException(status_code=503, detail="Supabase no está disponible")
+    
+    try:
+        supabase = get_supabase_client()
+        user = await get_current_user(authorization)
+        
+        result = supabase.table('topics').insert({
+            'user_id': user['id'],
+            'name': topic.name,
+            'description': topic.description
+        }).execute()
+        
+        return result.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creando tópico: {str(e)}")
+
+@app.get("/api/topics", response_model=List[TopicResponse])
+async def get_topics(authorization: Optional[str] = Header(None)):
+    """Obtener todos los tópicos del usuario"""
+    if not SUPABASE_ENABLED:
+        raise HTTPException(status_code=503, detail="Supabase no está disponible")
+    
+    try:
+        supabase = get_supabase_client()
+        user = await get_current_user(authorization)
+        
+        result = supabase.table('topics').select('*').eq('user_id', user['id']).execute()
+        return result.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo tópicos: {str(e)}")
+
+@app.post("/api/materials/{material_id}/assign-topic")
+async def assign_topic_to_material(material_id: str, topic_id: str, authorization: Optional[str] = Header(None)):
+    """Asignar un tópico a un material"""
+    if not SUPABASE_ENABLED:
+        raise HTTPException(status_code=503, detail="Supabase no está disponible")
+    
+    try:
+        supabase = get_supabase_client()
+        user = await get_current_user(authorization)
+        
+        result = supabase.table('materials').update({
+            'topic_id': topic_id
+        }).eq('id', material_id).eq('user_id', user['id']).execute()
+        
+        return {"success": True, "material_id": material_id, "topic_id": topic_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error asignando tópico: {str(e)}")
+
+@app.post("/api/materials/{material_id}/generate-questions")
+async def generate_questions_for_material(
+    material_id: str, 
+    request: GenerateQuestionsRequest,
+    authorization: Optional[str] = Header(None)
+):
+    """Generar preguntas automáticamente desde un material"""
+    if not SUPABASE_ENABLED:
+        raise HTTPException(status_code=503, detail="Supabase no está disponible")
+    
+    if not QUESTION_GENERATOR_ENABLED:
+        raise HTTPException(status_code=503, detail="Generador de preguntas no disponible")
+    
+    try:
+        supabase = get_supabase_client()
+        user = await get_current_user(authorization)
+        
+        # Obtener chunks del material
+        chunks_result = supabase.table('material_embeddings').select('chunk_text').eq('material_id', material_id).order('chunk_index').execute()
+        
+        if not chunks_result.data:
+            raise HTTPException(status_code=404, detail="Material no encontrado o sin chunks")
+        
+        chunks = [item['chunk_text'] for item in chunks_result.data]
+        
+        # Generar preguntas usando el módulo question_generator
+        questions = generate_questions_dict(chunks, request.num_questions, request.strategy)
+        
+        # Guardar preguntas en la tabla generated_questions
+        for q in questions:
+            supabase.table('generated_questions').insert({
+                'material_id': material_id,
+                'question_text': q['question'],
+                'question_type': q['question_type'],
+                'reference_chunk_index': q['chunk_index'],
+                'concepts': q['concepts']
+            }).execute()
+        
+        return {
+            "success": True,
+            "material_id": material_id,
+            "questions_generated": len(questions),
+            "questions": questions
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generando preguntas: {str(e)}")
+
+@app.get("/api/materials/by-topic/{topic_id}")
+async def get_materials_by_topic(topic_id: str, authorization: Optional[str] = Header(None)):
+    """Obtener todos los materiales de un tópico"""
+    if not SUPABASE_ENABLED:
+        raise HTTPException(status_code=503, detail="Supabase no está disponible")
+    
+    try:
+        supabase = get_supabase_client()
+        user = await get_current_user(authorization)
+        
+        result = supabase.table('materials').select('*').eq('topic_id', topic_id).eq('user_id', user['id']).execute()
+        return result.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo materiales: {str(e)}")
+
+@app.post("/api/questions/validate-by-topic")
+async def validate_answer_by_topic(answer: Answer, authorization: Optional[str] = Header(None)):
+    """Validar respuesta contra múltiples materiales de un tópico"""
+    if not SUPABASE_ENABLED:
+        raise HTTPException(status_code=503, detail="Supabase no está disponible")
+    
+    try:
+        supabase = get_supabase_client()
+        user = await get_current_user(authorization)
+        
+        # Obtener el material y su tópico
+        material = supabase.table('materials').select('topic_id').eq('id', answer.material_id).single().execute()
+        
+        if not material.data or not material.data.get('topic_id'):
+            # Si no tiene tópico, validar solo contra el material
+            return await validate_answer(answer)
+        
+        topic_id = material.data['topic_id']
+        
+        # Obtener todos los materiales del mismo tópico
+        materials = supabase.table('materials').select('id').eq('topic_id', topic_id).eq('user_id', user['id']).execute()
+        material_ids = [m['id'] for m in materials.data]
+        
+        # Obtener chunks de todos los materiales del tópico
+        all_chunks = []
+        for mat_id in material_ids:
+            chunks_result = supabase.table('material_embeddings').select('*').eq('material_id', mat_id).execute()
+            all_chunks.extend(chunks_result.data)
+        
+        if not all_chunks:
+            raise HTTPException(status_code=404, detail="No se encontraron chunks en el tópico")
+        
+        # Generar embedding de la respuesta
+        answer_embedding = generate_embeddings([answer.user_answer])[0]
+        
+        # Calcular similitud con todos los chunks
+        similarities = []
+        for chunk in all_chunks:
+            chunk_embedding = np.array(chunk['embedding'])
+            similarity = calculate_similarity(answer_embedding, chunk_embedding)
+            similarities.append({
+                'chunk': chunk,
+                'similarity': float(similarity)
+            })
+        
+        # Ordenar por similitud
+        similarities.sort(key=lambda x: x['similarity'], reverse=True)
+        top_chunks = similarities[:5]
+        
+        # Validación semántica con el mejor chunk
+        validator = SemanticValidator()
+        best_similarity = top_chunks[0]['similarity']
+        
+        # Determinar texto de pregunta
+        question_text = answer.question_text if answer.question_text else ""
+        if answer.question_id and questions_db:
+            question = next((q for q in questions_db if q["id"] == answer.question_id), None)
+            if question:
+                question_text = question.get("text", "")
+        
+        validation = validator.validate_answer(
+            question=question_text,
+            user_answer=answer.user_answer,
+            reference_chunk=top_chunks[0]['chunk']['chunk_text'],
+            similarity_score=best_similarity
+        )
+        
+        return {
+            "score": validation['score'],
+            "classification": validation['classification'],
+            "similarity": best_similarity,
+            "is_correct": validation['is_correct'],
+            "feedback": validation['feedback'],
+            "best_match_chunk": top_chunks[0]['chunk']['chunk_text'],
+            "relevant_chunks": [
+                {
+                    "text": c['chunk']['chunk_text'],
+                    "similarity": c['similarity']
+                } for c in top_chunks
+            ],
+            "topic_validation": True,
+            "materials_checked": len(material_ids)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error validando respuesta por tópico: {str(e)}")
+
+# ==================== FIN SPRINT 2 ====================
 
 # ==================== MAIN ====================
 
