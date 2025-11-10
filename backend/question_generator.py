@@ -21,60 +21,116 @@ class GeneratedQuestion:
 
 QUESTION_TEMPLATES = {
     'narrative': [
-        '¿Qué sucede en este fragmento?',
-        'Resume lo que ocurre en esta parte',
-        'Describe los eventos narrados aquí'
+        '¿Qué sucede cuando {context}?',
+        'Describe los eventos que ocurren en el fragmento que menciona {context}',
+        '¿Qué acontecimientos se narran relacionados con {context}?',
+        'Resume la situación cuando se habla de {context}',
+        '¿Cómo se desarrolla la escena donde aparece {context}?'
     ],
     'character': [
-        '¿Qué hace {concept} en esta parte?',
-        'Describe el papel de {concept}',
-        '¿Cómo actúa {concept} en este fragmento?'
+        '¿Qué hace {concept} y por qué es importante?',
+        'Describe las acciones de {concept} en este contexto',
+        '¿Cuál es el papel de {concept} en esta situación?',
+        '¿Cómo actúa {concept} y qué revela esto?',
+        'Analiza el comportamiento de {concept} en este fragmento'
     ],
     'concept': [
-        'Explica el concepto de {concept} según el texto',
-        '¿Qué es {concept} en este contexto?',
-        'Define {concept} basándote en esta sección'
+        'Explica {concept} según lo descrito en el material',
+        '¿Qué significa {concept} en este contexto específico?',
+        'Define {concept} basándote en la información del texto',
+        '¿Cómo se relaciona {concept} con el tema principal?',
+        'Desarrolla el concepto de {concept} usando el material'
+    ],
+    'formula': [
+        'Explica para qué se utiliza esta fórmula matemática',
+        '¿Qué representa cada elemento en esta ecuación?',
+        'Describe cómo se aplica esta fórmula',
+        '¿En qué contexto se usa esta expresión matemática?'
     ]
 }
 
 def detect_content_type(text: str) -> str:
-    """Detecta el tipo de contenido del chunk"""
+    """Detecta el tipo de contenido del chunk con análisis PROFUNDO del texto"""
     text_lower = text.lower()
     
-    # ✅ SOLO fórmulas REALES (ecuaciones matemáticas)
-    if re.search(r'[=].*[\d+\-*/√∫∑]|[∫∑√]\d', text):
-        return 'formula'
+    # Contar diferentes indicadores
+    narrative_score = 0
+    academic_score = 0
     
-    # ✅ Detectar si es narrativa (común en novelas/historias)
-    if any(w in text_lower for w in ['dijo', 'preguntó', 'respondió', 'pensó', 'miraba', 'caminaba']):
+    # Indicadores de narrativa (novelas, cuentos)
+    narrative_verbs = ['dijo', 'preguntó', 'respondió', 'pensó', 'miraba', 'caminaba', 
+                      'observaba', 'susurró', 'gritó', 'murmuró', 'recordaba', 'sentía']
+    narrative_score += sum(1 for verb in narrative_verbs if verb in text_lower)
+    
+    # Indicadores académicos (ensayos, papers, libros técnicos)
+    academic_terms = ['concepto', 'definición', 'teoría', 'análisis', 'método', 
+                     'investigación', 'estudio', 'resultado', 'conclusión', 'hipótesis']
+    academic_score += sum(1 for term in academic_terms if term in text_lower)
+    
+    # Detectar diálogos (comillas)
+    if '"' in text or '«' in text or '—' in text:
+        narrative_score += 2
+    
+    # Decisión basada en scores
+    if narrative_score > academic_score and narrative_score >= 2:
         return 'narrative'
     
-    # ✅ Detectar nombres propios (personajes)
-    if re.search(r'\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\b', text):
+    # Detectar nombres propios (personajes)
+    proper_names = re.findall(r'\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+\b', text)
+    if len(proper_names) >= 2:
         return 'character'
+    
+    # Detectar fórmulas matemáticas
+    if re.search(r'[=].*[\d+\-*/√∫∑]|[∫∑√]\d', text):
+        return 'formula'
     
     # Por defecto: concepto general
     return 'concept'
 
-def extract_key_concepts(text: str, max_concepts: int = 3) -> List[str]:
+def extract_key_concepts(text: str, max_concepts: int = 5) -> List[str]:
+    """Extrae conceptos clave y contexto del chunk de manera INTELIGENTE"""
     concepts = []
-    patterns = [
-        r'(?:es el|es la|es un|es una)\s+([^.,;]+)',
-        r'concepto de\s+([^.,;]+)'
+    
+    # 1. Buscar definiciones explícitas
+    definition_patterns = [
+        r'(?:es el|es la|es un|es una|se define como|se entiende por)\s+([^.,;]+)',
+        r'concepto de\s+([^.,;]+)',
+        r'(?:llamado|conocido como|denominado)\s+([^.,;]+)'
     ]
-    for pattern in patterns:
+    for pattern in definition_patterns:
         matches = re.findall(pattern, text, re.IGNORECASE)
         concepts.extend([m.strip() for m in matches])
-    capitalized = re.findall(r'\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+\b', text)
+    
+    # 2. Nombres propios (personajes, lugares, organizaciones)
+    proper_names = re.findall(r'\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*\b', text)
+    concepts.extend([name for name in proper_names if len(name) > 3])
+    
+    # 3. Sustantivos clave (palabras capitalizadas o repetidas)
+    capitalized = re.findall(r'\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{3,}\b', text)
     concepts.extend(capitalized)
-    concepts = list(set([c.strip() for c in concepts if len(c.strip()) > 3]))
-    if not concepts:
-        words = re.findall(r'\b\w{5,}\b', text.lower())
-        word_freq = {}
-        for word in words:
+    
+    # 4. Términos técnicos o palabras importantes por frecuencia
+    words = re.findall(r'\b[a-záéíóúñ]{5,}\b', text.lower())
+    word_freq = {}
+    for word in words:
+        # Filtrar palabras comunes
+        if word not in ['sobre', 'cuando', 'donde', 'porque', 'aunque', 'mientras', 
+                       'después', 'antes', 'siempre', 'nunca', 'también', 'además']:
             word_freq[word] = word_freq.get(word, 0) + 1
-        concepts = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)
-        concepts = [word for word, _ in concepts[:max_concepts]]
+    
+    # Tomar las 3 palabras más frecuentes
+    top_words = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:3]
+    concepts.extend([word for word, _ in top_words])
+    
+    # Limpiar y deduplicar
+    concepts = list(set([c.strip() for c in concepts if len(c.strip()) > 3]))
+    
+    # Si no hay conceptos, extraer fragmento de contexto
+    if not concepts:
+        # Tomar las primeras 4-6 palabras como contexto
+        first_words = ' '.join(text.split()[:6])
+        concepts = [first_words[:50]]
+    
     return concepts[:max_concepts]
 
 def generate_questions_dict(chunks: List[str], num_questions: int = 5, strategy: str = 'random') -> List[Dict]:
@@ -102,17 +158,31 @@ def generate_questions_dict(chunks: List[str], num_questions: int = 5, strategy:
         # Extraer conceptos clave
         concepts = extract_key_concepts(chunk)
         
-        # ✅ Generar pregunta COHERENTE según el tipo
+        # ✅ Generar pregunta INTELIGENTE basada en el contenido REAL del chunk
         if content_type == 'narrative':
-            # Para narrativa: pregunta general sobre el fragmento
-            question = random.choice(QUESTION_TEMPLATES['narrative'])
+            # Para narrativa: usar contexto específico del fragmento
+            context = concepts[0] if concepts else 'esta parte de la historia'
+            template = random.choice(QUESTION_TEMPLATES['narrative'])
+            question = template.format(context=context)
+        
         elif content_type == 'character' and concepts:
-            # Para personajes: pregunta sobre el personaje principal
+            # Para personajes: pregunta sobre el personaje mencionado
+            character = concepts[0]  # Primer nombre propio encontrado
             template = random.choice(QUESTION_TEMPLATES['character'])
-            question = template.format(concept=concepts[0])
+            question = template.format(concept=character)
+        
+        elif content_type == 'formula':
+            # Para fórmulas: pregunta técnica sobre la ecuación
+            question = random.choice(QUESTION_TEMPLATES['formula'])
+        
         else:
-            # Para conceptos: pregunta sobre concepto específico
-            concept = concepts[0] if concepts else 'el tema de este fragmento'
+            # Para conceptos: usar concepto ESPECÍFICO del chunk
+            if concepts:
+                concept = concepts[0]
+            else:
+                # Extraer fragmento del inicio del chunk como concepto
+                concept = ' '.join(chunk.split()[:5])
+            
             template = random.choice(QUESTION_TEMPLATES['concept'])
             question = template.format(concept=concept)
         

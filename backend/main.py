@@ -1126,15 +1126,8 @@ async def generate_questions_for_material(
         
         print(f"✅ Preguntas generadas: {len(questions)}")
         
-        # Guardar preguntas en la tabla generated_questions
-        for q in questions:
-            supabase.table('generated_questions').insert({
-                'material_id': material_id,
-                'question_text': q['question'],
-                'question_type': q['question_type'],
-                'reference_chunk_index': q['chunk_index'],
-                'concepts': q['concepts']
-            }).execute()
+        # ✅ NO GUARDAR AUTOMÁTICAMENTE - El usuario decide si guarda con "Guardar Pregunta"
+        # Solo retornar las preguntas generadas para mostrarlas en el textarea
         
         return {
             "success": True,

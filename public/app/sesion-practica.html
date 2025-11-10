@@ -2573,13 +2573,19 @@ async function generateQuestionsAuto() {
 
     const result = await response.json();
     
-    // ✅ Mensaje claro: 1 pregunta generada (iterativo)
-    console.log(`✅ Pregunta generada automáticamente del material`);
-    console.log('Preguntas recibidas:', result.questions);
+    console.log(`✅ Pregunta generada automáticamente`);
+    console.log('Pregunta recibida:', result.questions);
     
-    // ✅ El backend YA guardó en generated_questions, no duplicar
-    // Solo recargar la lista para mostrar las preguntas generadas
-    await loadQuestionsFromGeneratedTable(materialId);
+    // ✅ COLOCAR LA PREGUNTA EN EL TEXTAREA (NO GUARDAR AUTOMÁTICAMENTE)
+    if (result.questions && result.questions.length > 0) {
+      const preguntaGenerada = result.questions[0].question;
+      const textarea = document.getElementById('question-input');
+      if (textarea) {
+        textarea.value = preguntaGenerada;
+        textarea.dispatchEvent(new Event('input')); // Activar contador y validación
+        console.log('✅ Pregunta colocada en textarea:', preguntaGenerada);
+      }
+    }
     
   } catch (error) {
     console.error('Error generando preguntas:', error);
@@ -2590,59 +2596,9 @@ async function generateQuestionsAuto() {
   }
 }
 
-async function loadQuestionsFromGeneratedTable(materialId) {
-  // ✅ Cargar preguntas desde generated_questions (tabla Sprint 2)
-  try {
-    // ✅ ESPERAR a que supabaseClient esté disponible (máximo 5 segundos)
-    let attempts = 0;
-    while ((!window.supabaseClient || typeof window.supabaseClient === 'undefined') && attempts < 50) {
-      console.log('⏳ Esperando a que supabaseClient se cargue...');
-      await new Promise(resolve => setTimeout(resolve, 100)); // Esperar 100ms
-      attempts++;
-    }
-    
-    if (!window.supabaseClient) {
-      console.error('❌ supabaseClient no está disponible después de 5 segundos');
-      return;
-    }
-    
-    const supabase = window.supabaseClient;
-    console.log('✅ supabaseClient encontrado, cargando preguntas...');
-    
-    const { data, error } = await supabase
-      .from('generated_questions')
-      .select('*')
-      .eq('material_id', materialId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('❌ Error de Supabase:', error);
-      throw error;
-    }
-    
-    console.log(`📚 ${data.length} preguntas automáticas cargadas`);
-    
-    // Convertir al formato que espera la UI
-    if (typeof questionsHistory === 'undefined') {
-      window.questionsHistory = [];
-    }
-    
-    questionsHistory = data.map(q => ({
-      id: q.id,
-      question: q.question_text,
-      type: q.question_type || 'auto-generated',
-      timestamp: q.created_at
-    }));
-    
-    // Actualizar la UI
-    if (typeof window.updateQuestionsList === 'function') {
-      window.updateQuestionsList();
-    }
-    
-  } catch (error) {
-    console.error('Error cargando preguntas generadas:', error);
-  }
-}
+// ✅ FUNCIÓN ELIMINADA: loadQuestionsFromGeneratedTable
+// Las preguntas NO se guardan automáticamente, solo se colocan en el textarea
+// El usuario decide si las guarda con el botón "Guardar Pregunta"
 
 // Actualizar botón cuando cambie el material activo
 document.addEventListener('DOMContentLoaded', () => {
