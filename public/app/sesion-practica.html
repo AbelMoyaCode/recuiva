@@ -2575,14 +2575,11 @@ async function generateQuestionsAuto() {
     
     // ✅ Mensaje claro: 1 pregunta generada (iterativo)
     console.log(`✅ Pregunta generada automáticamente del material`);
+    console.log('Preguntas recibidas:', result.questions);
     
-    // Agregar las preguntas generadas a Supabase como preguntas normales
-    for (const q of result.questions) {
-      await createQuestionInSupabase(q.question, materialId);
-    }
-    
-    // Recargar lista de preguntas
-    await loadQuestionsFromSupabase(materialId);
+    // ✅ El backend YA guardó en generated_questions, no duplicar
+    // Solo recargar la lista para mostrar las preguntas generadas
+    await loadQuestionsFromGeneratedTable(materialId);
     
   } catch (error) {
     console.error('Error generando preguntas:', error);
@@ -2593,25 +2590,36 @@ async function generateQuestionsAuto() {
   }
 }
 
-async function createQuestionInSupabase(questionText, materialId) {
-  const token = localStorage.getItem('sb-access-token');
+async function loadQuestionsFromGeneratedTable(materialId) {
+  // ✅ Cargar preguntas desde generated_questions (tabla Sprint 2)
   const supabase = window.supabaseClient;
   
   try {
     const { data, error } = await supabase
-      .from('questions')
-      .insert([{
-        question_text: questionText,
-        material_id: materialId,
-        user_id: (await supabase.auth.getUser()).data.user.id
-      }])
-      .select();
+      .from('generated_questions')
+      .select('*')
+      .eq('material_id', materialId)
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data[0];
+    
+    console.log(`📚 ${data.length} preguntas automáticas cargadas`);
+    
+    // Convertir al formato que espera la UI
+    questionsHistory = data.map(q => ({
+      id: q.id,
+      question: q.question_text,
+      type: q.question_type || 'auto-generated',
+      timestamp: q.created_at
+    }));
+    
+    // Actualizar la UI
+    if (typeof window.updateQuestionsList === 'function') {
+      window.updateQuestionsList();
+    }
+    
   } catch (error) {
-    console.error('Error creando pregunta:', error);
-    throw error;
+    console.error('Error cargando preguntas generadas:', error);
   }
 }
 
