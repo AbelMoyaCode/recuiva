@@ -1150,9 +1150,38 @@ async def generate_questions_for_material(
         print(f"📚 Chunks encontrados: {len(chunks_result.data)}")
         chunks = [item['chunk_text'] for item in chunks_result.data]
         
+        # 🔍 DEBUG: Mostrar primeros 3 chunks para diagnosticar
+        print(f"\n{'='*80}")
+        print("🔍 DEBUG: PRIMEROS 3 CHUNKS DEL MATERIAL")
+        print(f"{'='*80}")
+        for i, chunk in enumerate(chunks[:3]):
+            print(f"\n--- CHUNK {i+1} ---")
+            print(f"Longitud: {len(chunk)} caracteres")
+            print(f"Primeras 200 chars: {chunk[:200]}...")
+        print(f"{'='*80}\n")
+        
         # Generar preguntas usando el módulo question_generator
         print(f"🎯 Generando {request.num_questions} preguntas con estrategia {request.strategy}")
         questions = generate_questions_dict(chunks, request.num_questions, request.strategy)
+        
+        # 🔍 DEBUG: Mostrar análisis de la primera pregunta
+        if questions:
+            q = questions[0]
+            print(f"\n{'='*80}")
+            print("🔍 DEBUG: PRIMERA PREGUNTA GENERADA")
+            print(f"{'='*80}")
+            print(f"❓ Pregunta: {q.get('question', 'N/A')}")
+            print(f"📌 Tipo: {q.get('question_type', 'N/A')}")
+            print(f"🎯 Conceptos: {q.get('concepts', [])}")
+            print(f"📊 Confianza: {q.get('confidence', 0)}")
+            if 'reasoning' in q:
+                print(f"\n💭 REASONING:")
+                print(f"   Tipo contenido: {q['reasoning'].get('content_type', 'N/A')}")
+                print(f"   Entidades encontradas: {q['reasoning'].get('entities_found', 0)}")
+                print(f("   Entidades válidas: {q['reasoning'].get('entities_valid', [])}")
+                print(f"   Entity types: {q['reasoning'].get('entity_types', {})}")
+                print(f"   Patrones: {q['reasoning'].get('patterns_detected', [])}")
+            print(f"{'='*80}\n")
         
         print(f"✅ Preguntas generadas: {len(questions)}")
         

@@ -229,6 +229,10 @@ class ContentAnalyzer:
         # PASO 1: EXTRACCIÓN UNIVERSAL CON INDICADORES  
         # Buscar entidades usando indicadores de TODOS los tipos
         
+        # DEBUG LOG
+        print(f"\n🔬 _extract_entities: Analizando {len(text)} caracteres")
+        print(f"   Primeras 150 chars: {text[:150]}...")
+        
         # Stopwords que NO deben aparecer inmediatamente después del indicador
         INDICATOR_STOPWORDS = {
             'se', 'que', 'con', 'sin', 'por', 'para', 'como', 'pero',
@@ -342,6 +346,10 @@ class ContentAnalyzer:
             if entity_lower not in seen and len(entity) > 3:
                 seen.add(entity_lower)
                 unique_entities.append(entity.strip())
+        
+        # DEBUG LOG FINAL
+        print(f"   ✅ Entidades extraídas: {unique_entities[:5]}")  # Primeras 5
+        print(f"   📊 Total entidades: {len(unique_entities)}")
         
         return unique_entities[:10]  # Top 10 entidades
     
