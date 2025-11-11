@@ -182,10 +182,16 @@ class ContentAnalyzer:
         
         NUEVO: Corrige problemas de OCR/encoding comunes
         """
-        # PASO 1: Corregir espacios insertados incorrectamente (OCR defectuoso)
-        # Ejemplo: "hombr e" → "hombre", "ley enda" → "leyenda"
-        # Patrón: palabra[espacio]letra → palabraletra (si forman palabra válida)
-        text = re.sub(r'([a-záéíóúñ]{2,})\s+([a-záéíóúñ]{1,2})(\s|[,.:;!?]|\b)', r'\1\2\3', text)
+        # PASO 1: Corregir espacios insertados en medio de palabras (OCR defectuoso)
+        # Ejemplos: "guar darlo" → "guardarlo", "Car denal" → "Cardenal", "habi tación" → "habitación"
+        # Estrategia: Si hay palabra + espacio + palabra minúscula SIN puntuación entre ellas → unir
+        
+        # Subcaso 1: palabra + espacio + palabra_corta (1-3 letras) + espacio/puntuación
+        text = re.sub(r'([a-záéíóúñ]{3,})\s+([a-záéíóúñ]{1,3})(\s|[,.:;!?\n])', r'\1\2\3', text)
+        
+        # Subcaso 2: palabra + espacio + palabra_larga (4+ letras minúsculas)
+        # Solo si la segunda parte empieza con minúscula (no es nombre propio)
+        text = re.sub(r'([a-záéíóúñ]{2,})\s+([a-záéíóúñ]{4,})', r'\1\2', text)
         
         # PASO 2: Normalizar espacios múltiples
         text = re.sub(r' +', ' ', text)

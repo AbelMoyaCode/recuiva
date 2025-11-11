@@ -89,6 +89,12 @@ def clean_text(text: str) -> str:
     """
     Limpia el texto removiendo caracteres innecesarios
     
+    NOTA IMPORTANTE: 
+    - Si el PDF tiene OCR defectuoso (espacios en medio de palabras), 
+      este filtro NO lo arreglará automáticamente
+    - Para PDFs con OCR corrupto, ejecutar manualmente el script SQL:
+      database/fix_ocr_chunks_CORRECTO.sql
+    
     Args:
         text: Texto a limpiar
         
