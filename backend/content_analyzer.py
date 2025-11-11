@@ -177,10 +177,22 @@ class ContentAnalyzer:
         )
     
     def _clean_chunk(self, text: str) -> str:
-        """Limpia el chunk preservando estructura"""
-        # Normalizar espacios pero preservar saltos de línea significativos
+        """
+        Limpia el chunk preservando estructura
+        
+        NUEVO: Corrige problemas de OCR/encoding comunes
+        """
+        # PASO 1: Corregir espacios insertados incorrectamente (OCR defectuoso)
+        # Ejemplo: "hombr e" → "hombre", "ley enda" → "leyenda"
+        # Patrón: palabra[espacio]letra → palabraletra (si forman palabra válida)
+        text = re.sub(r'([a-záéíóúñ]{2,})\s+([a-záéíóúñ]{1,2})(\s|[,.:;!?]|\b)', r'\1\2\3', text)
+        
+        # PASO 2: Normalizar espacios múltiples
         text = re.sub(r' +', ' ', text)
+        
+        # PASO 3: Preservar saltos de línea significativos
         text = re.sub(r'\n{3,}', '\n\n', text)
+        
         return text.strip()
     
     def _is_metadata(self, text: str) -> bool:
@@ -281,30 +293,35 @@ class ContentAnalyzer:
         # Blacklist UNIVERSAL (no específica de dominio)
         UNIVERSAL_BLACKLIST = FUNCTION_WORDS | {
             'Como', 'Pero', 'Cuando', 'Cierto', 'Verdad', 'Inmediatamente',
-            'Esper', 'Cabal', 'Loro', 'Eux', 'Mot', 'Te', 'Hasta'
+            'Esper', 'Cabal', 'Loro', 'Eux', 'Mot', 'Te', 'Hasta',
+            # NUEVO: Agregar más palabras que aparecen por OCR defectuoso
+            'Enda', 'Eux', 'Dijo', 'Señor', 'Hombre', 'Cosa', 'Manera'
         }
         
         # Patrón: 2-4 palabras capitalizadas con alta confianza
-        name_pattern = r'\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}(?:\s+(?:de|del|y)\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})*(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}){1,2})\b'
+        # MEJORADO: Acepta guiones y apóstrofes
+        name_pattern = r'\b([A-ZÁÉÍÓÚÑ][a-záéíóúñ\'\-]{2,}(?:\s+(?:de|del|y|van|von|la|le)\s+)?(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ\'\-]{2,}){1,2})\b'
         
         for match in re.finditer(name_pattern, text):
             name_candidate = match.group(1).strip()
             words = name_candidate.split()
             
-            # VALIDACIÓN 1: Mínimo 2 palabras
-            if len(words) < 2:
+            # VALIDACIÓN 1: Mínimo 2 palabras O una palabra larga (>8 chars) con mayúscula
+            if len(words) == 1 and len(name_candidate) < 8:
                 continue
             
-            # VALIDACIÓN 2: Cada palabra mínimo 3 caracteres
-            if any(len(w) < 3 for w in words if w.lower() not in {'de', 'del', 'y'}):
+            # VALIDACIÓN 2: Cada palabra sustantiva mínimo 3 caracteres
+            substantive_words = [w for w in words if w.lower() not in {'de', 'del', 'y', 'van', 'von', 'la', 'le'}]
+            if not substantive_words or any(len(w) < 3 for w in substantive_words):
                 continue
             
             # VALIDACIÓN 3: Primera palabra NO en blacklist
             if words[0] in UNIVERSAL_BLACKLIST or words[0].lower() in UNIVERSAL_BLACKLIST:
                 continue
             
-            # VALIDACIÓN 4: NO contener blacklist intermedias
-            if any(w in UNIVERSAL_BLACKLIST or w.lower() in UNIVERSAL_BLACKLIST for w in words):
+            # VALIDACIÓN 4: NO contener blacklist intermedias (excepto conectores)
+            non_connector_words = [w for w in words if w.lower() not in {'de', 'del', 'y', 'van', 'von', 'la', 'le'}]
+            if any(w in UNIVERSAL_BLACKLIST or w.lower() in UNIVERSAL_BLACKLIST for w in non_connector_words):
                 continue
             
             # VALIDACIÓN 5: Contexto verbal (cerca de verbo de persona)
@@ -315,15 +332,18 @@ class ContentAnalyzer:
             person_verbs = {
                 'dijo', 'preguntó', 'respondió', 'pensó', 'miró', 'vio',
                 'entró', 'salió', 'caminó', 'hizo', 'fue', 'era', 'estaba',
-                'tenía', 'había', 'lucía', 'llevaba', 'ofrecía', 'creyó'
+                'tenía', 'había', 'lucía', 'llevaba', 'ofrecía', 'creyó',
+                # NUEVO: Verbos de novelas/narrativa
+                'murmuró', 'susurró', 'sonrió', 'rió', 'lloró', 'gritó',
+                'observó', 'contempló', 'escuchó', 'comprendió', 'sintió'
             }
             
             has_verb_context = any(verb in context for verb in person_verbs)
-            has_person_article = re.search(r'\b(?:el|la)\s+' + re.escape(words[0].lower()), context)
+            has_person_article = re.search(r'\b(?:el|la|los|las|don|doña|señor|señora)\s+' + re.escape(words[0].lower()), context)
             
             if has_verb_context or has_person_article:
                 name_clean = re.sub(r'\s+(?:de|del|y)\s*$', '', name_candidate)
-                if name_clean and name_clean not in entities:
+                if name_clean and len(name_clean) > 4 and name_clean not in entities:
                     entities.append(name_clean)
         
         # PASO 3: Términos entre comillas (SOLO si son conceptos técnicos, no ejemplos)
