@@ -1178,7 +1178,7 @@ async def generate_questions_for_material(
                 print(f"\n💭 REASONING:")
                 print(f"   Tipo contenido: {q['reasoning'].get('content_type', 'N/A')}")
                 print(f"   Entidades encontradas: {q['reasoning'].get('entities_found', 0)}")
-                print(f("   Entidades válidas: {q['reasoning'].get('entities_valid', [])}")
+                print(f"   Entidades válidas: {q['reasoning'].get('entities_valid', [])}")
                 print(f"   Entity types: {q['reasoning'].get('entity_types', {})}")
                 print(f"   Patrones: {q['reasoning'].get('patterns_detected', [])}")
             print(f"{'='*80}\n")
