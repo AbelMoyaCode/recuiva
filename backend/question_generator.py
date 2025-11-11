@@ -218,8 +218,13 @@ def _generate_narrative_question(
     MEJORAS:
     ✅ Preguntas completas y naturales (sin límites artificiales)
     ✅ Usa nombres completos validados gramaticalmente
-    ✅ Si no hay entidades válidas, pregunta sobre el contenido general
+    ✅ Preguntas específicas basadas en el chunk real
+    ✅ Si no hay entidades válidas, extrae del texto directamente
     """
+    
+    # Extraer primera oración completa del chunk para contexto
+    sentences = chunk.split('.')
+    first_sentence = sentences[0].strip() if sentences else chunk[:200]
     
     # Si hay diálogo Y entidades válidas
     if 'dialogue' in patterns and entities:
@@ -230,24 +235,45 @@ def _generate_narrative_question(
     if verbs and entities:
         verb_type, verb = verbs[0]
         subject = entities[0]
-        return f"En el texto mencionado, ¿qué {verb} {subject} y cuál es la importancia de esta acción?"
+        return f"En el texto, ¿qué {verb} {subject} y por qué es relevante este acontecimiento?"
     
     # Si hay múltiples entidades válidas
     if len(entities) >= 2:
-        return f"Explica la relación entre {entities[0]} y {entities[1]} según lo descrito en el fragmento del material"
+        return f"Explica la relación entre {entities[0]} y {entities[1]} según lo descrito en el fragmento"
     
     # Si hay UNA entidad válida
     elif len(entities) == 1:
-        return f"Resume los eventos más importantes que involucran a {entities[0]} en este fragmento"
-    
-    # Si NO hay entidades válidas, pregunta genérica sobre contenido
-    else:
-        if 'dialogue' in patterns:
-            return "¿Qué conversación o diálogo se presenta en este fragmento y qué información aporta a la historia?"
-        elif verbs:
-            return "Resume los acontecimientos principales narrados en este fragmento del material"
+        # Buscar acción específica en el chunk
+        action_verbs = ['hizo', 'dijo', 'pensó', 'sintió', 'vio', 'llegó', 'salió', 'entró']
+        found_action = None
+        for action in action_verbs:
+            if action in chunk.lower():
+                found_action = action
+                break
+        
+        if found_action:
+            return f"¿Qué {found_action} {entities[0]} en este fragmento del material?"
         else:
-            return "¿Qué eventos importantes se describen en esta parte de la narración?"
+            return f"Resume los eventos más importantes que involucran a {entities[0]} en este fragmento"
+    
+    # Si NO hay entidades válidas, genera pregunta basada en el contenido real
+    else:
+        # Extraer sustantivos del chunk (palabras capitalizadas o sustantivos comunes)
+        words = chunk.split()
+        important_words = [w for w in words if len(w) > 5 and w[0].isupper()]
+        
+        if important_words and len(important_words) > 0:
+            # Usar las primeras palabras importantes encontradas
+            context_hint = important_words[0] if len(important_words) == 1 else f"{important_words[0]} y {important_words[1]}"
+            return f"¿Qué se describe sobre {context_hint} en este fragmento del material?"
+        elif 'dialogue' in patterns:
+            return "¿Qué conversación o diálogo se presenta en este fragmento y qué información aporta?"
+        elif verbs:
+            return "Resume los acontecimientos principales narrados en este fragmento"
+        else:
+            # Último recurso: usar parte del texto real
+            snippet = first_sentence[:80] + "..." if len(first_sentence) > 80 else first_sentence
+            return f"Explica con tus palabras el siguiente fragmento: '{snippet}'"
 
 
 def _generate_academic_question(
@@ -256,43 +282,68 @@ def _generate_academic_question(
     patterns: List[str]
 ) -> str:
     """
-    Genera pregunta para contenido ACADÉMICO (ensayos, papers)
+    Genera pregunta para contenido ACADÉMICO (ensayos, papers, libros técnicos)
     
     MEJORAS:
     ✅ Preguntas elaboradas sin restricciones de longitud
     ✅ Múltiples entidades en preguntas complejas
+    ✅ Extrae conceptos clave del texto real
     """
+    
+    # Extraer conceptos técnicos del chunk (palabras importantes)
+    words = chunk.split()
+    technical_terms = [w.strip(',.;:') for w in words if len(w) > 6 and not w.lower() in {'ejemplo', 'embargo', 'través', 'mediante'}]
     
     # Si hay definición
     if 'definition' in patterns:
         if entities:
-            return f"¿Cómo se define el concepto de {entities[0]} según el material? Explica con detalle los aspectos más importantes mencionados"
+            return f"¿Cómo se define {entities[0]} según el material? Explica sus características principales"
+        elif technical_terms:
+            concept = technical_terms[0]
+            return f"Define el concepto de {concept} mencionado en el texto y explica su importancia"
         else:
-            return "¿Qué concepto se define en este fragmento y cuáles son sus características principales según el texto?"
+            return "¿Qué concepto se define en este fragmento y cuáles son sus características principales?"
     
     # Si hay comparación
-    if 'comparison' in patterns and len(entities) >= 2:
-        return f"Compara y contrasta {entities[0]} con {entities[1]} según lo explicado en el material, destacando las diferencias y similitudes clave"
+    if 'comparison' in patterns:
+        if len(entities) >= 2:
+            return f"Compara {entities[0]} con {entities[1]} según el material, indicando diferencias y similitudes"
+        elif len(technical_terms) >= 2:
+            return f"Compara {technical_terms[0]} con {technical_terms[1]} según lo explicado en el fragmento"
+        else:
+            return "¿Qué elementos se comparan en el texto y cuáles son sus diferencias principales?"
     
     # Si hay causalidad
     if 'causality' in patterns:
         if entities:
-            return f"¿Por qué ocurre {entities[0]} según el material? Explica las causas y consecuencias mencionadas en el texto"
+            return f"¿Por qué ocurre {entities[0]} según el material? Explica las causas y consecuencias"
         else:
-            return "Explica la relación causa-efecto descrita en el texto y analiza los factores involucrados"
+            return "Explica la relación causa-efecto descrita en el texto"
     
     # Si hay ejemplos
     if 'example' in patterns and entities:
-        return f"¿Qué ejemplos se presentan sobre {entities[0]} y cómo ilustran el concepto explicado en el material?"
+        return f"¿Qué ejemplos se presentan sobre {entities[0]} y cómo ilustran el concepto?"
     
-    # Pregunta académica general con múltiples entidades
+    # Pregunta académica basada en el contenido real
     if len(entities) >= 2:
         entities_str = ", ".join(entities[:3])
-        return f"Explica la relación entre {entities_str} según el análisis presentado en el fragmento"
+        return f"Explica la relación entre {entities_str} según el fragmento"
     elif entities:
-        return f"Desarrolla y explica el concepto de {entities[0]} mencionado en el material, incluyendo sus aspectos más relevantes"
+        return f"Desarrolla el concepto de {entities[0]} mencionado en el material"
+    elif technical_terms:
+        # Usar términos técnicos extraídos del chunk
+        if len(technical_terms) >= 2:
+            return f"¿Qué relación existe entre {technical_terms[0]} y {technical_terms[1]} según el texto?"
+        else:
+            return f"Explica qué se menciona sobre {technical_terms[0]} en el fragmento"
     else:
-        return "¿Qué idea principal se desarrolla en este fragmento y cuáles son los argumentos o evidencias que la sustentan?"
+        # Extraer primera oración para dar contexto
+        first_sentence = chunk.split('.')[0].strip()
+        if len(first_sentence) > 15:
+            snippet = first_sentence[:100] + "..." if len(first_sentence) > 100 else first_sentence
+            return f"Explica con tus palabras: '{snippet}'"
+        else:
+            return "¿Qué idea principal se desarrolla en este fragmento del material?"
 
 
 def _generate_technical_question(

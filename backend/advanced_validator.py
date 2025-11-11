@@ -76,25 +76,30 @@ class AdvancedValidator:
     
     def __init__(
         self,
-        threshold_excellent: float = 0.85,
-        threshold_good: float = 0.70,
-        threshold_acceptable: float = 0.55,
+        threshold_excellent: float = 0.75,   # 75% (antes 85%)
+        threshold_good: float = 0.60,        # 60% (antes 70%)
+        threshold_acceptable: float = 0.45,  # 45% (antes 55%)
         min_response_length: int = 15,
-        keyword_weight: float = 0.15,      # 15% peso para keywords
-        context_weight: float = 0.10,      # 10% peso para contexto
-        reasoning_weight: float = 0.15     # 15% peso para razonamiento
+        keyword_weight: float = 0.20,        # 20% peso keywords (antes 15%)
+        context_weight: float = 0.15,        # 15% peso contexto (antes 10%)
+        reasoning_weight: float = 0.20       # 20% peso razonamiento (antes 15%)
     ):
         """
         Inicializa validador avanzado
         
+        UMBRALES AJUSTADOS PARA ACTIVE RECALL:
+        - Active Recall NO requiere coincidencia literal
+        - Se premia la comprensión conceptual y parafraseo
+        - Umbrales más realistas para respuestas con propias palabras
+        
         Args:
-            threshold_excellent: Umbral EXCELENTE (default: 85%)
-            threshold_good: Umbral BUENO (default: 70%)
-            threshold_acceptable: Umbral ACEPTABLE (default: 55%)
+            threshold_excellent: Umbral EXCELENTE (default: 75%, antes 85%)
+            threshold_good: Umbral BUENO (default: 60%, antes 70%)
+            threshold_acceptable: Umbral ACEPTABLE (default: 45%, antes 55%)
             min_response_length: Mínimo caracteres de respuesta
-            keyword_weight: Peso de bonificación por keywords (0-1)
-            context_weight: Peso de bonificación por contexto (0-1)
-            reasoning_weight: Peso de bonificación por razonamiento (0-1)
+            keyword_weight: Peso de bonificación por keywords (20%)
+            context_weight: Peso de bonificación por contexto (15%)
+            reasoning_weight: Peso de bonificación por razonamiento (20%)
         """
         self.thresholds = {
             'EXCELENTE': threshold_excellent,
@@ -278,26 +283,31 @@ class AdvancedValidator:
         shared_keywords = answer_keywords.intersection(chunk_keywords)
         
         keyword_ratio = len(shared_keywords) / len(answer_keywords) if answer_keywords else 0
-        keyword_bonus = keyword_ratio * 100 * self.weights['keyword']  # Máx 15 puntos
+        keyword_bonus = keyword_ratio * 100 * self.weights['keyword']  # Máx 20 puntos
         
         # NIVEL 2: INFERENCIAL (Múltiples chunks relevantes)
         high_sim_chunks = [c for c in top_3_chunks if c['similarity'] > 0.50]
-        context_bonus = len(high_sim_chunks) * 3.33 * self.weights['context']  # Máx 10 puntos
+        context_bonus = len(high_sim_chunks) * 3.33 * self.weights['context']  # Máx 15 puntos
         
-        # NIVEL 3: CRÍTICO (Razonamiento profundo)
-        # Detectar reformulación inteligente:
-        # - Similitud media (40-70%)
-        # - Alto overlap de keywords (>50%)
-        # - Respuesta elaborada (>80 chars)
+        # NIVEL 3: CRÍTICO (Razonamiento profundo y parafraseo)
+        # MEJORA: Premiar parafraseo inteligente
         reasoning_bonus = 0
-        if 0.40 <= base_sim < 0.70:
-            if keyword_ratio > 0.50 and len(user_answer) > 80:
-                reasoning_bonus = 15 * self.weights['reasoning']  # Máx 15 puntos
+        
+        # Caso 1: Similitud media-alta (35-75%) + keywords relevantes = PARAFRASEO BUENO
+        if 0.35 <= base_sim < 0.75:
+            if keyword_ratio > 0.40 and len(user_answer) > 60:
+                reasoning_bonus = 20 * self.weights['reasoning']  # Máx 20 puntos
+        
+        # Caso 2: Similitud media-baja (30-40%) pero muchas keywords = COMPRENSIÓN REAL
         elif 0.30 <= base_sim < 0.40:
             if keyword_ratio > 0.60 and len(user_answer) > 100:
-                reasoning_bonus = 10 * self.weights['reasoning']
+                reasoning_bonus = 15 * self.weights['reasoning']
         
-        # Score final
+        # Bonus adicional: Respuestas muy elaboradas (>100 chars)
+        if len(user_answer) > 100:
+            reasoning_bonus += 5 * self.weights['reasoning']
+        
+        # Score final (máximo 100)
         final_score = min(int(base_score + keyword_bonus + context_bonus + reasoning_bonus), 100)
         
         # === PASO 5: CLASIFICACIÓN Y NIVEL DE LECTURA ===
