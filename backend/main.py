@@ -332,7 +332,7 @@ async def upload_material(
     
     # ✅ NUEVO: Función helper para enviar eventos de progreso
     def send_progress(step: str, message: str, progress: int, data: dict = None):
-        \"\"\"Envía evento de progreso vía SSE\"\"\"
+        """Envía evento de progreso vía SSE"""
         if session_id and session_id in progress_events:
             event = {
                 'type': 'progress',
