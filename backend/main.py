@@ -255,10 +255,13 @@ async def upload_progress(session_id: str):
     El frontend abre esta conexión ANTES de subir el archivo,
     y recibe eventos de progreso mientras se procesa.
     """
+    print(f"🔌 [SSE] Nueva conexión SSE para session: {session_id}")
+    
     async def event_generator():
         # Crear cola para este session_id
         if session_id not in progress_events:
             progress_events[session_id] = Queue()
+            print(f"📝 [SSE] Cola creada para session: {session_id}")
         
         queue = progress_events[session_id]
         
@@ -270,16 +273,20 @@ async def upload_progress(session_id: str):
                 if not queue.empty():
                     event = queue.get()
                     
+                    print(f"📤 [SSE] Enviando evento a frontend: {event.get('step')} ({event.get('progress')}%)")
+                    
                     # Enviar evento SSE
                     yield f"data: {json.dumps(event)}\n\n"
                     
                     # Si es evento final, cerrar conexión
                     if event.get('type') == 'complete' or event.get('type') == 'error':
+                        print(f"🔚 [SSE] Cerrando conexión SSE: {session_id}")
                         break
         finally:
             # Limpiar cola al cerrar conexión
             if session_id in progress_events:
                 del progress_events[session_id]
+                print(f"🗑️ [SSE] Cola eliminada: {session_id}")
     
     return StreamingResponse(
         event_generator(),
@@ -342,6 +349,9 @@ async def upload_material(
                 'data': data or {}
             }
             progress_events[session_id].put(event)
+            print(f"📤 [SSE] Evento enviado: {step} → {message} ({progress}%)")
+        else:
+            print(f"⚠️ [SSE] No se pudo enviar evento (session_id: {session_id}, existe: {session_id in progress_events if session_id else False})")
     
     try:
         # IMPORTANTE: Requiere autenticación real
