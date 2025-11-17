@@ -11,6 +11,15 @@ from typing import List
 import PyPDF2
 from io import BytesIO
 
+# ✅ NUEVO: Importar normalizador para limpiar chunks de errores OCR
+try:
+    from text_normalizer import normalize_text
+    NORMALIZER_AVAILABLE = True
+    print("✅ text_normalizer cargado - chunks serán normalizados")
+except ImportError:
+    NORMALIZER_AVAILABLE = False
+    print("⚠️ text_normalizer no disponible, chunks pueden tener errores OCR")
+
 def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     """
     Extrae texto de un archivo PDF
@@ -217,8 +226,14 @@ def smart_chunk(text: str, target_size: int = 500, min_size: int = 100) -> List[
             else:
                 current_chunk += "\n\n" + paragraph if current_chunk else paragraph
     
-    # Agregar último chunk
+    # Agregar el último chunk
     if current_chunk.strip():
         chunks.append(current_chunk.strip())
+    
+    # ✅ NUEVO: Normalizar todos los chunks para corregir errores OCR
+    if NORMALIZER_AVAILABLE:
+        print(f"🧹 Normalizando {len(chunks)} chunks (corrigiendo errores OCR)...")
+        chunks = [normalize_text(chunk) for chunk in chunks]
+        print(f"✅ Chunks normalizados correctamente")
     
     return chunks
