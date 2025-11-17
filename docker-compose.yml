@@ -28,6 +28,8 @@ services:
       - LOG_LEVEL=INFO
       - MAX_FILE_SIZE_MB=50
       - MAX_CHUNKS_PER_MATERIAL=1000
+      # Groq API Configuration (se inyecta desde Dokploy Environment Settings)
+      - GROQ_API_KEY=${GROQ_API_KEY}
     volumes:
       - ./data:/app/data
       - embeddings-cache:/app/backend/output
