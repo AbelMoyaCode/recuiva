@@ -20,6 +20,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código del backend
 COPY backend/ .
 
+# Crear archivo .env vacío (las variables se inyectan vía docker-compose.yml)
+# Esto permite que load_dotenv() funcione sin errores
+RUN echo "# Variables de entorno cargadas desde docker-compose.yml" > .env
+
 # Crear directorios y establecer permisos
 RUN mkdir -p /app/data && \
     chown -R nobody:nogroup /app/data && \
