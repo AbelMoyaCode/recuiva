@@ -262,6 +262,8 @@ class AdvancedValidator:
             'confidence': confidence,
             'warning': warning
         }
+    
+    def validate_answer_advanced(
         self,
         user_embedding: np.ndarray,
         material_chunks: List[Dict],
