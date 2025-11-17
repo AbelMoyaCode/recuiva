@@ -645,7 +645,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ✅ 1. Conectar a Server-Sent Events ANTES de subir
     const API_URL = 'https://api-recuiva.duckdns.org';
+    console.log(`🔗 Conectando a SSE: ${API_URL}/api/upload-progress/${sessionId}`);
     const eventSource = new EventSource(`${API_URL}/api/upload-progress/${sessionId}`);
+    
+    // ✅ Timeout de seguridad (declarado antes de onmessage)
+    let sseTimeout = null;
     
     eventSource.onmessage = function(event) {
       const data = JSON.parse(event.data);
@@ -686,6 +690,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Si está completo, cerrar conexión y mostrar éxito
       if (data.type === 'complete') {
+        clearTimeout(sseTimeout);  // ✅ Limpiar timeout
         eventSource.close();
         setTimeout(() => {
           progressSection.classList.add('hidden');
@@ -708,6 +713,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Si hay error, mostrar
       if (data.type === 'error') {
+        clearTimeout(sseTimeout);  // ✅ Limpiar timeout
         eventSource.close();
         alert(`Error: ${data.message}`);
         progressSection.classList.add('hidden');
@@ -717,12 +723,24 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     eventSource.onerror = function(error) {
-      console.error('Error en SSE:', error);
+      console.error('❌ Error en SSE:', error);
+      console.error('Estado de EventSource:', eventSource.readyState);
       eventSource.close();
-      alert('Error de conexión con el servidor');
+      // No mostrar alerta inmediatamente, puede ser reconexión automática
+    };
+    
+    eventSource.onopen = function() {
+      console.log('✅ Conexión SSE establecida');
+    };
+    
+    // Iniciar timeout de seguridad: si no hay eventos en 3 minutos, abortar
+    sseTimeout = setTimeout(() => {
+      console.warn('⏱️ Timeout: No se recibieron eventos SSE en 3 minutos');
+      eventSource.close();
+      alert('El procesamiento está tardando más de lo esperado. Por favor, verifica en Materiales si se completó.');
       progressSection.classList.add('hidden');
       uploadZone.style.display = 'block';
-    };
+    }, 180000);
     
     // ✅ 2. Subir archivo con session_id en header
     try {

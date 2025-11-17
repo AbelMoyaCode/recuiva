@@ -186,8 +186,8 @@ class AdvancedValidator:
         # Ordenar por overlap descendente
         ranked_chunks.sort(key=lambda x: x['keyword_overlap'], reverse=True)
         
-        # ✅ FIX CRÍTICO: Threshold elevado a 40% (antes 30%) para filtrado agresivo
-        threshold_overlap = 0.40
+        # ✅ FIX CRÍTICO: Threshold elevado a 50% (antes 40%) para filtrado MÁS agresivo
+        threshold_overlap = 0.50
         filtered = [
             c for c in ranked_chunks
             if c['keyword_overlap'] >= threshold_overlap
@@ -353,11 +353,25 @@ class AdvancedValidator:
             kw_overlap = chunk.get('keyword_overlap', 0) * 100
             print(f"   {i}. Chunk #{chunk['chunk_id']} → Similitud: {sim_pct:.1f}% | KW overlap: {kw_overlap:.0f}% → '{chunk_preview}...'")
         
-        # === PASO 4: SCORING MULTI-NIVEL ===
+        # === PASO 4: VALIDACIÓN DE RELEVANCIA SEMÁNTICA ===
         top_3_chunks = similarities[:3]
         best_chunk = top_3_chunks[0]
         
-        # Base: Similitud sem├íntica (60-70% del score)
+        # ✅ NUEVO: Rechazar chunks con similitud < 40% como irrelevantes
+        if best_chunk['similarity'] < 0.40:
+            return {
+                'score': 0,
+                'nivel': 'INSUFICIENTE',
+                'color': '#ef4444',
+                'feedback': '❌ Tu respuesta NO tiene relación con el material estudiado. El fragmento más cercano tiene solo {:.0f}% de similitud semántica.'.format(best_chunk['similarity'] * 100),
+                'es_correcto': False,
+                'chunks_relacionados': [],
+                'justificacion': 'La respuesta no guarda coherencia semántica con ningún fragmento del material.',
+                'nivel_lectura': 'LITERAL',
+                'ambiguity_detected': False
+            }
+        
+        # Base: Similitud semántica (60-70% del score)
         base_sim = best_chunk['similarity']
         base_score = base_sim * 100
         
@@ -373,21 +387,27 @@ class AdvancedValidator:
         high_sim_chunks = [c for c in top_3_chunks if c['similarity'] > 0.50]
         context_bonus = len(high_sim_chunks) * 3.33 * self.weights['context']  # M├íx 10 puntos
         
-        # NIVEL 3: CR├ìTICO (Razonamiento profundo)
-        # Detectar reformulaci├│n inteligente:
-        # - Similitud media (40-70%)
-        # - Alto overlap de keywords (>50%)
-        # - Respuesta elaborada (>80 chars)
+        # NIVEL 3: CRÍTICO (Razonamiento profundo)
+        # Detectar reformulación inteligente:
+        # - Similitud media (55-75%)
+        # - Alto overlap de keywords (>60%)
+        # - Respuesta elaborada (>100 chars)
         reasoning_bonus = 0
-        if 0.40 <= base_sim < 0.70:
-            if keyword_ratio > 0.50 and len(user_answer) > 80:
-                reasoning_bonus = 15 * self.weights['reasoning']  # M├íx 15 puntos
-        elif 0.30 <= base_sim < 0.40:
-            if keyword_ratio > 0.60 and len(user_answer) > 100:
-                reasoning_bonus = 10 * self.weights['reasoning']
         
-        # Score final
-        final_score = min(int(base_score + keyword_bonus + context_bonus + reasoning_bonus), 100)
+        # ✅ AJUSTE: Solo dar bonus si similitud ≥ 55%
+        if 0.55 <= base_sim < 0.75:
+            if keyword_ratio > 0.60 and len(user_answer) > 100:
+                reasoning_bonus = 12 * self.weights['reasoning']  # Máx 12 puntos
+        
+        # ✅ PENALIZACIÓN: Si similitud es 40-55%, reducir score
+        similarity_penalty = 0
+        if 0.40 <= base_sim < 0.55:
+            similarity_penalty = (0.55 - base_sim) * 30  # Penalización hasta -4.5 puntos
+            print(f"⚠️ PENALIZACIÓN por similitud baja ({base_sim*100:.1f}%): -{similarity_penalty:.1f} puntos")
+        
+        # Score final con penalización
+        final_score = min(int(base_score + keyword_bonus + context_bonus + reasoning_bonus - similarity_penalty), 100)
+        final_score = max(final_score, 0)  # No permitir scores negativos
         
         # === PASO 5: CLASIFICACI├ôN Y NIVEL DE LECTURA ===
         if final_score >= self.thresholds['EXCELENTE'] * 100:
