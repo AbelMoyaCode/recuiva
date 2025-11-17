@@ -177,6 +177,61 @@
       .processing {
         animation: pulse 2s infinite;
       }
+      
+      /* ✅ NUEVO: Estilos para progreso SSE */
+      .progress-steps {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-top: 1rem;
+        padding: 0.5rem;
+        background: #f9fafb;
+        border-radius: 8px;
+      }
+      
+      .progress-step {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-left: 3px solid #3b82f6;
+        margin-bottom: 0.5rem;
+        background: white;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        animation: slideIn 0.3s ease-out;
+      }
+      
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      
+      .step-icon {
+        font-size: 1.5rem;
+        min-width: 1.5rem;
+      }
+      
+      .step-text {
+        flex: 1;
+        font-size: 0.875rem;
+        color: #1f2937;
+      }
+      
+      .step-progress {
+        font-weight: 700;
+        color: #3b82f6;
+        font-size: 0.875rem;
+      }
+      
+      .progress-bar {
+        transition: width 0.5s ease-out;
+      }
     </style>
 </head>
 <body class="bg-[var(--base-gray)] min-h-screen">
@@ -322,6 +377,17 @@
           <div id="progress-bar" class="bg-[var(--primary-color)] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
         </div>
         <p id="progress-text" class="text-sm text-[var(--text-secondary)] mt-2">Iniciando...</p>
+        
+        <!-- ✅ NUEVO: Descripción detallada del proceso actual -->
+        <div id="current-step-description" class="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r hidden">
+          <div class="flex items-start gap-3">
+            <span id="step-icon" class="text-2xl mt-1">🔄</span>
+            <div class="flex-1">
+              <h3 id="step-title" class="font-bold text-gray-800 mb-1">Procesando...</h3>
+              <p id="step-detail" class="text-sm text-gray-600">El sistema está analizando tu material de estudio.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -558,39 +624,78 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('file-size').textContent = formatFileSize(file.size);
   }
 
-  function procesarArchivo(file) {
+  // ✅ NUEVO: Procesar archivo con progreso en tiempo real (SSE)
+  async function procesarArchivo(file) {
     progressSection.classList.remove('hidden');
     
-    // Simular procesamiento
-    const steps = [
-      { progress: 20, text: 'Analizando archivo...' },
-      { progress: 40, text: 'Extrayendo texto (OCR)...' },
-      { progress: 60, text: 'Segmentando en chunks...' },
-      { progress: 80, text: 'Generando embeddings...' },
-      { progress: 100, text: 'Creando índice vectorial...' }
-    ];
-
-    let currentStep = 0;
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-text');
-
-    function nextStep() {
-      if (currentStep < steps.length) {
-        const step = steps[currentStep];
-        progressBar.style.width = step.progress + '%';
-        progressText.textContent = step.text;
-        currentStep++;
-        setTimeout(nextStep, 1500);
-      } else {
-        // Finalizar procesamiento
+    
+    // Generar session_id único para tracking
+    const sessionId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Crear contenedor de pasos si no existe
+    let stepsContainer = document.getElementById('progress-steps');
+    if (!stepsContainer) {
+      stepsContainer = document.createElement('div');
+      stepsContainer.id = 'progress-steps';
+      stepsContainer.className = 'progress-steps';
+      progressSection.appendChild(stepsContainer);
+    }
+    
+    // ✅ 1. Conectar a Server-Sent Events ANTES de subir
+    const API_URL = 'https://api-recuiva.duckdns.org';
+    const eventSource = new EventSource(`${API_URL}/api/upload-progress/${sessionId}`);
+    
+    eventSource.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+      
+      // Actualizar barra de progreso
+      progressBar.style.width = `${data.progress}%`;
+      progressBar.setAttribute('aria-valuenow', data.progress);
+      progressBar.textContent = `${data.progress}%`;
+      
+      // Actualizar mensaje principal
+      progressText.textContent = data.message;
+      
+      // ✅ NUEVO: Mostrar descripción detallada del paso actual
+      const descriptionBox = document.getElementById('current-step-description');
+      const stepIconEl = document.getElementById('step-icon');
+      const stepTitleEl = document.getElementById('step-title');
+      const stepDetailEl = document.getElementById('step-detail');
+      
+      if (descriptionBox && stepIconEl && stepTitleEl && stepDetailEl) {
+        descriptionBox.classList.remove('hidden');
+        stepIconEl.textContent = getIconForStep(data.step);
+        stepTitleEl.textContent = data.message;
+        stepDetailEl.textContent = getDescriptionForStep(data.step);
+      }
+      
+      // Agregar paso a la lista
+      const stepDiv = document.createElement('div');
+      stepDiv.className = 'progress-step';
+      stepDiv.innerHTML = `
+        <span class="step-icon">${getIconForStep(data.step)}</span>
+        <span class="step-text">${data.message}</span>
+        <span class="step-progress">${data.progress}%</span>
+      `;
+      stepsContainer.appendChild(stepDiv);
+      
+      // Auto-scroll a último paso
+      stepsContainer.scrollTop = stepsContainer.scrollHeight;
+      
+      // Si está completo, cerrar conexión y mostrar éxito
+      if (data.type === 'complete') {
+        eventSource.close();
         setTimeout(() => {
           progressSection.classList.add('hidden');
           fileInfo.classList.add('hidden');
           successSection.classList.remove('hidden');
           
-          // Guardar en localStorage que el material fue procesado
+          // Guardar material_id en localStorage
           const materiales = JSON.parse(localStorage.getItem('recuiva_materiales') || '[]');
           materiales.push({
+            id: data.data.material_id,
             carpetaId,
             carpetaNombre: decodeURIComponent(carpetaNombre || ''),
             archivo: file.name,
@@ -600,9 +705,101 @@ document.addEventListener('DOMContentLoaded', function() {
           localStorage.setItem('recuiva_materiales', JSON.stringify(materiales));
         }, 1000);
       }
+      
+      // Si hay error, mostrar
+      if (data.type === 'error') {
+        eventSource.close();
+        alert(`Error: ${data.message}`);
+        progressSection.classList.add('hidden');
+        uploadZone.style.display = 'block';
+        fileInfo.classList.add('hidden');
+      }
+    };
+    
+    eventSource.onerror = function(error) {
+      console.error('Error en SSE:', error);
+      eventSource.close();
+      alert('Error de conexión con el servidor');
+      progressSection.classList.add('hidden');
+      uploadZone.style.display = 'block';
+    };
+    
+    // ✅ 2. Subir archivo con session_id en header
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Obtener user_id de Supabase Auth
+      const userId = localStorage.getItem('supabase_user_id') || 'demo-user';
+      
+      const response = await fetch(`${API_URL}/api/materials/upload`, {
+        method: 'POST',
+        headers: {
+          'X-User-ID': userId,
+          'X-Session-ID': sessionId
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Material subido:', result);
+      
+    } catch (error) {
+      console.error('❌ Error subiendo material:', error);
+      eventSource.close();
+      alert(`Error al subir material: ${error.message}`);
+      progressSection.classList.add('hidden');
+      uploadZone.style.display = 'block';
+      fileInfo.classList.add('hidden');
     }
-
-    nextStep();
+  }
+  
+  // ✅ Helper: Obtener emoji para cada paso
+  function getIconForStep(step) {
+    const icons = {
+      'upload': '📥',
+      'reading': '📄',
+      'extracting': '📖',
+      'extracted': '✅',
+      'chunking': '✂️',
+      'chunked': '✅',
+      'embeddings_start': '🧠',
+      'embeddings_progress': '🔄',
+      'embeddings_complete': '✅',
+      'saving_start': '💾',
+      'material_saved': '✅',
+      'embeddings_save_start': '💾',
+      'embeddings_batch': '✅',
+      'complete': '🎉',
+      'error': '❌'
+    };
+    return icons[step] || '🔄';
+  }
+  
+  // ✅ NUEVO: Obtener descripción detallada para cada paso
+  function getDescriptionForStep(step) {
+    const descriptions = {
+      'upload': 'Recibiendo el archivo desde tu dispositivo. El sistema está verificando el formato y preparando el material para su procesamiento.',
+      'reading': 'Abriendo el archivo PDF para acceder a su contenido. Este paso prepara el documento para la extracción de texto.',
+      'extracting': 'Extrayendo todo el texto del PDF usando OCR avanzado. El sistema está leyendo cada página y convirtiendo el contenido en texto procesable.',
+      'extracted': 'Texto extraído correctamente. El sistema ha obtenido todo el contenido textual del documento.',
+      'chunking': 'Dividiendo el texto en fragmentos inteligentes (chunks). Cada chunk será una unidad de conocimiento que podrás consultar en tus repasos.',
+      'chunked': 'Fragmentación completada. El material ha sido dividido en chunks optimizados para búsqueda semántica.',
+      'embeddings_start': 'Iniciando generación de embeddings vectoriales. El sistema está convirtiendo cada fragmento en vectores numéricos que permiten búsquedas semánticas.',
+      'embeddings_progress': 'Procesando embeddings en lotes. Cada chunk está siendo transformado en un vector de 384 dimensiones que captura su significado semántico.',
+      'embeddings_complete': 'Embeddings generados exitosamente. Todos los fragmentos han sido convertidos en vectores semánticos.',
+      'saving_start': 'Guardando información del material en la base de datos.',
+      'material_saved': 'Material registrado correctamente en el sistema.',
+      'embeddings_save_start': 'Guardando embeddings vectoriales en Supabase. Esto permite búsquedas semánticas ultra-rápidas.',
+      'embeddings_batch': 'Guardando lote de embeddings en la base de datos vectorial.',
+      'complete': '¡Proceso completado! Tu material está listo para crear preguntas de repaso con búsqueda semántica inteligente.',
+      'error': 'Ha ocurrido un error durante el procesamiento. Por favor, intenta nuevamente.'
+    };
+    return descriptions[step] || 'Procesando tu material de estudio...';
   }
 
   function formatFileSize(bytes) {
