@@ -1159,7 +1159,12 @@ async def generate_questions_for_material(
     request: GenerateQuestionsRequest,
     authorization: Optional[str] = Header(None)
 ):
-    """Generar preguntas automáticamente desde un material con Groq AI"""
+    """
+    Generar preguntas automáticamente desde un material con Groq AI
+    
+    OPTIMIZADO: Si request.num_questions == 1, genera SOLO 1 pregunta de un chunk aleatorio (instantáneo)
+    Si request.num_questions > 1, genera preguntas de TODO el material (tarda más)
+    """
     if not SUPABASE_ENABLED:
         raise HTTPException(status_code=503, detail="Supabase no está disponible")
     
@@ -1169,10 +1174,50 @@ async def generate_questions_for_material(
     
     try:
         supabase = get_supabase_client()
-        # ✅ NO requerir autenticación por ahora (el material_id ya identifica al usuario)
-        # user = await get_current_user(authorization)
         
-        # Obtener chunks del material
+        # OPTIMIZACIÓN: Si solo pide 1 pregunta, elegir 1 chunk aleatorio (instantáneo)
+        if request.num_questions == 1 and GROQ_ENABLED:
+            print(f"⚡ Generando 1 pregunta de forma instantánea...")
+            
+            # Obtener UN chunk aleatorio
+            import random
+            chunks_result = supabase.table('material_embeddings')\
+                .select('id, chunk_index, chunk_text')\
+                .eq('material_id', material_id)\
+                .execute()
+            
+            if not chunks_result.data:
+                raise HTTPException(status_code=404, detail="Material no encontrado")
+            
+            # Elegir chunk aleatorio
+            random_chunk = random.choice(chunks_result.data)
+            print(f"🎲 Chunk aleatorio seleccionado: {random_chunk['chunk_index']}")
+            
+            # Generar 1 pregunta solo para ese chunk
+            from question_generator_ai import generate_questions_for_chunk
+            
+            questions = await generate_questions_for_chunk(
+                chunk_text=random_chunk['chunk_text'],
+                chunk_index=random_chunk['chunk_index'],
+                num_questions=1
+            )
+            
+            if not questions:
+                raise HTTPException(status_code=500, detail="No se pudo generar pregunta")
+            
+            return {
+                "success": True,
+                "material_id": material_id,
+                "questions_generated": 1,
+                "questions": [{
+                    "question": questions[0],
+                    "chunk_id": random_chunk['id'],
+                    "chunk_index": random_chunk['chunk_index'],
+                    "source_preview": random_chunk['chunk_text'][:150] + "..."
+                }]
+            }
+        
+        # MODO NORMAL: Generar múltiples preguntas (original)
         print(f"🔍 Buscando chunks para material: {material_id}")
         chunks_result = supabase.table('material_embeddings').select('chunk_text').eq('material_id', material_id).order('chunk_index').execute()
         
