@@ -83,6 +83,11 @@ def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> List[st
     if current_chunk.strip():
         chunks.append(current_chunk.strip())
     
+    # ✅ NUEVO: Normalizar todos los chunks para corregir errores OCR
+    if NORMALIZER_AVAILABLE:
+        chunks = [normalize_text(chunk) for chunk in chunks]
+        print(f"✅ Chunks normalizados: errores OCR corregidos")
+    
     return chunks
 
 def clean_text(text: str) -> str:

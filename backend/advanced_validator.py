@@ -193,9 +193,22 @@ class AdvancedValidator:
             if c['keyword_overlap'] >= threshold_overlap
         ]
         
+        print(f"\n📊 Keywords extraídos: {query_keywords}")
+        print(f"✂️ Filtrado por keywords: {len(filtered)}/{len(chunks)} chunks con ≥{threshold_overlap*100:.0f}% overlap")
+        
+        # Mostrar top 5 chunks con mayor overlap
+        print(f"\n🔝 Top 5 chunks por keyword overlap:")
+        for i, chunk in enumerate(ranked_chunks[:5], 1):
+            overlap_pct = chunk['keyword_overlap'] * 100
+            shared_kw = list(chunk['shared_keywords'])[:3]  # Primeras 3 keywords
+            chunk_preview = chunk.get('text_full', chunk.get('text', ''))[:60]
+            print(f"   {i}. Chunk #{chunk.get('chunk_id', '?')} → {overlap_pct:.1f}% overlap → KW: {shared_kw} → '{chunk_preview}...'")
+        
         # Si quedan muy pocos (<10), expandir a top 15
         if len(filtered) < 10:
             filtered = ranked_chunks[:15]
+            print(f"⚠️ Pocos matches con 40%+ overlap, expandido a top 15 chunks")
+        
         
         # Si aún quedan muy pocos (<5), usar top 20 como fallback
         if len(filtered) < 5:
@@ -302,6 +315,8 @@ class AdvancedValidator:
             chunks=material_chunks
         )
         
+        print(f"🔍 PRE-FILTRADO: {len(material_chunks)} chunks → {len(filtered_chunks)} relevantes (40% keywords)")
+        
         if not filtered_chunks:
             filtered_chunks = material_chunks[:10]  # Fallback
         
@@ -329,6 +344,14 @@ class AdvancedValidator:
         
         # Ordenar por similitud descendente
         similarities.sort(key=lambda x: x['similarity'], reverse=True)
+        
+        # Mostrar TOP 3 chunks con mayor similitud semántica (después del filtrado)
+        print(f"\n🎯 Top 3 chunks con mayor SIMILITUD SEMÁNTICA (Cosine Similarity):")
+        for i, chunk in enumerate(similarities[:3], 1):
+            sim_pct = chunk['similarity'] * 100
+            chunk_preview = chunk['text_short'][:70]
+            kw_overlap = chunk.get('keyword_overlap', 0) * 100
+            print(f"   {i}. Chunk #{chunk['chunk_id']} → Similitud: {sim_pct:.1f}% | KW overlap: {kw_overlap:.0f}% → '{chunk_preview}...'")
         
         # === PASO 4: SCORING MULTI-NIVEL ===
         top_3_chunks = similarities[:3]

@@ -37,6 +37,7 @@ GROQ_ENABLED = False
 try:
     from embeddings_module import generate_embeddings, calculate_similarity, load_model
     from chunking import chunk_text, extract_text_from_pdf, get_text_stats
+    from text_normalizer import normalize_text  # ✅ NUEVO: Para normalizar chunks al cargar
     MODULES_LOADED = True
 except ImportError as e:
     print(f"⚠️ Módulos de embeddings no disponibles: {e}")
@@ -338,11 +339,14 @@ async def upload_material(
             if i % 10 == 0:
                 print(f"   Procesando chunk {i+1}/{len(chunks)}...")
             
-            embedding = generate_embeddings(chunk)
+            # ✅ NUEVO: Normalizar chunk ANTES de generar embedding (corrige OCR)
+            normalized_chunk = normalize_text(chunk)
+            
+            embedding = generate_embeddings(normalized_chunk)
             embeddings_data.append({
                 "chunk_id": i,
-                "text": chunk[:200] + "..." if len(chunk) > 200 else chunk,  # Guardar preview
-                "text_full": chunk,  # Texto completo
+                "text": normalized_chunk[:200] + "..." if len(normalized_chunk) > 200 else normalized_chunk,
+                "text_full": normalized_chunk,  # ✅ Guardar chunk normalizado
                 "embedding": embedding.tolist()
             })
         
@@ -383,10 +387,14 @@ async def upload_material(
                     # Preparar datos para inserción batch
                     embeddings_to_insert = []
                     for i, emb_data in enumerate(embeddings_data):
+                        # ✅ NUEVO: Normalizar chunk_text antes de guardar (ya viene normalizado desde chunking.py)
+                        # pero por si acaso, normalizamos de nuevo para garantizar consistencia
+                        chunk_text_clean = emb_data["text_full"]
+                        
                         embeddings_to_insert.append({
                             "material_id": material_uuid,
                             "chunk_index": i,
-                            "chunk_text": emb_data["text_full"],
+                            "chunk_text": chunk_text_clean,
                             "embedding": emb_data["embedding"]  # pgvector acepta arrays directamente
                         })
                         
@@ -563,6 +571,10 @@ async def validate_answer(answer: Answer):
                 material_embeddings = []
                 for emb in embeddings_result.data:
                     chunk_text = emb['chunk_text']
+                    
+                    # ✅ NUEVO: Normalizar chunk al cargarlo (por si no se normalizó al guardar)
+                    chunk_text_normalized = normalize_text(chunk_text)
+                    
                     # IMPORTANTE: Convertir el embedding de string a numpy array
                     embedding_vector = emb['embedding']
                     if isinstance(embedding_vector, str):
@@ -574,8 +586,8 @@ async def validate_answer(answer: Answer):
                     
                     material_embeddings.append({
                         "chunk_id": emb['chunk_index'],
-                        "text": chunk_text[:200] + "..." if len(chunk_text) > 200 else chunk_text,
-                        "text_full": chunk_text,
+                        "text": chunk_text_normalized[:200] + "..." if len(chunk_text_normalized) > 200 else chunk_text_normalized,
+                        "text_full": chunk_text_normalized,  # ✅ Texto normalizado
                         "embedding": embedding_vector
                     })
                 
