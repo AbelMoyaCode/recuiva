@@ -21,7 +21,7 @@ load_dotenv()
 
 # Configuración de Groq
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = "llama-3.3-70b-versatile"  # Llama 3.3 70B - Modelo más reciente (nov 2025)
+GROQ_MODEL = "llama-3.1-8b-instant"  # Llama 3.1 8B - Ultra rápido y sin límites de tokens
 
 
 async def generate_questions_with_ai(
