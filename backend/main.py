@@ -1159,11 +1159,12 @@ async def generate_questions_for_material(
     request: GenerateQuestionsRequest,
     authorization: Optional[str] = Header(None)
 ):
-    """Generar preguntas automáticamente desde un material"""
+    """Generar preguntas automáticamente desde un material con Groq AI"""
     if not SUPABASE_ENABLED:
         raise HTTPException(status_code=503, detail="Supabase no está disponible")
     
-    if not QUESTION_GENERATOR_ENABLED:
+    # Usar Groq AI si está disponible, sino usar generador legacy
+    if not GROQ_ENABLED and not QUESTION_GENERATOR_ENABLED:
         raise HTTPException(status_code=503, detail="Generador de preguntas no disponible")
     
     try:
@@ -1181,17 +1182,27 @@ async def generate_questions_for_material(
         print(f"📚 Chunks encontrados: {len(chunks_result.data)}")
         chunks = [item['chunk_text'] for item in chunks_result.data]
         
-        # 🔍 DEBUG: Mostrar primeros 3 chunks para diagnosticar
-        print(f"\n{'='*80}")
-        print("🔍 DEBUG: PRIMEROS 3 CHUNKS DEL MATERIAL")
-        print(f"{'='*80}")
-        for i, chunk in enumerate(chunks[:3]):
-            print(f"\n--- CHUNK {i+1} ---")
-            print(f"Longitud: {len(chunk)} caracteres")
-            print(f"Primeras 200 chars: {chunk[:200]}...")
-        print(f"{'='*80}\n")
+        # Usar Groq AI si está disponible
+        if GROQ_ENABLED:
+            print(f"🤖 Generando preguntas con Groq AI...")
+            result = await generate_questions_with_ai(
+                material_id=material_id,
+                supabase_client=supabase,
+                num_questions_per_chunk=2,
+                max_chunks=request.num_questions // 2 if request.num_questions > 10 else None
+            )
+            
+            if not result['success']:
+                raise HTTPException(status_code=500, detail=result.get('error', 'Error generando preguntas'))
+            
+            return {
+                "success": True,
+                "material_id": material_id,
+                "questions_generated": result['total_questions'],
+                "questions": result['questions']
+            }
         
-        # Generar preguntas usando el módulo question_generator
+        # Fallback: usar generador legacy
         print(f"🎯 Generando {request.num_questions} preguntas con estrategia {request.strategy}")
         questions = generate_questions_dict(chunks, request.num_questions, request.strategy)
         
