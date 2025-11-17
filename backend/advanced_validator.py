@@ -138,13 +138,15 @@ class AdvancedValidator:
         chunks: List[Dict]
     ) -> List[Dict]:
         """
-        Filtra chunks relevantes bas├índose en palabras clave
+        Filtra chunks relevantes basándose en palabras clave (PRE-FILTRADO AGRESIVO)
+        
+        ✅ MEJORA (17 nov 2025): Threshold aumentado a 40% para reducir noise
         
         ESTRATEGIA:
         1. Extrae keywords de pregunta + respuesta
         2. Calcula overlap de keywords con cada chunk
-        3. Rankea chunks por relevancia l├®xica
-        4. Retorna top chunks + todos con >50% overlap
+        3. Rankea chunks por relevancia léxica
+        4. Retorna solo chunks con ≥40% overlap O top 15
         
         Args:
             question_text: Texto de la pregunta
@@ -152,14 +154,14 @@ class AdvancedValidator:
             chunks: Todos los chunks del material
             
         Returns:
-            Lista de chunks filtrados y rankeados
+            Lista de chunks filtrados y rankeados (reducido de 150+ a ~10-20)
         """
         # Keywords de pregunta y respuesta
         query_keywords = self.extract_keywords(question_text + " " + user_answer)
         
         if not query_keywords:
-            # Si no hay keywords, retornar todos los chunks
-            return chunks
+            # Si no hay keywords, retornar top 20 chunks (fallback)
+            return chunks[:20]
         
         # Rankear chunks por overlap de keywords
         ranked_chunks = []
@@ -184,20 +186,82 @@ class AdvancedValidator:
         # Ordenar por overlap descendente
         ranked_chunks.sort(key=lambda x: x['keyword_overlap'], reverse=True)
         
-        # Filtrar: Top 10 O todos con >30% overlap
-        threshold_overlap = 0.30
+        # ✅ FIX CRÍTICO: Threshold elevado a 40% (antes 30%) para filtrado agresivo
+        threshold_overlap = 0.40
         filtered = [
-            c for c in ranked_chunks[:10]
-            if c['keyword_overlap'] >= threshold_overlap or ranked_chunks.index(c) < 5
+            c for c in ranked_chunks
+            if c['keyword_overlap'] >= threshold_overlap
         ]
         
-        # Si tras filtrado quedan <3 chunks, retornar top 10 sin filtro
-        if len(filtered) < 3:
-            return ranked_chunks[:10]
+        # Si quedan muy pocos (<10), expandir a top 15
+        if len(filtered) < 10:
+            filtered = ranked_chunks[:15]
+        
+        # Si aún quedan muy pocos (<5), usar top 20 como fallback
+        if len(filtered) < 5:
+            return ranked_chunks[:20]
         
         return filtered
     
-    def validate_answer_advanced(
+    def detect_ambiguity(self, top_chunks: List[Dict], threshold: float = 0.08) -> Dict:
+        """
+        Detecta si hay múltiples chunks con score similar (ambigüedad semántica)
+        
+        ✅ NUEVO (17 nov 2025): Advierte cuando hay múltiples fragmentos igualmente relevantes
+        
+        Args:
+            top_chunks: Lista de chunks rankeados por similitud
+            threshold: Diferencia máxima para considerar chunks "similares" (default: 8%)
+            
+        Returns:
+            dict: {
+                'is_ambiguous': bool,          # True si hay ≥2 chunks con similitud parecida
+                'similar_chunks_count': int,   # Cantidad de chunks similares
+                'confidence': float,            # 0-1, baja si hay ambigüedad
+                'warning': str | None           # Mensaje de advertencia
+            }
+            
+        Ejemplo:
+            >>> # Chunks: [0.85, 0.83, 0.55] → Ambiguo (0.85-0.83 = 0.02 < 0.08)
+            >>> detect_ambiguity(chunks)
+            {'is_ambiguous': True, 'similar_chunks_count': 2, 'confidence': 0.7}
+        """
+        if len(top_chunks) < 2:
+            return {
+                'is_ambiguous': False,
+                'similar_chunks_count': 1,
+                'confidence': 1.0,
+                'warning': None
+            }
+        
+        best_sim = top_chunks[0]['similarity']
+        similar_count = 1
+        
+        # Contar chunks con similitud cercana al mejor
+        for chunk in top_chunks[1:]:
+            if abs(chunk['similarity'] - best_sim) < threshold:
+                similar_count += 1
+        
+        is_ambiguous = similar_count >= 2
+        
+        # Calcular confianza (menor si hay ambigüedad)
+        confidence = 1.0 if not is_ambiguous else 0.75
+        
+        # Generar warning si es ambiguo
+        warning = None
+        if is_ambiguous:
+            warning = (
+                f"⚠️ Se encontraron {similar_count} fragmentos con similitud parecida. "
+                f"Tu respuesta podría relacionarse con múltiples secciones del material. "
+                f"Considera revisar varios fragmentos para validar tu comprensión."
+            )
+        
+        return {
+            'is_ambiguous': is_ambiguous,
+            'similar_chunks_count': similar_count,
+            'confidence': confidence,
+            'warning': warning
+        }
         self,
         user_embedding: np.ndarray,
         material_chunks: List[Dict],
@@ -324,7 +388,10 @@ class AdvancedValidator:
         else:
             reading_level = ReadingLevel.LITERAL
         
-        # === PASO 6: JUSTIFICACI├ôN TRANSPARENTE ===
+        # ✅ NUEVO: Detectar ambigüedad semántica
+        ambiguity_info = self.detect_ambiguity(top_3_chunks)
+        
+        # === PASO 6: JUSTIFICACIÓN TRANSPARENTE ===
         justification = self._generate_justification(
             base_score=base_score,
             keyword_bonus=keyword_bonus,
@@ -335,12 +402,13 @@ class AdvancedValidator:
             high_sim_chunks=len(high_sim_chunks)
         )
         
-        # Feedback al estudiante
+        # ✅ MEJORADO: Feedback con warning de ambigüedad
         feedback = self._generate_feedback(
             nivel=nivel,
             score=final_score,
             reading_level=reading_level,
-            shared_keywords=shared_keywords
+            shared_keywords=shared_keywords,
+            ambiguity_warning=ambiguity_info.get('warning')  # ✅ NUEVO
         )
         
         # === PASO 7: RESULTADO COMPLETO ===
@@ -357,7 +425,11 @@ class AdvancedValidator:
                 'keyword_bonus': round(keyword_bonus, 2),
                 'context_bonus': round(context_bonus, 2),
                 'reasoning_bonus': round(reasoning_bonus, 2),
-                'final_score': final_score
+                'final_score': final_score,
+                # ✅ NUEVO: Info de ambigüedad
+                'is_ambiguous': ambiguity_info['is_ambiguous'],
+                'confidence': ambiguity_info['confidence'],
+                'similar_chunks_count': ambiguity_info['similar_chunks_count']
             },
             best_chunk={
                 'chunk_id': best_chunk['chunk_id'],
@@ -438,49 +510,57 @@ class AdvancedValidator:
         nivel: str,
         score: int,
         reading_level: ReadingLevel,
-        shared_keywords: Set[str]
+        shared_keywords: Set[str],
+        ambiguity_warning: Optional[str] = None  # ✅ NUEVO parámetro
     ) -> str:
-        """Genera feedback personalizado seg├║n nivel y comprensi├│n"""
+        """Genera feedback personalizado según nivel y comprensión"""
         
+        # Base del feedback según nivel
         if nivel == 'EXCELENTE':
-            return f"""­ƒÄë **┬íEXCELENTE!** Comprensi├│n profunda del concepto.
+            feedback = f"""🎖️ **¡EXCELENTE!** Comprensión profunda del concepto.
 
-­ƒôè **Score**: {score}% | ­ƒºá **Nivel**: {reading_level.value.capitalize()}
+📊 **Score**: {score}% | 🧠 **Nivel**: {reading_level.value.capitalize()}
 
-Ô£à Tu explicaci├│n captura la esencia del material. {"Has reformulado inteligentemente el concepto." if reading_level == ReadingLevel.INFERENCIAL else "Dominas el tema completamente."}
+✅ Tu explicación captura la esencia del material. {"Has reformulado inteligentemente el concepto." if reading_level == ReadingLevel.INFERENCIAL else "Dominas el tema completamente."}
 
-­ƒÆí **Sigue as├¡** con Active Recall. Est├ís en el camino correcto."""
+🎯 **Sigue así** con Active Recall. Estás en el camino correcto."""
         
         elif nivel == 'BUENO':
-            return f"""Ô£à **┬íMUY BIEN!** Buen entendimiento del tema.
+            feedback = f"""✅ **¡MUY BIEN!** Buen entendimiento del tema.
 
-­ƒôè **Score**: {score}% | ­ƒºá **Nivel**: {reading_level.value.capitalize()}
+📊 **Score**: {score}% | 🧠 **Nivel**: {reading_level.value.capitalize()}
 
-­ƒæì Has captado los conceptos principales. {f"Encontraste {len(shared_keywords)} palabras clave correctas." if shared_keywords else ""}
+👍 Has captado los conceptos principales. {f"Encontraste {len(shared_keywords)} palabras clave correctas." if shared_keywords else ""}
 
-­ƒÆ¡ **Tip**: Podr├¡as profundizar un poco m├ís, pero vas muy bien."""
+💡 **Tip**: Podrías profundizar un poco más, pero vas muy bien."""
         
         elif nivel == 'ACEPTABLE':
-            return f"""ÔÜá´©Å **RESPUESTA PARCIAL**. Tienes la idea, pero falta desarrollo.
+            feedback = f"""⚠️ **RESPUESTA PARCIAL**. Tienes la idea, pero falta desarrollo.
 
-­ƒôè **Score**: {score}% | ­ƒºá **Nivel**: {reading_level.value.capitalize()}
+📊 **Score**: {score}% | 🧠 **Nivel**: {reading_level.value.capitalize()}
 
-­ƒöì Tu respuesta toca puntos correctos, pero necesita m├ís precisi├│n o detalle.
+📌 Tu respuesta toca puntos correctos, pero necesita más precisión o detalle.
 
-­ƒôû **Sugerencia**: Revisa el fragmento y explica con m├ís profundidad. Recuerda: **ENTENDER > Memorizar**."""
+📚 **Sugerencia**: Revisa el fragmento y explica con más profundidad. Recuerda: **ENTENDER > Memorizar**."""
         
         else:  # INSUFICIENTE
-            return f"""ÔØî **NECESITA MEJORAR**. La respuesta no refleja bien el material.
+            feedback = f"""❌ **NECESITA MEJORAR**. La respuesta no refleja bien el material.
 
-­ƒôè **Score**: {score}% | ­ƒºá **Nivel**: {reading_level.value.capitalize()}
+📊 **Score**: {score}% | 🧠 **Nivel**: {reading_level.value.capitalize()}
 
-­ƒöä **Intenta de nuevo**:
+🔄 **Intenta de nuevo**:
 1. Relee el fragmento relevante
 2. Cierra el material
 3. Explica **CON TUS PROPIAS PALABRAS**
-4. Enf├│cate en **ENTENDER**, no memorizar
+4. Enfócate en **ENTENDER**, no memorizar
 
-­ƒÆí **Tip**: Imagina que se lo explicas a un amigo."""
+🎯 **Tip**: Imagina que se lo explicas a un amigo."""
+        
+        # ✅ NUEVO: Agregar warning de ambigüedad al final si existe
+        if ambiguity_warning:
+            feedback += f"\n\n{ambiguity_warning}"
+        
+        return feedback
     
     def _create_error_result(self, error_message: str) -> ValidationResult:
         """Crea resultado de error para respuestas inv├ílidas"""

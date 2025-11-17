@@ -271,7 +271,7 @@ class SemanticValidator:
         # Ordenar por similitud (mayor a menor)
         similarities.sort(key=lambda x: x["similarity"], reverse=True)
         
-        # Top 5 chunks m├ís relevantes
+        # Top 5 chunks más relevantes
         TOP_CHUNKS = min(5, len(similarities))
         top_chunks = similarities[:TOP_CHUNKS]
         best_match = similarities[0]
@@ -279,14 +279,14 @@ class SemanticValidator:
         
         # ===== SCORING INTELIGENTE =====
         
-        # FACTOR 1: Contexto amplio (m├║ltiples chunks relevantes)
-        # Ô£à FIX: Reducir bonificaciones a la mitad para evitar inflar scores d├®biles
-        high_sim_chunks = [c for c in top_chunks if c['similarity'] > 0.5]
+        # FACTOR 1: Contexto amplio (múltiples chunks relevantes)
+        # ✅ FIX CRÍTICO: Threshold elevado a 0.65 (antes 0.50) para evitar chunks débilmente relacionados
+        high_sim_chunks = [c for c in top_chunks if c['similarity'] > 0.65]
         context_bonus = 0
         if len(high_sim_chunks) >= 3:
-            context_bonus = 5  # Antes: 10
+            context_bonus = 4  # ✅ Reducido 60% (antes: 10 → 5 → 4)
         elif len(high_sim_chunks) >= 2:
-            context_bonus = 3  # Antes: 5
+            context_bonus = 2  # ✅ Reducido 60% (antes: 5 → 3 → 2)
         
         # FACTOR 2: Palabras clave compartidas
         answer_keywords = set(re.findall(r'\b\w{4,}\b', user_answer.lower()))
@@ -306,15 +306,17 @@ class SemanticValidator:
         elif len(user_answer) > 100:
             length_bonus = 3
         
-        # FACTOR 4: Boost de inteligencia (concepto correcto, formulaci├│n diferente)
-        # Ô£à FIX: Reducir intelligence_boost a la mitad para evitar compensar similitudes d├®biles
+        # FACTOR 4: Boost de inteligencia (concepto correcto, formulación diferente)
+        # ✅ FIX CRÍTICO: Reducir 67% y elevar threshold mínimo a 0.55 (antes 0.35)
         intelligence_boost = 0
-        if 0.50 <= base_similarity < 0.70:
-            if context_bonus > 0 or keyword_bonus >= 5:
-                intelligence_boost = 8  # Antes: 15
-        elif 0.35 <= base_similarity < 0.50:
-            if context_bonus >= 3 and keyword_bonus >= 5:  # Ajustar umbral de context_bonus
-                intelligence_boost = 10  # Antes: 20
+        if 0.60 <= base_similarity < 0.75:
+            # Solo si hay evidencia FUERTE de comprensión (keywords + contexto)
+            if context_bonus >= 2 and keyword_bonus >= 5:
+                intelligence_boost = 5  # ✅ Reducido 67% (antes: 15 → 8 → 5)
+        elif 0.55 <= base_similarity < 0.60:
+            # Compensación menor para casos límite con ALTA evidencia
+            if context_bonus >= 2 and keyword_bonus >= 8:
+                intelligence_boost = 3  # ✅ Reducido 85% (antes: 20 → 10 → 3)
         
         # Clasificar con todos los bonos
         classification = self.classify_response(

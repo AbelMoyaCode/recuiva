@@ -2,6 +2,10 @@
 Módulo para generación y manejo de embeddings
 Usa Sentence Transformers para crear representaciones vectoriales semánticas
 
+MEJORAS (17 nov 2025):
+- ✅ Normalización de texto antes de generar embeddings (corrige errores OCR)
+- ✅ Detección de errores OCR para debugging
+
 Autor: Abel Jesús Moya Acosta
 Fecha: 7 de octubre de 2025
 """
@@ -12,6 +16,9 @@ from typing import List, Union
 import json
 from pathlib import Path
 import os
+
+# ✅ NUEVO: Importar normalizador de texto
+from text_normalizer import normalize_text, normalize_text_batch, detect_ocr_errors
 
 # Cargar modelo globalmente para reutilizar
 MODEL_NAME = os.getenv('MODEL_NAME', 'all-MiniLM-L6-v2')
@@ -30,22 +37,46 @@ def load_model():
             raise
     return model
 
-def generate_embeddings(text: Union[str, List[str]]) -> np.ndarray:
+def generate_embeddings(text: Union[str, List[str]], debug_ocr: bool = False) -> np.ndarray:
     """
     Genera embeddings para texto o lista de textos
     
+    ✅ MEJORA: Normaliza texto ANTES de generar embedding para corregir errores OCR
+    
     Args:
         text: Texto o lista de textos a vectorizar
+        debug_ocr: Si True, imprime estadísticas de errores OCR detectados
         
     Returns:
-        np.ndarray: Array de embeddings
+        np.ndarray: Array de embeddings (384 dimensiones)
     """
     model = load_model()
     
     if isinstance(text, str):
-        return model.encode(text, convert_to_numpy=True)
+        # ✅ NUEVO: Normalizar texto antes de embedding
+        normalized = normalize_text(text)
+        
+        # Debug: Mostrar correcciones si se solicita
+        if debug_ocr and normalized != text:
+            errors = detect_ocr_errors(text)
+            if errors['has_errors']:
+                print(f"\n⚠️  Errores OCR corregidos:")
+                print(f"   Fragmentaciones: {errors['fragmented_words']}")
+                print(f"   Antes:  {text[:80]}...")
+                print(f"   Después: {normalized[:80]}...")
+        
+        return model.encode(normalized, convert_to_numpy=True)
     else:
-        return model.encode(text, convert_to_numpy=True, show_progress_bar=True)
+        # ✅ NUEVO: Normalizar lista de textos
+        normalized_list = normalize_text_batch(text)
+        
+        # Debug: Contar textos con errores
+        if debug_ocr:
+            errors_count = sum(1 for t in text if detect_ocr_errors(t)['has_errors'])
+            if errors_count > 0:
+                print(f"\n⚠️  {errors_count}/{len(text)} textos tenían errores OCR (corregidos)")
+        
+        return model.encode(normalized_list, convert_to_numpy=True, show_progress_bar=True)
 
 def calculate_similarity(embedding1: Union[np.ndarray, List], 
                         embedding2: Union[np.ndarray, List]) -> float:
