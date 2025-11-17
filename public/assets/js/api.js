@@ -166,7 +166,7 @@ class RecuivaAPI {
      * const result = await api.uploadMaterial(file);
      * console.log(`Material ID: ${result.data.id}`);
      */
-    async uploadMaterial(file, userId = null, onProgress = null) {
+    async uploadMaterial(file, sessionId = null, userId = null, onProgress = null) {
         const formData = new FormData();
         formData.append('file', file);
 
@@ -197,13 +197,19 @@ class RecuivaAPI {
             }
         }
 
-        // Headers con user_id (siempre debe estar presente gracias al mock)
+        // Headers con user_id y session_id para SSE
         const headers = {};
         if (finalUserId) {
             headers['X-User-ID'] = finalUserId;
             console.log('📤 Enviando material con User-ID:', finalUserId);
         } else {
             console.error('❌ CRÍTICO: No se pudo obtener user_id. Verifica SupabaseOperations.');
+        }
+        
+        // ✅ NUEVO: Agregar session_id para SSE
+        if (sessionId) {
+            headers['X-Session-ID'] = sessionId;
+            console.log('🔗 Session ID para SSE:', sessionId);
         }
 
         return await this.request(API_CONFIG.ENDPOINTS.UPLOAD_MATERIAL, {

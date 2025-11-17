@@ -61,32 +61,50 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!confirmUpload) return;
         }
 
-        // Mostrar progreso
-        showProgress(true);
-        updateProgress(0, 'Preparando archivo...');
+            // Mostrar progreso
+            showProgress(true);
+            updateProgress(0, 'Preparando archivo...');
 
-        try {
-            // Simular progreso de lectura del archivo
-            updateProgress(10, 'Leyendo archivo...');
-            await sleep(300);
+            try {
+                // ✅ NUEVO: Generar session_id para SSE
+                const sessionId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                console.log(`🔗 Conectando a SSE: ${API_BASE_URL}/api/upload-progress/${sessionId}`);
+                
+                // ✅ Conectar a Server-Sent Events ANTES de subir
+                const eventSource = new EventSource(`${API_BASE_URL}/api/upload-progress/${sessionId}`);
+                
+                eventSource.onopen = function() {
+                    console.log('✅ Conexión SSE establecida');
+                };
+                
+                eventSource.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    console.log('📩 Evento SSE recibido:', data);
+                    
+                    // Actualizar progreso visual
+                    updateProgress(data.progress, data.message);
+                    
+                    // Si completo, cerrar conexión
+                    if (data.type === 'complete' || data.type === 'error') {
+                        eventSource.close();
+                        console.log('🔚 Conexión SSE cerrada');
+                    }
+                };
+                
+                eventSource.onerror = function(error) {
+                    console.error('❌ Error en SSE:', error);
+                    eventSource.close();
+                };
 
-            updateProgress(30, 'Enviando al servidor...');
-            await sleep(300);
+                // ✅ Subir material con session_id en header
+                // ✅ Subir material con session_id en header
+                const response = await api.uploadMaterial(file, sessionId);
+                
+                // El progreso se maneja por SSE ahora
+                // (eliminamos las simulaciones de progreso)
 
-            // Subir material
-            const response = await api.uploadMaterial(file);
-
-            // Simular procesamiento
-            updateProgress(60, 'Procesando texto...');
-            await sleep(500);
-
-            updateProgress(80, 'Generando embeddings...');
-            await sleep(500);
-
-            updateProgress(100, '¡Completado!');
-
-            // Mostrar resultado exitoso
-            showSuccess(response);
+                // Mostrar resultado exitoso
+                showSuccess(response);
 
             // Limpiar formulario
             uploadForm.reset();
