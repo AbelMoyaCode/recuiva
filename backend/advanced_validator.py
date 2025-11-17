@@ -186,8 +186,8 @@ class AdvancedValidator:
         # Ordenar por overlap descendente
         ranked_chunks.sort(key=lambda x: x['keyword_overlap'], reverse=True)
         
-        # ✅ FIX CRÍTICO: Threshold elevado a 50% (antes 40%) para filtrado MÁS agresivo
-        threshold_overlap = 0.50
+        # ✅ FIX CRÍTICO: Threshold a 35% (balance entre precisión y recall)
+        threshold_overlap = 0.35
         filtered = [
             c for c in ranked_chunks
             if c['keyword_overlap'] >= threshold_overlap
@@ -357,16 +357,16 @@ class AdvancedValidator:
         top_3_chunks = similarities[:3]
         best_chunk = top_3_chunks[0]
         
-        # ✅ NUEVO: Rechazar chunks con similitud < 40% como irrelevantes
-        if best_chunk['similarity'] < 0.40:
+        # ✅ CRÍTICO: Rechazar chunks con similitud < 50% como irrelevantes
+        if best_chunk['similarity'] < 0.50:
             return {
                 'score': 0,
                 'nivel': 'INSUFICIENTE',
                 'color': '#ef4444',
-                'feedback': '❌ Tu respuesta NO tiene relación con el material estudiado. El fragmento más cercano tiene solo {:.0f}% de similitud semántica.'.format(best_chunk['similarity'] * 100),
+                'feedback': '❌ Tu respuesta NO tiene relación coherente con el material. El fragmento más cercano tiene solo {:.0f}% de similitud semántica (mínimo requerido: 50%).'.format(best_chunk['similarity'] * 100),
                 'es_correcto': False,
                 'chunks_relacionados': [],
-                'justificacion': 'La respuesta no guarda coherencia semántica con ningún fragmento del material.',
+                'justificacion': 'La respuesta no guarda coherencia semántica suficiente con ningún fragmento del material. Se requiere al menos 50% de similitud para considerar la respuesta válida.',
                 'nivel_lectura': 'LITERAL',
                 'ambiguity_detected': False
             }
@@ -399,10 +399,10 @@ class AdvancedValidator:
             if keyword_ratio > 0.60 and len(user_answer) > 100:
                 reasoning_bonus = 12 * self.weights['reasoning']  # Máx 12 puntos
         
-        # ✅ PENALIZACIÓN: Si similitud es 40-55%, reducir score
+        # ✅ PENALIZACIÓN: Si similitud es 50-65%, reducir score
         similarity_penalty = 0
-        if 0.40 <= base_sim < 0.55:
-            similarity_penalty = (0.55 - base_sim) * 30  # Penalización hasta -4.5 puntos
+        if 0.50 <= base_sim < 0.65:
+            similarity_penalty = (0.65 - base_sim) * 40  # Penalización hasta -6 puntos
             print(f"⚠️ PENALIZACIÓN por similitud baja ({base_sim*100:.1f}%): -{similarity_penalty:.1f} puntos")
         
         # Score final con penalización
