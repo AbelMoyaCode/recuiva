@@ -28,26 +28,44 @@ import numpy as np
 BACKEND_DIR = Path(__file__).parent
 sys.path.insert(0, str(BACKEND_DIR))
 
-# Importar módulos locales
+# Importar módulos locales con manejo independiente
+MODULES_LOADED = False
+SUPABASE_ENABLED = False
+GROQ_ENABLED = False
+
+# Módulos básicos de embeddings
 try:
     from embeddings_module import generate_embeddings, calculate_similarity, load_model
     from chunking import chunk_text, extract_text_from_pdf, get_text_stats
+    MODULES_LOADED = True
+except ImportError as e:
+    print(f"⚠️ Módulos de embeddings no disponibles: {e}")
+
+# Validadores semánticos
+try:
     from semantic_validator import SemanticValidator
     from advanced_validator import AdvancedValidator, validate_with_advanced_system
+except ImportError as e:
+    print(f"⚠️ Validadores semánticos no disponibles: {e}")
+
+# Cliente de Supabase
+try:
     from supabase_client import get_supabase_client, test_connection
+    SUPABASE_ENABLED = True
+except ImportError as e:
+    print(f"⚠️ Supabase no disponible: {e}")
+
+# Groq AI (independiente de otros módulos)
+try:
     from question_generator_ai import (
         generate_questions_with_ai,
         save_generated_questions_to_supabase,
         test_groq_connection
     )
-    MODULES_LOADED = True
-    SUPABASE_ENABLED = True
     GROQ_ENABLED = True
+    print("✅ Groq AI cargado correctamente")
 except ImportError as e:
-    print(f"⚠️ Error importando módulos: {e}")
-    print(f"⚠️ Algunos módulos pueden no estar disponibles")
-    MODULES_LOADED = False
-    SUPABASE_ENABLED = False
+    print(f"⚠️ Groq AI no disponible: {e}")
     GROQ_ENABLED = False
 
 # Cargar variables de entorno
