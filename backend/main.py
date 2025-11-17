@@ -11,8 +11,11 @@ Versión: 1.1.0 - URLs dinámicas para producción
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Optional
+import asyncio
+from queue import Queue
 import uvicorn
 import json
 from pathlib import Path
@@ -162,6 +165,9 @@ MIN_DOCUMENT_SIZE = int(os.getenv("MIN_DOCUMENT_SIZE", "200000"))
 materials_db = []
 questions_db = []
 
+# ✅ NUEVO: Cola para eventos de progreso (SSE)
+progress_events = {}  # {session_id: Queue()}
+
 # Inicializar validador semántico (solo si se importó correctamente)
 semantic_validator = None
 if MODULES_LOADED:
@@ -241,6 +247,49 @@ async def startup_event():
     print("\n✅ Backend listo y escuchando en http://localhost:8000")
     print("📖 Documentación disponible en http://localhost:8000/docs\n")
 
+@app.get("/api/upload-progress/{session_id}")
+async def upload_progress(session_id: str):
+    """
+    Server-Sent Events (SSE) para progreso de upload en tiempo real
+    
+    El frontend abre esta conexión ANTES de subir el archivo,
+    y recibe eventos de progreso mientras se procesa.
+    """
+    async def event_generator():
+        # Crear cola para este session_id
+        if session_id not in progress_events:
+            progress_events[session_id] = Queue()
+        
+        queue = progress_events[session_id]
+        
+        try:
+            while True:
+                # Esperar eventos de la cola
+                await asyncio.sleep(0.1)
+                
+                if not queue.empty():
+                    event = queue.get()
+                    
+                    # Enviar evento SSE
+                    yield f"data: {json.dumps(event)}\n\n"
+                    
+                    # Si es evento final, cerrar conexión
+                    if event.get('type') == 'complete' or event.get('type') == 'error':
+                        break
+        finally:
+            # Limpiar cola al cerrar conexión
+            if session_id in progress_events:
+                del progress_events[session_id]
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
 @app.get("/")
 async def root():
     """Endpoint raíz con información de la API"""
@@ -265,7 +314,8 @@ async def root():
 @app.post("/api/materials/upload")
 async def upload_material(
     file: UploadFile = File(...),
-    user_id: Optional[str] = Header(None, alias="X-User-ID")
+    user_id: Optional[str] = Header(None, alias="X-User-ID"),
+    session_id: Optional[str] = Header(None, alias="X-Session-ID")  # ✅ NUEVO
 ):
     """
     Endpoint para subir materiales (PDF o TXT)
@@ -274,10 +324,25 @@ async def upload_material(
     Args:
         file: Archivo PDF o TXT (mínimo 80 páginas recomendado)
         user_id: ID del usuario autenticado (desde header X-User-ID)
+        session_id: ID de sesión para tracking de progreso SSE
         
     Returns:
         Información del material procesado
     """
+    
+    # ✅ NUEVO: Función helper para enviar eventos de progreso
+    def send_progress(step: str, message: str, progress: int, data: dict = None):
+        \"\"\"Envía evento de progreso vía SSE\"\"\"
+        if session_id and session_id in progress_events:
+            event = {
+                'type': 'progress',
+                'step': step,
+                'message': message,
+                'progress': progress,
+                'data': data or {}
+            }
+            progress_events[session_id].put(event)
+    
     try:
         # IMPORTANTE: Requiere autenticación real
         # El user_id DEBE venir del header X-User-ID enviado por el frontend
@@ -298,16 +363,20 @@ async def upload_material(
             )
         
         print(f"📥 Recibiendo archivo: {file.filename}")
+        send_progress('upload', f'📥 Recibiendo {file.filename}', 5)
         
         # Leer contenido
         content = await file.read()
+        send_progress('reading', '📄 Leyendo contenido del archivo', 10)
         
         # Extraer texto según el tipo de archivo
         pdf_page_count = None
         if file.filename.endswith('.pdf'):
             print("📄 Extrayendo texto de PDF...")
+            send_progress('extracting', '📖 Extrayendo texto de PDF...', 15)
             text, pdf_page_count = extract_text_from_pdf(content)
             print(f"📄 PDF con {pdf_page_count} páginas reales")
+            send_progress('extracted', f'✅ Texto extraído: {pdf_page_count} páginas', 25, {'pages': pdf_page_count})
         else:
             text = content.decode('utf-8')
             pdf_page_count = None
@@ -328,16 +397,25 @@ async def upload_material(
         
         # Chunking del texto
         print("✂️ Dividiendo en chunks...")
+        send_progress('chunking', '✂️ Dividiendo en fragmentos (chunks)...', 30)
         chunks = chunk_text(text, chunk_size=DEFAULT_CHUNK_SIZE, overlap=DEFAULT_CHUNK_OVERLAP)
         print(f"✅ Generados {len(chunks)} chunks")
+        send_progress('chunked', f'✅ {len(chunks)} fragmentos creados', 40, {'total_chunks': len(chunks)})
         
         # Generar embeddings para cada chunk
         print("🧠 Generando embeddings...")
+        send_progress('embeddings_start', '🧠 Generando embeddings (vectores semánticos)...', 45)
         embeddings_data = []
         
         for i, chunk in enumerate(chunks):
             if i % 10 == 0:
                 print(f"   Procesando chunk {i+1}/{len(chunks)}...")
+                # Progreso de 45% a 70% (25% del total para embeddings)
+                progress = 45 + int((i / len(chunks)) * 25)
+                send_progress('embeddings_progress', f'🔄 Procesando chunk {i+1}/{len(chunks)}', progress, {
+                    'current': i + 1,
+                    'total': len(chunks)
+                })
             
             # ✅ NUEVO: Normalizar chunk ANTES de generar embedding (corrige OCR)
             normalized_chunk = normalize_text(chunk)
@@ -351,10 +429,12 @@ async def upload_material(
             })
         
         print(f"✅ Embeddings generados: {len(embeddings_data)}")
+        send_progress('embeddings_complete', f'✅ {len(embeddings_data)} embeddings generados', 70)
         
         # ===== GUARDAR EN SUPABASE (SI ESTÁ HABILITADO) =====
         if SUPABASE_ENABLED and user_id:
             print(f"\n💾 Guardando en Supabase para usuario: {user_id}")
+            send_progress('saving_start', '💾 Guardando en base de datos...', 75)
             try:
                 supabase = get_supabase_client()
                 
@@ -380,12 +460,15 @@ async def upload_material(
                 if result.data and len(result.data) > 0:
                     material_uuid = result.data[0]['id']
                     print(f"✅ Material guardado en Supabase con UUID: {material_uuid}")
+                    send_progress('material_saved', '✅ Material registrado', 80, {'material_id': material_uuid})
                     
                     # ===== GUARDAR EMBEDDINGS EN SUPABASE CON PGVECTOR =====
                     print(f"💾 Guardando {len(embeddings_data)} embeddings en Supabase...")
+                    send_progress('embeddings_save_start', f'💾 Guardando {len(embeddings_data)} embeddings...', 85)
                     
                     # Preparar datos para inserción batch
                     embeddings_to_insert = []
+                    batch_count = 0
                     for i, emb_data in enumerate(embeddings_data):
                         # ✅ NUEVO: Normalizar chunk_text antes de guardar (ya viene normalizado desde chunking.py)
                         # pero por si acaso, normalizamos de nuevo para garantizar consistencia
@@ -402,10 +485,19 @@ async def upload_material(
                         if len(embeddings_to_insert) == 100 or i == len(embeddings_data) - 1:
                             batch_result = supabase.table('material_embeddings').insert(embeddings_to_insert).execute()
                             if batch_result.data:
-                                print(f"   ✅ Batch {(i // 100) + 1}: {len(embeddings_to_insert)} embeddings guardados")
+                                batch_count += 1
+                                print(f"   ✅ Batch {batch_count}: {len(embeddings_to_insert)} embeddings guardados")
+                                # Progreso de 85% a 95% para guardado de embeddings
+                                progress = 85 + int((i / len(embeddings_data)) * 10)
+                                send_progress('embeddings_batch', f'✅ Batch {batch_count}: {len(embeddings_to_insert)} embeddings', progress, {
+                                    'batch': batch_count,
+                                    'saved': i + 1,
+                                    'total': len(embeddings_data)
+                                })
                             embeddings_to_insert = []
                     
                     print(f"✅ Todos los embeddings guardados en Supabase (pgvector)")
+                    send_progress('complete', '🎉 Material procesado exitosamente', 100, {'material_id': material_uuid})
                     
                     # Retornar respuesta con UUID de Supabase
                     return {
@@ -430,6 +522,7 @@ async def upload_material(
                     
             except Exception as db_error:
                 print(f"❌ Error guardando en Supabase: {db_error}")
+                send_progress('error', f'❌ Error: {str(db_error)}', 0, {'error': str(db_error)})
                 print("⚠️ Continuando con almacenamiento local...")
                 # Si falla Supabase, continuar con método local
         
