@@ -33,9 +33,9 @@ try:
     from embeddings_module import generate_embeddings, calculate_similarity, load_model
     from chunking import chunk_text, extract_text_from_pdf, get_text_stats
     from semantic_validator import SemanticValidator
-    from advanced_validator import AdvancedValidator, validate_with_advanced_system  # NUEVO: Sistema mejorado
+    from advanced_validator import AdvancedValidator, validate_with_advanced_system
     from supabase_client import get_supabase_client, test_connection
-    from question_generator_ai import (  # NUEVO: Generador con Groq AI
+    from question_generator_ai import (
         generate_questions_with_ai,
         save_generated_questions_to_supabase,
         test_groq_connection
@@ -44,8 +44,8 @@ try:
     SUPABASE_ENABLED = True
     GROQ_ENABLED = True
 except ImportError as e:
-    print(f"⚠️ Módulos locales no encontrados: {e}")
-    print("⚠️ Asegúrate de tener embeddings_module.py, chunking.py y semantic_validator.py")
+    print(f"⚠️ Error importando módulos: {e}")
+    print(f"⚠️ Algunos módulos pueden no estar disponibles")
     MODULES_LOADED = False
     SUPABASE_ENABLED = False
     GROQ_ENABLED = False
