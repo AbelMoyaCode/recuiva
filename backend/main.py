@@ -35,13 +35,20 @@ try:
     from semantic_validator import SemanticValidator
     from advanced_validator import AdvancedValidator, validate_with_advanced_system  # NUEVO: Sistema mejorado
     from supabase_client import get_supabase_client, test_connection
+    from question_generator_ai import (  # NUEVO: Generador con Groq AI
+        generate_questions_with_ai,
+        save_generated_questions_to_supabase,
+        test_groq_connection
+    )
     MODULES_LOADED = True
     SUPABASE_ENABLED = True
+    GROQ_ENABLED = True
 except ImportError as e:
     print(f"⚠️ Módulos locales no encontrados: {e}")
     print("⚠️ Asegúrate de tener embeddings_module.py, chunking.py y semantic_validator.py")
     MODULES_LOADED = False
     SUPABASE_ENABLED = False
+    GROQ_ENABLED = False
 
 # Cargar variables de entorno
 load_dotenv()
@@ -136,12 +143,18 @@ MIN_DOCUMENT_SIZE = int(os.getenv("MIN_DOCUMENT_SIZE", "200000"))
 materials_db = []
 questions_db = []
 
-# Inicializar validador semántico
-semantic_validator = SemanticValidator(
-    threshold_excellent=THRESHOLD_EXCELLENT,
-    threshold_good=THRESHOLD_GOOD,
-    threshold_acceptable=THRESHOLD_ACCEPTABLE
-)
+# Inicializar validador semántico (solo si se importó correctamente)
+semantic_validator = None
+if MODULES_LOADED:
+    try:
+        semantic_validator = SemanticValidator(
+            threshold_excellent=THRESHOLD_EXCELLENT,
+            threshold_good=THRESHOLD_GOOD,
+            threshold_acceptable=THRESHOLD_ACCEPTABLE
+        )
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar SemanticValidator: {e}")
+        semantic_validator = None
 
 # ==================== FUNCIONES AUXILIARES ====================
 
@@ -1302,6 +1315,143 @@ async def validate_answer_by_topic(answer: Answer, authorization: Optional[str] 
         raise HTTPException(status_code=500, detail=f"Error validando respuesta por tópico: {str(e)}")
 
 # ==================== FIN SPRINT 2 ====================
+
+# ==================== DEEPSEEK AI - GENERACIÓN INTELIGENTE DE PREGUNTAS ====================
+
+class GenerateQuestionsAIRequest(BaseModel):
+    """Request para generar preguntas con DeepSeek AI"""
+    num_questions_per_chunk: int = 2  # Preguntas por chunk
+    max_chunks: Optional[int] = None  # Límite de chunks (None = todos)
+    save_to_db: bool = True  # Guardar preguntas en Supabase
+
+@app.post("/api/materials/{material_id}/generate-questions-ai")
+async def generate_questions_ai_endpoint(
+    material_id: str,
+    request: GenerateQuestionsAIRequest,
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Genera preguntas inteligentes usando DeepSeek AI (RAG)
+    
+    Este endpoint:
+    1. Obtiene chunks del material desde Supabase
+    2. Usa DeepSeek para generar preguntas de comprensión profunda
+    3. Opcionalmente guarda las preguntas en la base de datos
+    
+    Args:
+        material_id: UUID del material
+        request: Configuración de generación
+        authorization: Token de autenticación
+        
+    Returns:
+        Dict con preguntas generadas y estadísticas
+    """
+    
+    if not SUPABASE_ENABLED:
+        raise HTTPException(status_code=503, detail="Supabase no está disponible")
+    
+    if not DEEPSEEK_ENABLED:
+        raise HTTPException(
+            status_code=503,
+            detail="DeepSeek AI no está disponible. Configura DEEPSEEK_API_KEY en .env"
+        )
+    
+    try:
+        supabase = get_supabase_client()
+        
+        # Obtener usuario (opcional por ahora)
+        try:
+            user = await get_current_user(authorization)
+            user_id = user['id']
+        except:
+            # Si no hay autenticación, obtener el user_id del material
+            material_result = supabase.table('materials')\
+                .select('user_id')\
+                .eq('id', material_id)\
+                .single()\
+                .execute()
+            
+            if not material_result.data:
+                raise HTTPException(status_code=404, detail="Material no encontrado")
+            
+            user_id = material_result.data['user_id']
+        
+        # Verificar que el material existe
+        print(f"\n📚 Generando preguntas para material: {material_id}")
+        
+        # Generar preguntas con DeepSeek AI
+        result = await generate_questions_with_ai(
+            material_id=material_id,
+            supabase_client=supabase,
+            num_questions_per_chunk=request.num_questions_per_chunk,
+            max_chunks=request.max_chunks
+        )
+        
+        if not result['success']:
+            raise HTTPException(
+                status_code=500,
+                detail=result.get('error', 'Error generando preguntas')
+            )
+        
+        # Guardar preguntas en Supabase si se solicita
+        if request.save_to_db and result['questions']:
+            save_result = await save_generated_questions_to_supabase(
+                questions=result['questions'],
+                material_id=material_id,
+                user_id=user_id,
+                supabase_client=supabase
+            )
+            
+            result['saved_to_db'] = save_result['success']
+            result['saved_count'] = save_result['saved_count']
+        else:
+            result['saved_to_db'] = False
+            result['saved_count'] = 0
+        
+        return {
+            "success": True,
+            "material_id": material_id,
+            "questions": result['questions'],
+            "total_questions": result['total_questions'],
+            "chunks_processed": result['chunks_processed'],
+            "chunks_failed": result.get('chunks_failed', 0),
+            "cost_estimate": result['cost_estimate'],
+            "saved_to_db": result.get('saved_to_db', False),
+            "saved_count": result.get('saved_count', 0)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error generando preguntas con AI: {str(e)}"
+        )
+
+@app.get("/api/test-groq")
+async def test_groq_endpoint():
+    """
+    Prueba la conexión con Groq API
+    """
+    
+    if not GROQ_ENABLED:
+        raise HTTPException(
+            status_code=503,
+            detail="Groq AI no está configurado. Agrega GROQ_API_KEY en .env"
+        )
+    
+    try:
+        result = await test_groq_connection()
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error probando Groq: {str(e)}"
+        )
+
+# ==================== FIN GROQ AI ====================
 
 # ==================== MAIN ====================
 
