@@ -170,24 +170,25 @@ class SemanticValidator:
         raw_score = base_score + context_bonus + keyword_bonus + length_bonus + intelligence_boost
         score_percentage = min(int(raw_score), 100)  # Cap a 100%
         
-        # Determinar clasificaci├│n
-        if score_percentage >= 85:
-            nivel = 'EXCELENTE'
+        # Determinar clasificación (alineado con métricas de validacion-semantica.html)
+        # ✅ AJUSTADO (17 nov 2025): Umbrales calibrados para Active Recall
+        if score_percentage >= 90:
+            nivel = 'EXCELENTE'  # ≥90% = Dominio completo
             feedback = self._generate_feedback_excellent(score_percentage)
             color = '#10b981'  # Verde
             
-        elif score_percentage >= 70:
-            nivel = 'BUENO'
+        elif score_percentage >= 75:
+            nivel = 'BUENO'      # 75-89% = Buen entendimiento
             feedback = self._generate_feedback_good(score_percentage)
             color = '#3b82f6'  # Azul
             
-        elif score_percentage >= 55:
-            nivel = 'ACEPTABLE'
+        elif score_percentage >= 60:
+            nivel = 'ACEPTABLE'  # 60-74% = Comprensión parcial
             feedback = self._generate_feedback_acceptable(score_percentage)
             color = '#f59e0b'  # Amarillo
             
         else:
-            nivel = 'INSUFICIENTE'
+            nivel = 'INSUFICIENTE'  # <60% = Requiere estudio
             feedback = self._generate_feedback_insufficient(score_percentage)
             color = '#ef4444'  # Rojo
         
@@ -197,7 +198,7 @@ class SemanticValidator:
             'score_raw': raw_score,
             'feedback': feedback,
             'color': color,
-            'es_correcto': score_percentage >= 55
+            'es_correcto': score_percentage >= 60  # ✅ Actualizado umbral de aprobación
         }
     
     def validate_answer(
@@ -280,43 +281,51 @@ class SemanticValidator:
         # ===== SCORING INTELIGENTE =====
         
         # FACTOR 1: Contexto amplio (múltiples chunks relevantes)
-        # ✅ FIX CRÍTICO: Threshold elevado a 0.65 (antes 0.50) para evitar chunks débilmente relacionados
+        # ✅ AJUSTADO: Threshold en 0.65 (filtrado agresivo) + bonos aumentados para recompensar cobertura
         high_sim_chunks = [c for c in top_chunks if c['similarity'] > 0.65]
         context_bonus = 0
         if len(high_sim_chunks) >= 3:
-            context_bonus = 4  # ✅ Reducido 60% (antes: 10 → 5 → 4)
+            context_bonus = 8  # ✅ Cobertura amplia: +8% (3+ chunks relevantes)
         elif len(high_sim_chunks) >= 2:
-            context_bonus = 2  # ✅ Reducido 60% (antes: 5 → 3 → 2)
+            context_bonus = 5  # ✅ Cobertura media: +5% (2 chunks relevantes)
         
-        # FACTOR 2: Palabras clave compartidas
+        # FACTOR 2: Palabras clave compartidas (conceptos clave cubiertos)
         answer_keywords = set(re.findall(r'\b\w{4,}\b', user_answer.lower()))
         chunk_keywords = set(re.findall(r'\b\w{4,}\b', best_match["text"].lower()))
         shared_keywords = answer_keywords.intersection(chunk_keywords)
         
         keyword_bonus = 0
-        if len(shared_keywords) >= 5:
-            keyword_bonus = 8
+        if len(shared_keywords) >= 7:
+            keyword_bonus = 12  # ✅ Excelente cobertura: +12%
+        elif len(shared_keywords) >= 5:
+            keyword_bonus = 9   # ✅ Buena cobertura: +9%
         elif len(shared_keywords) >= 3:
-            keyword_bonus = 5
+            keyword_bonus = 6   # ✅ Cobertura mínima: +6%
         
-        # FACTOR 3: Elaboraci├│n de respuesta
+        # FACTOR 3: Elaboración de respuesta (desarrollo completo)
         length_bonus = 0
-        if len(user_answer) > 200:
-            length_bonus = 5
-        elif len(user_answer) > 100:
-            length_bonus = 3
+        if len(user_answer) > 250:
+            length_bonus = 7   # ✅ Respuesta muy elaborada: +7%
+        elif len(user_answer) > 150:
+            length_bonus = 5   # ✅ Respuesta elaborada: +5%
+        elif len(user_answer) > 80:
+            length_bonus = 3   # ✅ Respuesta suficiente: +3%
         
-        # FACTOR 4: Boost de inteligencia (concepto correcto, formulación diferente)
-        # ✅ FIX CRÍTICO: Reducir 67% y elevar threshold mínimo a 0.55 (antes 0.35)
+        # FACTOR 4: Boost de inteligencia (reformulación con comprensión profunda)
+        # ✅ AJUSTADO: Recompensar reformulaciones que demuestren entendimiento real
         intelligence_boost = 0
-        if 0.60 <= base_similarity < 0.75:
-            # Solo si hay evidencia FUERTE de comprensión (keywords + contexto)
-            if context_bonus >= 2 and keyword_bonus >= 5:
-                intelligence_boost = 5  # ✅ Reducido 67% (antes: 15 → 8 → 5)
-        elif 0.55 <= base_similarity < 0.60:
-            # Compensación menor para casos límite con ALTA evidencia
-            if context_bonus >= 2 and keyword_bonus >= 8:
-                intelligence_boost = 3  # ✅ Reducido 85% (antes: 20 → 10 → 3)
+        if 0.65 <= base_similarity < 0.80:
+            # Reformulación inteligente: similar semánticamente pero diferente léxicamente
+            if context_bonus >= 5 and keyword_bonus >= 6:
+                intelligence_boost = 10  # ✅ Comprensión inferencial: +10%
+        elif 0.55 <= base_similarity < 0.65:
+            # Reformulación con gaps: necesita evidencia MUY fuerte
+            if context_bonus >= 5 and keyword_bonus >= 9:
+                intelligence_boost = 7   # ✅ Compensación por reformulación: +7%
+        elif base_similarity >= 0.80:
+            # Similitud alta + keywords = excelencia
+            if keyword_bonus >= 9:
+                intelligence_boost = 5   # ✅ Bonus por precisión: +5%
         
         # Clasificar con todos los bonos
         classification = self.classify_response(
@@ -353,14 +362,14 @@ class SemanticValidator:
 ­ƒÆí Sigue as├¡ con Active Recall. Est├ís dominando el tema."""
     
     def _generate_feedback_good(self, score: int) -> str:
-        """Genera feedback para respuestas BUENAS (70-84%)"""
-        return f"""Ô£à ┬íMUY BIEN! Tu respuesta muestra buen entendimiento del tema.
+        """Genera feedback para respuestas BUENAS (75-89%)"""
+        return f"""✅ ¡MUY BIEN! Tu respuesta muestra buen entendimiento del tema.
 
-­ƒôè Score de comprensi├│n: {score}%
+📊 Score de comprensión: {score}%
 
-­ƒæì Has captado los conceptos principales. Tu formulaci├│n puede ser diferente al libro, pero el contenido es correcto.
+👍 Has captado los conceptos principales. Tu formulación puede ser diferente al material, pero el contenido es correcto.
 
-­ƒÆ¡ Sugerencia: Podr├¡as profundizar un poco m├ís, pero vas por buen camino."""
+💡 Sugerencia: Podrías profundizar un poco más en algunos detalles, pero vas por muy buen camino."""
     
     def _generate_feedback_acceptable(self, score: int) -> str:
         """Genera feedback para respuestas ACEPTABLES (55-69%)"""
