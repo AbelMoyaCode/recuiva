@@ -6,8 +6,8 @@ from rank_bm25 import BM25Okapi
 class HybridValidator:
     def __init__(self, embedding_model):
         self.model = embedding_model
-        self.thresholds = {'excelente': 0.85, 'bueno': 0.70, 'aceptable': 0.55, 'rechazo': 0.40}
-        self.weights = {'bm25': 0.30, 'cosine': 0.50, 'coverage': 0.20}
+        self.thresholds = {'excelente': 0.75, 'bueno': 0.60, 'aceptable': 0.45, 'rechazo': 0.30}
+        self.weights = {'bm25': 0.15, 'cosine': 0.70, 'coverage': 0.15}  # Mayor peso a similitud semántica
         self.stopwords = {'el', 'la', 'los', 'las', 'un', 'una', 'de', 'del', 'a', 'al', 'en', 'por', 'para', 'con', 'y', 'o', 'pero', 'si', 'no', 'que', 'como', 'cuando', 'donde', 'cual', 'quien', 'su', 'sus', 'mi', 'mis', 'tu', 'tus', 'se', 'le', 'lo', 'me', 'te', 'nos', 'os'}
     
     def normalize_embedding(self, embedding: np.ndarray) -> np.ndarray:
