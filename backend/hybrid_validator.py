@@ -78,30 +78,66 @@ class HybridValidator:
         scaled = max(0.0, min(1.0, scaled))  # Clamp a [0,1]
         return round(scaled * 100, 1)
     
+    def is_inferential_question(self, question: str) -> bool:
+        """
+        Detecta si una pregunta es inferencial por palabras clave.
+        
+        Las preguntas inferenciales requieren deducción/razonamiento
+        basado en el texto, no solo recuerdo literal.
+        
+        Args:
+            question: Texto de la pregunta
+            
+        Returns:
+            bool: True si es inferencial, False si es literal
+        """
+        inferential_keywords = [
+            'por qué', 'por que',
+            'qué razones', 'que razones',
+            'cómo deduce', 'como deduce',
+            'cómo se explica', 'como se explica',
+            'qué motivo', 'que motivo',
+            'qué evidencia', 'que evidencia',
+            'qué permite deducir', 'que permite deducir',
+            'qué sugiere', 'que sugiere',
+            'cómo sabes', 'como sabes',
+            'qué indicio', 'que indicio',
+            'qué detalle señala', 'que detalle señala'
+        ]
+        question_lower = question.lower()
+        return any(keyword in question_lower for keyword in inferential_keywords)
+    
     def apply_pedagogical_boost(self, score_raw: float, cosine: float, 
-                                user_answer: str, ref_text: str) -> float:
+                                user_answer: str, ref_text: str, question: str = "") -> float:
         """
         Booster pedagógico para respuestas concisas pero correctas
+        + boost inferencial para preguntas de razonamiento.
         
-        Problema: embeddings penalizan asimetría de longitud.
+        Problema 1: embeddings penalizan asimetría de longitud.
         Si el usuario sintetiza bien (pocas palabras, idea correcta),
         el cosine baja artificialmente.
         
-        Solución: si cosine >= 0.40 (dirección correcta) Y la respuesta
-        es mucho más corta que el chunk (síntesis), aplicar boost moderado.
+        Problema 2: preguntas inferenciales requieren razonamiento,
+        no solo recuerdo literal. Merecen reconocimiento extra.
         
-        Referencia: Gemini 3 Pro analysis (Nov 2025)
+        Soluciones:
+        - Boost por brevedad: si cosine >= 0.40 Y respuesta corta → x1.3-1.5
+        - Boost inferencial: si pregunta inferencial Y cosine >= 0.55 → x1.25
+        
+        Referencias: Gemini 3 Pro analysis (Nov 2025), GPT-4o recommendations
         
         Args:
             score_raw: Score antes del boost [0,1]
             cosine: Similitud de embeddings [0,1]
             user_answer: Texto de la respuesta del usuario
             ref_text: Texto del chunk de referencia
+            question: Texto de la pregunta (opcional, para boost inferencial)
             
         Returns:
             float: Score después del boost (máx 0.99)
         """
         BASE_THRESHOLD = 0.40  # Mínimo cosine para aplicar boost
+        INFERENTIAL_THRESHOLD = 0.55  # Mínimo cosine para boost inferencial
         
         # Solo aplicar si hay similitud razonable
         if cosine < BASE_THRESHOLD:
@@ -112,12 +148,17 @@ class HybridValidator:
         len_ref = max(len(ref_text.split()), 1)
         len_ratio = len_user / len_ref
         
-        # Si respuesta es < 50% de la longitud del chunk → síntesis
+        # Boost 1: Respuestas concisas pero correctas
         if len_ratio < 0.5:
             # Boost progresivo según qué tan corta sea
             boost_factor = 1.5 if len_ratio < 0.3 else 1.3
             boosted = score_raw * boost_factor
             return min(boosted, 0.99)  # Nunca 100% automático
+        
+        # Boost 2: Preguntas inferenciales bien razonadas
+        if question and self.is_inferential_question(question) and cosine >= INFERENTIAL_THRESHOLD:
+            boosted = score_raw * 1.25
+            return min(boosted, 0.99)
         
         return score_raw
     
@@ -225,11 +266,13 @@ class HybridValidator:
         score_raw = max(0.0, min(1.0, score_base + bonus))  # Clamp a [0,1]
         
         # NUEVO: Aplicar boost pedagógico para respuestas concisas pero correctas
+        # + boost inferencial para preguntas de razonamiento
         score_raw = self.apply_pedagogical_boost(
             score_raw=score_raw,
             cosine=cosine_normalized,
             user_answer=answer,
-            ref_text=chunk['text_full']
+            ref_text=chunk['text_full'],
+            question=question  # Para detectar preguntas inferenciales
         )
         
         # Convertir a porcentaje 0-100% con min-max scaling
