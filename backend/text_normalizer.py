@@ -55,12 +55,20 @@ def normalize_text(text: str) -> str:
     
     # 1. Remover espacios innecesarios entre sílabas (error OCR común)
     # Detecta patrones como: "fo to sín te sis" (espacios entre letras cortas)
-    # Estrategia: Si hay 1-2 letras, espacio, 1-2 letras, probablemente es error OCR
-    text = re.sub(r'\b(\w{1,2})\s+(\w{1,2})\b', r'\1\2', text)
+    # Estrategia mejorada: Capturar fragmentos de 1-5 letras con espacios
     
-    # Aplicar varias veces para casos con múltiples fragmentaciones
-    for _ in range(3):  # Máximo 3 iteraciones
+    # Primero: fragmentos muy cortos (1-2 letras)
+    for _ in range(5):
         text = re.sub(r'\b(\w{1,2})\s+(\w{1,2})\b', r'\1\2', text)
+    
+    # Segundo: fragmentos medianos (2-4 letras + 3-6 letras)
+    # Ejemplo: "pr ecise" → "precise"
+    for _ in range(3):
+        text = re.sub(r'\b(\w{2,4})\s+(\w{3,6})\b', r'\1\2', text)
+    
+    # Tercero: caso específico de OCR malo - palabra al final de línea
+    # Ejemplo: "esun punto" → "es un punto"
+    text = re.sub(r'(\w)([a-z]{2,})\s+([a-z])', r'\1 \2 \3', text)
     
     # 2. Remover guiones de separación de línea (ej: "trans- formación")
     text = re.sub(r'(\w)-\s+(\w)', r'\1\2', text)
