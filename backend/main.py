@@ -412,9 +412,11 @@ async def upload_material(
         print("✂️ Dividiendo en chunks...")
         await send_progress('chunking', '✂️ Dividiendo en fragmentos (chunks adaptativos)...', 30)
         from chunking import adaptive_chunking
-        chunks = adaptive_chunking(text, total_pages)
-        print(f"✅ Generados {len(chunks)} chunks optimizados para {total_pages} páginas")
-        await send_progress('chunked', f'✅ {len(chunks)} fragmentos creados (optimizados)', 40, {'total_chunks': len(chunks), 'total_pages': total_pages})
+        # Usar pdf_page_count (puede ser None si no se pudo extraer)
+        page_count = pdf_page_count if pdf_page_count else stats['estimated_pages']
+        chunks = adaptive_chunking(text, page_count)
+        print(f"✅ Generados {len(chunks)} chunks optimizados para {page_count} páginas")
+        await send_progress('chunked', f'✅ {len(chunks)} fragmentos creados (optimizados)', 40, {'total_chunks': len(chunks), 'total_pages': page_count})
         
         # Generar embeddings para cada chunk
         print("🧠 Generando embeddings...")
