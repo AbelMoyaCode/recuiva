@@ -411,7 +411,7 @@ async def upload_material(
         # Chunking del texto
         print("✂️ Dividiendo en chunks...")
         await send_progress('chunking', '✂️ Dividiendo en fragmentos (chunks)...', 30)
-        chunks = semantic_chunking(text, min_words=120, max_words=280, overlap_words=20)
+        chunks = semantic_chunking(text, min_words=80, max_words=180, overlap_words=20)
         print(f"✅ Generados {len(chunks)} chunks")
         await send_progress('chunked', f'✅ {len(chunks)} fragmentos creados', 40, {'total_chunks': len(chunks)})
         
