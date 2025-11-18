@@ -17,8 +17,15 @@ class HybridValidator:
         return embedding / norm
     
     def extract_keywords(self, text: str):
+        # Normalizar texto antes de extraer keywords (quitar espacios OCR)
+        # Ejemplo: "H enriet te" → "Henriette"
+        text = re.sub(r'\b(\w{1,2})\s+(\w{1,2})\b', r'\1\2', text)
+        for _ in range(3):
+            text = re.sub(r'\b(\w{1,2})\s+(\w{1,2})\b', r'\1\2', text)
+        text = re.sub(r'\b(\w{2,4})\s+(\w{3,6})\b', r'\1\2', text)
+        
         text = text.lower()
-        words = re.findall(r'\\b\\w{3,}\\b', text)
+        words = re.findall(r'\b\w{3,}\b', text)
         keywords = [w for w in words if w not in self.stopwords]
         return keywords
     
