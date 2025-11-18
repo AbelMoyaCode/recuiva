@@ -39,7 +39,7 @@ GROQ_ENABLED = False
 # Módulos básicos de embeddings
 try:
     from embeddings_module import generate_embeddings, calculate_similarity, load_model
-    from chunking import chunk_text, extract_text_from_pdf, get_text_stats
+    from chunking import chunk_text, extract_text_from_pdf, get_text_stats, semantic_chunking
     from text_normalizer import normalize_text  # ✅ NUEVO: Para normalizar chunks al cargar
     MODULES_LOADED = True
 except ImportError as e:
@@ -410,7 +410,7 @@ async def upload_material(
         # Chunking del texto
         print("✂️ Dividiendo en chunks...")
         await send_progress('chunking', '✂️ Dividiendo en fragmentos (chunks)...', 30)
-        chunks = chunk_text(text, chunk_size=DEFAULT_CHUNK_SIZE, overlap=DEFAULT_CHUNK_OVERLAP)
+        chunks = semantic_chunking(text, min_words=150, max_words=400, overlap_words=15)
         print(f"✅ Generados {len(chunks)} chunks")
         await send_progress('chunked', f'✅ {len(chunks)} fragmentos creados', 40, {'total_chunks': len(chunks)})
         
