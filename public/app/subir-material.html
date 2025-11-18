@@ -256,14 +256,25 @@
     <!-- Progress -->
     <div id="progress-section" class="hidden mb-6">
       <div class="bg-[var(--base-gray)] rounded-lg p-4">
-        <div class="flex items-center gap-3 mb-2">
+        <div class="flex items-center gap-3 mb-3">
           <span class="material-symbols-outlined text-[var(--primary-color)] processing">settings</span>
           <span class="font-semibold text-[var(--text-primary)]">Procesando material...</span>
+          <span id="progress-percentage" class="ml-auto font-bold text-[var(--primary-color)]">0%</span>
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-2">
-          <div id="progress-bar" class="bg-[var(--primary-color)] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        
+        <!-- Barra de progreso con animación suave -->
+        <div class="w-full bg-gray-200 rounded-full h-3 mb-3 overflow-hidden">
+          <div id="progress-bar" 
+               class="bg-gradient-to-r from-[var(--primary-color)] to-orange-500 h-3 rounded-full transition-all ease-out"
+               style="width: 0%; transition-duration: 1.2s;"></div>
         </div>
-        <p id="progress-text" class="text-sm text-[var(--text-secondary)] mt-2">Iniciando...</p>
+        
+        <!-- Descripción detallada con borde lateral -->
+        <div class="border-l-4 border-[var(--secondary-color)] bg-blue-50 rounded-r-lg p-3">
+          <p id="progress-text" class="text-sm text-[var(--secondary-color)] font-medium leading-relaxed">
+            🚀 Iniciando procesamiento...
+          </p>
+        </div>
       </div>
     </div>
 
@@ -515,6 +526,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const progressBar = document.getElementById('progress-bar');
     const progressText = document.getElementById('progress-text');
+    const progressPercentage = document.getElementById('progress-percentage');
     
     try {
       // 🔗 GENERAR SESSION ID ÚNICO PARA SSE
@@ -534,12 +546,13 @@ document.addEventListener('DOMContentLoaded', function() {
           const data = JSON.parse(event.data);
           console.log('📩 Evento SSE recibido:', data);
           
-          // Actualizar barra de progreso REAL
+          // Actualizar barra de progreso REAL con animación suave
           if (data.percentage !== undefined) {
             progressBar.style.width = `${data.percentage}%`;
+            progressPercentage.textContent = `${data.percentage}%`;
           }
           
-          // Actualizar descripción
+          // Actualizar descripción con emoji y texto educativo
           if (data.description) {
             progressText.textContent = data.description;
           }
