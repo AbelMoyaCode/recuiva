@@ -78,6 +78,49 @@ class HybridValidator:
         scaled = max(0.0, min(1.0, scaled))  # Clamp a [0,1]
         return round(scaled * 100, 1)
     
+    def apply_pedagogical_boost(self, score_raw: float, cosine: float, 
+                                user_answer: str, ref_text: str) -> float:
+        """
+        Booster pedagógico para respuestas concisas pero correctas
+        
+        Problema: embeddings penalizan asimetría de longitud.
+        Si el usuario sintetiza bien (pocas palabras, idea correcta),
+        el cosine baja artificialmente.
+        
+        Solución: si cosine >= 0.40 (dirección correcta) Y la respuesta
+        es mucho más corta que el chunk (síntesis), aplicar boost moderado.
+        
+        Referencia: Gemini 3 Pro analysis (Nov 2025)
+        
+        Args:
+            score_raw: Score antes del boost [0,1]
+            cosine: Similitud de embeddings [0,1]
+            user_answer: Texto de la respuesta del usuario
+            ref_text: Texto del chunk de referencia
+            
+        Returns:
+            float: Score después del boost (máx 0.99)
+        """
+        BASE_THRESHOLD = 0.40  # Mínimo cosine para aplicar boost
+        
+        # Solo aplicar si hay similitud razonable
+        if cosine < BASE_THRESHOLD:
+            return score_raw
+        
+        # Calcular ratio de longitud (palabras)
+        len_user = max(len(user_answer.split()), 1)
+        len_ref = max(len(ref_text.split()), 1)
+        len_ratio = len_user / len_ref
+        
+        # Si respuesta es < 50% de la longitud del chunk → síntesis
+        if len_ratio < 0.5:
+            # Boost progresivo según qué tan corta sea
+            boost_factor = 1.5 if len_ratio < 0.3 else 1.3
+            boosted = score_raw * boost_factor
+            return min(boosted, 0.99)  # Nunca 100% automático
+        
+        return score_raw
+    
     def normalize_embedding(self, embedding: np.ndarray) -> np.ndarray:
         norm = np.linalg.norm(embedding)
         if norm < 1e-10:  # Threshold para evitar division por cero o numeros muy pequeños
@@ -180,6 +223,14 @@ class HybridValidator:
         # Aplicar bonus por longitud razonable (+5% máximo)
         bonus = self.length_bonus(answer)
         score_raw = max(0.0, min(1.0, score_base + bonus))  # Clamp a [0,1]
+        
+        # NUEVO: Aplicar boost pedagógico para respuestas concisas pero correctas
+        score_raw = self.apply_pedagogical_boost(
+            score_raw=score_raw,
+            cosine=cosine_normalized,
+            user_answer=answer,
+            ref_text=chunk['text_full']
+        )
         
         # Convertir a porcentaje 0-100% con min-max scaling
         score_pct = self.to_percentage(score_raw)
