@@ -12,7 +12,7 @@ class HybridValidator:
     
     def normalize_embedding(self, embedding: np.ndarray) -> np.ndarray:
         norm = np.linalg.norm(embedding)
-        if norm == 0:
+        if norm < 1e-10:  # Threshold para evitar division por cero o numeros muy pequeños
             return embedding
         return embedding / norm
     
@@ -36,8 +36,18 @@ class HybridValidator:
     
     def bm25_score(self, query_keywords, chunk_text: str, corpus):
         tokenized_corpus = [self.extract_keywords(text) for text in corpus]
+        
+        # Protección: si el corpus está vacío o todos los documentos vacíos
+        if not tokenized_corpus or all(len(doc) == 0 for doc in tokenized_corpus):
+            return 0.0
+        
         bm25 = BM25Okapi(tokenized_corpus)
         expanded_query = list(self.expand_keywords(query_keywords))
+        
+        # Protección: si la query está vacía
+        if not expanded_query:
+            return 0.0
+        
         scores = bm25.get_scores(expanded_query)
         chunk_keywords = self.extract_keywords(chunk_text)
         try:
