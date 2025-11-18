@@ -66,10 +66,6 @@ def normalize_text(text: str) -> str:
     for _ in range(3):
         text = re.sub(r'\b(\w{2,4})\s+(\w{3,6})\b', r'\1\2', text)
     
-    # Tercero: caso específico de OCR malo - palabra al final de línea
-    # Ejemplo: "esun punto" → "es un punto"
-    text = re.sub(r'(\w)([a-z]{2,})\s+([a-z])', r'\1 \2 \3', text)
-    
     # 2. Remover guiones de separación de línea (ej: "trans- formación")
     text = re.sub(r'(\w)-\s+(\w)', r'\1\2', text)
     
