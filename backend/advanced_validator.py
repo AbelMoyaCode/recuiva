@@ -111,25 +111,43 @@ class AdvancedValidator:
     
     def extract_keywords(self, text: str, min_length: int = 4) -> Set[str]:
         """
-        Extrae palabras clave significativas (sin stopwords)
+        Extrae palabras clave significativas + stems + nombres propios
+        
+        🔥 MEJORA (17 nov 2025): Detecta variaciones morfológicas:
+        - "sospecha" / "sospechan" / "sospechaba" → stem "sospe"
+        - "Henriette" → nombre propio completo
         
         Args:
             text: Texto a procesar
-            min_length: Longitud m├¡nima de palabra
+            min_length: Longitud mínima de palabra
             
         Returns:
-            Set de keywords normalizadas (lowercase)
+            Set[str]: Keywords + stems (5-6 chars) + nombres propios
         """
-        # Extraer palabras alfanum├®ricas
-        words = re.findall(r'\b\w+\b', text.lower())
+        # Extraer palabras alfanuméricas (conservar mayúsculas para nombres propios)
+        words_original = re.findall(r'\b\w+\b', text)
+        words_lower = [w.lower() for w in words_original]
         
         # Filtrar stopwords y palabras cortas
         keywords = {
-            w for w in words 
+            w for w in words_lower 
             if len(w) >= min_length and w not in self.STOPWORDS
         }
         
-        return keywords
+        # STEMS para variaciones: "sospecha"/"sospechan"/"sospechaba" → "sospe"
+        stems = {
+            w[:6] if len(w) > 6 else w[:5] 
+            for w in keywords 
+            if len(w) >= 6
+        }
+        
+        # Nombres propios (capitalizados): Henriette, Condesa, Maurice
+        proper_nouns = {
+            w.lower() for w in words_original 
+            if len(w) >= 4 and w[0].isupper() and w.lower() not in self.STOPWORDS
+        }
+        
+        return keywords.union(stems).union(proper_nouns)
     
     def filter_chunks_by_keywords(
         self,
@@ -186,8 +204,9 @@ class AdvancedValidator:
         # Ordenar por overlap descendente
         ranked_chunks.sort(key=lambda x: x['keyword_overlap'], reverse=True)
         
-        # ✅ FIX CRÍTICO: Threshold a 60% para mayor precisión semántica
-        threshold_overlap = 0.60
+        # ✅ AJUSTADO: Threshold a 40% para balance precisión/recall
+        # Basado en ALGORITMO_VALIDACION_SEMANTICA.md: "Cobertura ≥65%"
+        threshold_overlap = 0.40
         filtered = [
             c for c in ranked_chunks
             if c['keyword_overlap'] >= threshold_overlap
@@ -357,8 +376,9 @@ class AdvancedValidator:
         top_3_chunks = similarities[:3]
         best_chunk = top_3_chunks[0]
         
-        # ✅ CRÍTICO: Rechazar chunks con similitud < 65% como irrelevantes
-        if best_chunk['similarity'] < 0.65:
+        # ✅ Threshold de rechazo: 50% según ALGORITMO_VALIDACION_SEMANTICA.md
+        # "ACEPTABLE: ≥50%" - Cohen (1988): correlaciones >0.5 = moderadas a fuertes
+        if best_chunk['similarity'] < 0.50:
             return ValidationResult(
                 score_final=0,
                 nivel='INSUFICIENTE',
@@ -366,11 +386,11 @@ class AdvancedValidator:
                 es_correcto=False,
                 feedback=f"❌ Tu respuesta NO tiene relación coherente con el material.\n\n"
                         f"📊 Similitud del fragmento más cercano: **{best_chunk['similarity']*100:.1f}%**\n"
-                        f"📏 Mínimo requerido: **65%**\n\n"
+                        f"📏 Mínimo requerido: **50%** (según Cohen, 1988)\n\n"
                         f"💡 **Recomendación**: Revisa el material y responde con información más relacionada al contenido.",
                 color='#ef4444',
-                justificacion=f"Rechazado automáticamente: similitud semántica insuficiente ({best_chunk['similarity']*100:.1f}% < 65%). "
-                             f"La respuesta no guarda coherencia con ningún fragmento del material.",
+                justificacion=f"Rechazado automáticamente: similitud semántica insuficiente ({best_chunk['similarity']*100:.1f}% < 50%). "
+                             f"Según Cohen (1988), correlaciones <0.5 son débiles. La respuesta no guarda coherencia con el material.",
                 scoring_breakdown={
                     'base_similarity': round(best_chunk['similarity'] * 100, 2),
                     'keyword_bonus': 0,
@@ -404,7 +424,8 @@ class AdvancedValidator:
         keyword_bonus = keyword_ratio * 100 * self.weights['keyword']  # M├íx 15 puntos
         
         # NIVEL 2: INFERENCIAL (Múltiples chunks relevantes)
-        high_sim_chunks = [c for c in top_3_chunks if c['similarity'] > 0.65]
+        # Basado en semantic_validator.py: high_sim_chunks threshold 0.65 → 0.50
+        high_sim_chunks = [c for c in top_3_chunks if c['similarity'] > 0.50]
         context_bonus = len(high_sim_chunks) * 3.33 * self.weights['context']  # Máx 10 puntos
         
         # NIVEL 3: CRÍTICO (Razonamiento profundo)
@@ -414,16 +435,17 @@ class AdvancedValidator:
         # - Respuesta elaborada (>100 chars)
         reasoning_bonus = 0
         
-        # ✅ AJUSTE: Solo dar bonus si similitud ≥ 65%
-        if 0.65 <= base_sim < 0.75:
+        # ✅ AJUSTE: Bonus para reformulaciones en zona 50-75%
+        # Basado en validacion-semantica.html: "Similitud 45% + Cobertura 35%"
+        if 0.50 <= base_sim < 0.75:
             if keyword_ratio > 0.60 and len(user_answer) > 100:
                 reasoning_bonus = 12 * self.weights['reasoning']  # Máx 12 puntos
         
-        # ✅ PENALIZACIÓN: Si similitud es 65-75%, reducir score
+        # ✅ PENALIZACIÓN SUAVE: Si similitud es 50-60%, reducción mínima
         similarity_penalty = 0
-        if 0.65 <= base_sim < 0.75:
-            similarity_penalty = (0.75 - base_sim) * 60  # Penalización hasta -6 puntos
-            print(f"⚠️ PENALIZACIÓN por similitud baja ({base_sim*100:.1f}%): -{similarity_penalty:.1f} puntos")
+        if 0.50 <= base_sim < 0.60:
+            similarity_penalty = (0.60 - base_sim) * 40  # Penalización hasta -4 puntos
+            print(f"⚠️ Penalización leve por similitud moderada ({base_sim*100:.1f}%): -{similarity_penalty:.1f} puntos")
         
         # Score final con penalización
         final_score = min(int(base_score + keyword_bonus + context_bonus + reasoning_bonus - similarity_penalty), 100)
