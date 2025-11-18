@@ -186,8 +186,8 @@ class AdvancedValidator:
         # Ordenar por overlap descendente
         ranked_chunks.sort(key=lambda x: x['keyword_overlap'], reverse=True)
         
-        # ✅ FIX CRÍTICO: Threshold a 50% para mayor precisión semántica
-        threshold_overlap = 0.50
+        # ✅ FIX CRÍTICO: Threshold a 60% para mayor precisión semántica
+        threshold_overlap = 0.60
         filtered = [
             c for c in ranked_chunks
             if c['keyword_overlap'] >= threshold_overlap
@@ -357,8 +357,8 @@ class AdvancedValidator:
         top_3_chunks = similarities[:3]
         best_chunk = top_3_chunks[0]
         
-        # ✅ CRÍTICO: Rechazar chunks con similitud < 60% como irrelevantes
-        if best_chunk['similarity'] < 0.60:
+        # ✅ CRÍTICO: Rechazar chunks con similitud < 65% como irrelevantes
+        if best_chunk['similarity'] < 0.65:
             return ValidationResult(
                 score_final=0,
                 nivel='INSUFICIENTE',
@@ -366,10 +366,10 @@ class AdvancedValidator:
                 es_correcto=False,
                 feedback=f"❌ Tu respuesta NO tiene relación coherente con el material.\n\n"
                         f"📊 Similitud del fragmento más cercano: **{best_chunk['similarity']*100:.1f}%**\n"
-                        f"📏 Mínimo requerido: **60%**\n\n"
+                        f"📏 Mínimo requerido: **65%**\n\n"
                         f"💡 **Recomendación**: Revisa el material y responde con información más relacionada al contenido.",
                 color='#ef4444',
-                justificacion=f"Rechazado automáticamente: similitud semántica insuficiente ({best_chunk['similarity']*100:.1f}% < 60%). "
+                justificacion=f"Rechazado automáticamente: similitud semántica insuficiente ({best_chunk['similarity']*100:.1f}% < 65%). "
                              f"La respuesta no guarda coherencia con ningún fragmento del material.",
                 scoring_breakdown={
                     'base_similarity': round(best_chunk['similarity'] * 100, 2),
@@ -404,7 +404,7 @@ class AdvancedValidator:
         keyword_bonus = keyword_ratio * 100 * self.weights['keyword']  # M├íx 15 puntos
         
         # NIVEL 2: INFERENCIAL (Múltiples chunks relevantes)
-        high_sim_chunks = [c for c in top_3_chunks if c['similarity'] > 0.60]
+        high_sim_chunks = [c for c in top_3_chunks if c['similarity'] > 0.65]
         context_bonus = len(high_sim_chunks) * 3.33 * self.weights['context']  # Máx 10 puntos
         
         # NIVEL 3: CRÍTICO (Razonamiento profundo)
@@ -414,15 +414,15 @@ class AdvancedValidator:
         # - Respuesta elaborada (>100 chars)
         reasoning_bonus = 0
         
-        # ✅ AJUSTE: Solo dar bonus si similitud ≥ 60%
-        if 0.60 <= base_sim < 0.75:
+        # ✅ AJUSTE: Solo dar bonus si similitud ≥ 65%
+        if 0.65 <= base_sim < 0.75:
             if keyword_ratio > 0.60 and len(user_answer) > 100:
                 reasoning_bonus = 12 * self.weights['reasoning']  # Máx 12 puntos
         
-        # ✅ PENALIZACIÓN: Si similitud es 60-70%, reducir score
+        # ✅ PENALIZACIÓN: Si similitud es 65-75%, reducir score
         similarity_penalty = 0
-        if 0.60 <= base_sim < 0.70:
-            similarity_penalty = (0.70 - base_sim) * 60  # Penalización hasta -6 puntos
+        if 0.65 <= base_sim < 0.75:
+            similarity_penalty = (0.75 - base_sim) * 60  # Penalización hasta -6 puntos
             print(f"⚠️ PENALIZACIÓN por similitud baja ({base_sim*100:.1f}%): -{similarity_penalty:.1f} puntos")
         
         # Score final con penalización
