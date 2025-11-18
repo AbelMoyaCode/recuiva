@@ -373,51 +373,63 @@
     </h2>
     
     <div class="formula-box">
-      <strong>S = 0.45·Similitud + 0.35·Cobertura - 0.10·Contradicciones - 0.10·OffTopic</strong>
+      <strong>S = 0.80·Similitud_Semántica + 0.15·Cobertura_Keywords + 0.05·BM25_Léxico</strong>
     </div>
 
-    <div class="grid md:grid-cols-4 gap-4 mt-8">
+    <div class="grid md:grid-cols-3 gap-6 mt-8">
       
       <div class="text-center">
         <div class="metric-badge similarity-badge mx-auto mb-3">
-          <span class="material-symbols-outlined">trending_up</span>
-          Similitud (45%)
+          <span class="material-symbols-outlined">psychology</span>
+          Similitud Semántica (80%)
         </div>
         <p class="text-sm text-[var(--text-secondary)]">
-          Qué tan parecida es tu respuesta al contenido original usando embeddings semánticos
+          Qué tan parecida es tu respuesta al contenido original usando <strong>embeddings vectoriales</strong> (Sentence-BERT). Captura el significado, no solo palabras exactas.
         </p>
       </div>
 
       <div class="text-center">
         <div class="metric-badge coverage-badge mx-auto mb-3">
           <span class="material-symbols-outlined">checklist</span>
-          Cobertura (35%)
+          Cobertura Keywords (15%)
         </div>
         <p class="text-sm text-[var(--text-secondary)]">
-          Porcentaje de conceptos clave del material que mencionaste correctamente
+          Porcentaje de <strong>conceptos clave</strong> del material que aparecen en tu respuesta. Valida que cubras las ideas principales.
         </p>
       </div>
 
       <div class="text-center">
-        <div class="metric-badge contra-badge mx-auto mb-3">
-          <span class="material-symbols-outlined">warning</span>
-          Contradicciones (-10%)
+        <div class="metric-badge" style="background: rgba(168, 85, 247, 0.1); color: #7c3aed;">
+          <span class="material-symbols-outlined">text_fields</span>
+          BM25 Léxico (5%)
         </div>
         <p class="text-sm text-[var(--text-secondary)]">
-          Información incorrecta o que contradice la fuente original de conocimiento
+          Coincidencias <strong>léxicas exactas</strong> usando algoritmo BM25. Peso reducido por errores OCR en PDFs.
         </p>
       </div>
 
-      <div class="text-center">
-        <div class="metric-badge offtopic-badge mx-auto mb-3">
-          <span class="material-symbols-outlined">center_focus_weak</span>
-          OffTopic (-10%)
-        </div>
-        <p class="text-sm text-[var(--text-secondary)]">
-          Contenido irrelevante que no responde directamente a la pregunta planteada
-        </p>
-      </div>
+    </div>
 
+    <!-- Roadmap futuro -->
+    <div class="mt-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-lg">
+      <h3 class="font-bold text-blue-900 mb-3 flex items-center gap-2">
+        <span class="material-symbols-outlined">rocket_launch</span>
+        Mejoras Futuras en Desarrollo
+      </h3>
+      <div class="grid md:grid-cols-2 gap-4 text-sm text-blue-700">
+        <div class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-lg">warning</span>
+          <div>
+            <strong>Detección de Contradicciones:</strong> Modelos NLI (Natural Language Inference) para identificar información que contradiga la fuente original.
+          </div>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="material-symbols-outlined text-lg">center_focus_weak</span>
+          <div>
+            <strong>Análisis Off-Topic:</strong> Validación de alineación pregunta-respuesta para detectar contenido irrelevante.
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -518,11 +530,11 @@
               Augmented Scoring
             </h3>
             <p class="text-[var(--text-secondary)] mb-4">
-              La IA compara tu respuesta vs. chunks recuperados, calculando Similitud, Cobertura, Contradicciones y OffTopic.
+              La IA compara tu respuesta vs. chunks recuperados, calculando Similitud Semántica (embeddings), Cobertura de Keywords y BM25 Léxico.
             </p>
             <div class="bg-gray-50 p-4 rounded-lg">
               <p class="text-sm font-mono text-gray-600">
-                📊 Comparación semántica → S = 0.45·0.82 + 0.35·0.75 - 0.10·0.02 - 0.10·0.05 = 0.724 → "Buena"
+                📊 S = 0.80·0.72 + 0.15·0.58 + 0.05·0.35 + bonus = 0.71 → Normalizado a 75% → "Buena"
               </p>
             </div>
           </div>
@@ -538,10 +550,15 @@
       Clasificación de Resultados
     </h2>
     
+    <p class="text-center text-[var(--text-secondary)] mb-6">
+      El score bruto (S) se normaliza a escala 0-100% para facilitar la interpretación. Rangos calibrados con datos reales.
+    </p>
+    
     <div class="grid md:grid-cols-4 gap-4">
       
       <div class="text-center p-6 border-2 border-green-500 bg-green-50 rounded-lg">
-        <div class="text-3xl font-bold text-green-700 mb-2">≥ 0.85</div>
+        <div class="text-3xl font-bold text-green-700 mb-2">90-100%</div>
+        <div class="text-xs text-green-600 mb-2">(S ≥ 0.85)</div>
         <h3 class="font-bold text-green-700 mb-2">Excelente</h3>
         <p class="text-sm text-green-600">
           Dominio completo del concepto. Respuesta precisa y bien estructurada.
@@ -549,7 +566,8 @@
       </div>
 
       <div class="text-center p-6 border-2 border-blue-500 bg-blue-50 rounded-lg">
-        <div class="text-3xl font-bold text-blue-700 mb-2">0.70-0.84</div>
+        <div class="text-3xl font-bold text-blue-700 mb-2">70-89%</div>
+        <div class="text-xs text-blue-600 mb-2">(0.70 ≤ S < 0.85)</div>
         <h3 class="font-bold text-blue-700 mb-2">Buena</h3>
         <p class="text-sm text-blue-600">
           Buen entendimiento. Faltaron algunos detalles menores.
@@ -557,16 +575,18 @@
       </div>
 
       <div class="text-center p-6 border-2 border-yellow-500 bg-yellow-50 rounded-lg">
-        <div class="text-3xl font-bold text-yellow-700 mb-2">0.50-0.69</div>
-        <h3 class="font-bold text-yellow-700 mb-2">Regular</h3>
+        <div class="text-3xl font-bold text-yellow-700 mb-2">50-69%</div>
+        <div class="text-xs text-yellow-600 mb-2">(0.50 ≤ S < 0.70)</div>
+        <h3 class="font-bold text-yellow-700 mb-2">Aceptable</h3>
         <p class="text-sm text-yellow-600">
           Comprensión parcial. Revisar conceptos faltantes.
         </p>
       </div>
 
       <div class="text-center p-6 border-2 border-red-500 bg-red-50 rounded-lg">
-        <div class="text-3xl font-bold text-red-700 mb-2">< 0.50</div>
-        <h3 class="font-bold text-red-700 mb-2">Mala</h3>
+        <div class="text-3xl font-bold text-red-700 mb-2">0-49%</div>
+        <div class="text-xs text-red-600 mb-2">(S < 0.50)</div>
+        <h3 class="font-bold text-red-700 mb-2">Necesita Mejorar</h3>
         <p class="text-sm text-red-600">
           Requiere estudio adicional del material original.
         </p>
@@ -610,25 +630,29 @@
         <h3 class="font-bold mb-4">📊 Análisis RAG:</h3>
         <div class="space-y-2">
           <div class="flex justify-between">
-            <span>Similitud:</span>
-            <span class="font-bold">0.78 (78%)</span>
+            <span>Similitud Semántica:</span>
+            <span class="font-bold">0.72</span>
           </div>
           <div class="flex justify-between">
-            <span>Cobertura:</span>
-            <span class="font-bold">0.65 (65%)</span>
+            <span>Cobertura Keywords:</span>
+            <span class="font-bold">0.58</span>
           </div>
           <div class="flex justify-between">
-            <span>Contradicciones:</span>
-            <span class="font-bold">0.05 (5%)</span>
+            <span>BM25 Léxico:</span>
+            <span class="font-bold">0.35</span>
           </div>
           <div class="flex justify-between">
-            <span>OffTopic:</span>
-            <span class="font-bold">0.02 (2%)</span>
+            <span>Bonus Longitud:</span>
+            <span class="font-bold">+0.05</span>
           </div>
           <hr class="border-white border-opacity-50 my-3"/>
+          <div class="flex justify-between">
+            <span>S (bruto):</span>
+            <span class="font-bold">0.71</span>
+          </div>
           <div class="flex justify-between text-lg font-bold">
             <span>Score Final:</span>
-            <span>0.72 (Buena)</span>
+            <span>75% (Buena)</span>
           </div>
         </div>
       </div>

@@ -7,11 +7,12 @@ class HybridValidator:
     def __init__(self, embedding_model):
         self.model = embedding_model
         # Umbrales para clasificación de respuestas (basados en Short Answer Grading - SAG)
+        # Estos umbrales se aplican sobre S_raw (score bruto en [0,1])
         self.thresholds = {
-            'excelente': 0.80,   # ≥80% → Excelente
-            'bueno': 0.60,       # 60-79% → Bueno  
-            'aceptable': 0.45,   # 45-59% → Aceptable
-            'rechazo': 0.45      # <45% → Necesita mejorar
+            'excelente': 0.85,   # ≥0.85 → Excelente (90-100%)
+            'bueno': 0.70,       # 0.70-0.84 → Bueno (70-89%)
+            'aceptable': 0.50,   # 0.50-0.69 → Aceptable (50-69%)
+            'rechazo': 0.50      # <0.50 → Necesita mejorar (0-49%)
         }
         # Pesos optimizados para OCR + parafraseo (basado en literatura SAG)
         # Priorizan semántica sobre léxico por errores OCR en PDFs
@@ -24,6 +25,10 @@ class HybridValidator:
         # Basado en all-MiniLM-L6-v2 + análisis de respuestas reales
         self.cosine_min = 0.30   # Por debajo: casi siempre incorrecto
         self.cosine_max = 0.80   # Por encima: muy similar al texto
+        
+        # Min-max scaling para porcentaje 0-100%
+        self.expected_min = 0.30  # Respuesta muy mala → 0%
+        self.expected_max = 0.90  # Respuesta excelente → 100%
         
         self.stopwords = {'el', 'la', 'los', 'las', 'un', 'una', 'de', 'del', 'a', 'al', 'en', 'por', 'para', 'con', 'y', 'o', 'pero', 'si', 'no', 'que', 'como', 'cuando', 'donde', 'cual', 'quien', 'su', 'sus', 'mi', 'mis', 'tu', 'tus', 'se', 'le', 'lo', 'me', 'te', 'nos', 'os'}
     
@@ -55,6 +60,23 @@ class HybridValidator:
         if 8 <= tokens <= 80:  # Rango razonable para Active Recall
             return 0.05
         return 0.0
+    
+    def to_percentage(self, score_raw: float) -> float:
+        """
+        Convierte score bruto [0,1] a porcentaje 0-100% con min-max scaling
+        
+        Mapea el rango esperado de scores reales [0.30-0.90] a [0-100%]
+        para distribuir mejor los resultados en toda la escala.
+        
+        Args:
+            score_raw: Score bruto en [0,1]
+            
+        Returns:
+            float: Porcentaje en [0.0, 100.0]
+        """
+        scaled = (score_raw - self.expected_min) / (self.expected_max - self.expected_min)
+        scaled = max(0.0, min(1.0, scaled))  # Clamp a [0,1]
+        return round(scaled * 100, 1)
     
     def normalize_embedding(self, embedding: np.ndarray) -> np.ndarray:
         norm = np.linalg.norm(embedding)
@@ -157,7 +179,10 @@ class HybridValidator:
         
         # Aplicar bonus por longitud razonable (+5% máximo)
         bonus = self.length_bonus(answer)
-        final_score = max(0.0, min(1.0, score_base + bonus))  # Clamp a [0,1]
+        score_raw = max(0.0, min(1.0, score_base + bonus))  # Clamp a [0,1]
+        
+        # Convertir a porcentaje 0-100% con min-max scaling
+        score_pct = self.to_percentage(score_raw)
         
         details = {
             'bm25': round(bm25_normalized, 4),
@@ -166,7 +191,9 @@ class HybridValidator:
             'coverage': round(coverage_score, 4),
             'score_base': round(score_base, 4),
             'length_bonus': round(bonus, 4),
-            'final': round(final_score, 4),
+            'score_raw': round(score_raw, 4),  # Score bruto [0,1]
+            'score_pct': score_pct,  # Porcentaje [0-100]
+            'final': round(score_raw, 4),  # Mantener compatibilidad
             'weights': self.weights,
             'keywords_found': list(
                 self.expand_keywords(answer_keywords) & 
@@ -174,7 +201,7 @@ class HybridValidator:
             )[:5]
         }
         
-        return final_score, details
+        return score_raw, details
     
     def detect_ambiguity(self, ranked_chunks):
         if len(ranked_chunks) < 2:
@@ -220,32 +247,31 @@ class HybridValidator:
         
         ambiguity = self.detect_ambiguity([(c, s) for c, s, _ in ranked_chunks])
         
-        best_chunk, best_score, best_details = top_k[0]
+        best_chunk, best_score_raw, best_details = top_k[0]
+        best_score_pct = best_details['score_pct']  # Usar porcentaje para UI
         
-        if best_score >= self.thresholds['excelente']:
+        # Clasificación basada en score_raw (0-1)
+        if best_score_raw >= self.thresholds['excelente']:
             category = 'excelente'
             is_valid = True
             feedback = 'Excelente! Tu respuesta captura perfectamente el contenido.'
-        elif best_score >= self.thresholds['bueno']:
+        elif best_score_raw >= self.thresholds['bueno']:
             category = 'bueno'
             is_valid = True
             feedback = 'Muy bien. Tu respuesta es correcta y bien fundamentada.'
-        elif best_score >= self.thresholds['aceptable']:
+        elif best_score_raw >= self.thresholds['aceptable']:
             category = 'aceptable'
             is_valid = True
             feedback = 'Aceptable. Tu respuesta esta en la direccion correcta.'
-        elif best_score >= self.thresholds['rechazo']:
-            category = 'parcial'
-            is_valid = False
-            feedback = 'Tu respuesta esta relacionada pero le falta precision.'
         else:
-            category = 'incorrecto'
+            category = 'necesita_mejorar'
             is_valid = False
-            feedback = 'Tu respuesta no coincide con el contenido del material.'
+            feedback = 'Tu respuesta necesita más trabajo. Revisa el material.'
         
         result = {
             'is_valid': is_valid,
-            'confidence': round(best_score * 100, 2),
+            'confidence': best_score_pct,  # Porcentaje 0-100
+            'score_raw': round(best_score_raw, 4),  # Score bruto [0,1]
             'feedback': feedback,
             'category': category,
             'best_chunk': {
@@ -255,7 +281,8 @@ class HybridValidator:
             },
             'top_3_scores': [
                 {
-                    'score': round(s * 100, 2),
+                    'score': d['score_pct'],  # Porcentaje
+                    'score_raw': d['score_raw'],  # Bruto
                     'chunk_id': c.get('chunk_id', 'N/A'),
                     'details': d
                 }
