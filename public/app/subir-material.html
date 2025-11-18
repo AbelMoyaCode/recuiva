@@ -535,21 +535,36 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // 🎯 CONECTAR A SSE ANTES DE INICIAR UPLOAD
       let eventSource = null;
+      let lastPercentage = 0; // Controlar última actualización
+      
       try {
         eventSource = new EventSource(`${API_CONFIG.BASE_URL}/api/upload-progress/${sessionId}`);
         
         eventSource.onopen = () => {
           console.log('✅ Conexión SSE establecida');
+          // Inicializar en 0%
+          progressBar.style.width = '0%';
+          progressPercentage.textContent = '0%';
+          progressText.textContent = '🔌 Conexión establecida, esperando eventos...';
         };
         
         eventSource.onmessage = (event) => {
           const data = JSON.parse(event.data);
           console.log('📩 Evento SSE recibido:', data);
           
-          // Actualizar barra de progreso REAL con animación suave
-          if (data.percentage !== undefined) {
+          // ⚡ FORZAR ANIMACIÓN: Solo actualizar si el porcentaje aumentó
+          if (data.percentage !== undefined && data.percentage > lastPercentage) {
+            // Forzar reflow para que la animación CSS se active
+            progressBar.style.transition = 'none';
+            void progressBar.offsetWidth; // Trigger reflow
+            progressBar.style.transition = 'width 1.2s ease-out';
+            
+            // Actualizar valores
             progressBar.style.width = `${data.percentage}%`;
             progressPercentage.textContent = `${data.percentage}%`;
+            lastPercentage = data.percentage;
+            
+            console.log(`🎯 Progreso actualizado: ${lastPercentage}% → ${data.percentage}%`);
           }
           
           // Actualizar descripción con emoji y texto educativo
@@ -560,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
           // Cerrar conexión si está completo
           if (data.status === 'complete') {
             eventSource.close();
-            console.log('✅ SSE completado');
+            console.log('✅ SSE completado al 100%');
           }
         };
         
@@ -573,9 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('❌ No se pudo conectar a SSE:', error);
       }
       
-      // 📤 SUBIR AL BACKEND CON SESSION ID
-      progressBar.style.width = '5%';
-      progressText.textContent = 'Preparando archivo...';
+      // 📤 SUBIR AL BACKEND CON SESSION ID (sin inicializar progreso aquí)
       
       const formData = new FormData();
       formData.append('file', file);

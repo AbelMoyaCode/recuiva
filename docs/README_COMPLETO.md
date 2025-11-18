@@ -1,4 +1,4 @@
-# 🚀 RECUIVA - Sistema de Active Recall con IA
+: # 🚀 RECUIVA - Sistema de Active Recall con IA
 
 ![Recuiva Logo](public/assets/img/Icon-Recuiva.png)
 

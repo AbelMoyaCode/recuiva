@@ -338,8 +338,8 @@ async def upload_material(
     """
     
     # ✅ NUEVO: Función helper para enviar eventos de progreso
-    def send_progress(step: str, message: str, progress: int, data: dict = None):
-        """Envía evento de progreso vía SSE"""
+    async def send_progress(step: str, message: str, progress: int, data: dict = None):
+        """Envía evento de progreso vía SSE con delay para animación"""
         if session_id and session_id in progress_events:
             event = {
                 'type': 'progress',
@@ -350,6 +350,8 @@ async def upload_material(
             }
             progress_events[session_id].put(event)
             print(f"📤 [SSE] Evento enviado: {step} → {message} ({progress}%)")
+            # ⏱️ Delay para que frontend tenga tiempo de animar
+            await asyncio.sleep(0.3)
         else:
             print(f"⚠️ [SSE] No se pudo enviar evento (session_id: {session_id}, existe: {session_id in progress_events if session_id else False})")
     
@@ -373,20 +375,20 @@ async def upload_material(
             )
         
         print(f"📥 Recibiendo archivo: {file.filename}")
-        send_progress('upload', f'📥 Recibiendo {file.filename}', 5)
+        await send_progress('upload', f'📥 Recibiendo {file.filename}', 5)
         
         # Leer contenido
         content = await file.read()
-        send_progress('reading', '📄 Leyendo contenido del archivo', 10)
+        await send_progress('reading', '📄 Leyendo contenido del archivo', 10)
         
         # Extraer texto según el tipo de archivo
         pdf_page_count = None
         if file.filename.endswith('.pdf'):
             print("📄 Extrayendo texto de PDF...")
-            send_progress('extracting', '📖 Extrayendo texto de PDF...', 15)
+            await send_progress('extracting', '📖 Extrayendo texto de PDF...', 15)
             text, pdf_page_count = extract_text_from_pdf(content)
             print(f"📄 PDF con {pdf_page_count} páginas reales")
-            send_progress('extracted', f'✅ Texto extraído: {pdf_page_count} páginas', 25, {'pages': pdf_page_count})
+            await send_progress('extracted', f'✅ Texto extraído: {pdf_page_count} páginas', 25, {'pages': pdf_page_count})
         else:
             text = content.decode('utf-8')
             pdf_page_count = None
@@ -407,14 +409,14 @@ async def upload_material(
         
         # Chunking del texto
         print("✂️ Dividiendo en chunks...")
-        send_progress('chunking', '✂️ Dividiendo en fragmentos (chunks)...', 30)
+        await send_progress('chunking', '✂️ Dividiendo en fragmentos (chunks)...', 30)
         chunks = chunk_text(text, chunk_size=DEFAULT_CHUNK_SIZE, overlap=DEFAULT_CHUNK_OVERLAP)
         print(f"✅ Generados {len(chunks)} chunks")
-        send_progress('chunked', f'✅ {len(chunks)} fragmentos creados', 40, {'total_chunks': len(chunks)})
+        await send_progress('chunked', f'✅ {len(chunks)} fragmentos creados', 40, {'total_chunks': len(chunks)})
         
         # Generar embeddings para cada chunk
         print("🧠 Generando embeddings...")
-        send_progress('embeddings_start', '🧠 Generando embeddings (vectores semánticos)...', 45)
+        await send_progress('embeddings_start', '🧠 Generando embeddings (vectores semánticos)...', 45)
         embeddings_data = []
         
         for i, chunk in enumerate(chunks):
@@ -422,7 +424,7 @@ async def upload_material(
                 print(f"   Procesando chunk {i+1}/{len(chunks)}...")
                 # Progreso de 45% a 70% (25% del total para embeddings)
                 progress = 45 + int((i / len(chunks)) * 25)
-                send_progress('embeddings_progress', f'🔄 Procesando chunk {i+1}/{len(chunks)}', progress, {
+                await send_progress('embeddings_progress', f'🔄 Procesando chunk {i+1}/{len(chunks)}', progress, {
                     'current': i + 1,
                     'total': len(chunks)
                 })
@@ -439,12 +441,12 @@ async def upload_material(
             })
         
         print(f"✅ Embeddings generados: {len(embeddings_data)}")
-        send_progress('embeddings_complete', f'✅ {len(embeddings_data)} embeddings generados', 70)
+        await send_progress('embeddings_complete', f'✅ {len(embeddings_data)} embeddings generados', 70)
         
         # ===== GUARDAR EN SUPABASE (SI ESTÁ HABILITADO) =====
         if SUPABASE_ENABLED and user_id:
             print(f"\n💾 Guardando en Supabase para usuario: {user_id}")
-            send_progress('saving_start', '💾 Guardando en base de datos...', 75)
+            await send_progress('saving_start', '💾 Guardando en base de datos...', 75)
             try:
                 supabase = get_supabase_client()
                 
@@ -470,11 +472,11 @@ async def upload_material(
                 if result.data and len(result.data) > 0:
                     material_uuid = result.data[0]['id']
                     print(f"✅ Material guardado en Supabase con UUID: {material_uuid}")
-                    send_progress('material_saved', '✅ Material registrado', 80, {'material_id': material_uuid})
+                    await send_progress('material_saved', '✅ Material registrado', 80, {'material_id': material_uuid})
                     
                     # ===== GUARDAR EMBEDDINGS EN SUPABASE CON PGVECTOR =====
                     print(f"💾 Guardando {len(embeddings_data)} embeddings en Supabase...")
-                    send_progress('embeddings_save_start', f'💾 Guardando {len(embeddings_data)} embeddings...', 85)
+                    await send_progress('embeddings_save_start', f'💾 Guardando {len(embeddings_data)} embeddings...', 85)
                     
                     # Preparar datos para inserción batch
                     embeddings_to_insert = []
@@ -499,7 +501,7 @@ async def upload_material(
                                 print(f"   ✅ Batch {batch_count}: {len(embeddings_to_insert)} embeddings guardados")
                                 # Progreso de 85% a 95% para guardado de embeddings
                                 progress = 85 + int((i / len(embeddings_data)) * 10)
-                                send_progress('embeddings_batch', f'✅ Batch {batch_count}: {len(embeddings_to_insert)} embeddings', progress, {
+                                await send_progress('embeddings_batch', f'✅ Batch {batch_count}: {len(embeddings_to_insert)} embeddings', progress, {
                                     'batch': batch_count,
                                     'saved': i + 1,
                                     'total': len(embeddings_data)
@@ -507,7 +509,7 @@ async def upload_material(
                             embeddings_to_insert = []
                     
                     print(f"✅ Todos los embeddings guardados en Supabase (pgvector)")
-                    send_progress('complete', '🎉 Material procesado exitosamente', 100, {'material_id': material_uuid})
+                    await send_progress('complete', '🎉 Material procesado exitosamente', 100, {'material_id': material_uuid})
                     
                     # Retornar respuesta con UUID de Supabase
                     return {
@@ -532,7 +534,7 @@ async def upload_material(
                     
             except Exception as db_error:
                 print(f"❌ Error guardando en Supabase: {db_error}")
-                send_progress('error', f'❌ Error: {str(db_error)}', 0, {'error': str(db_error)})
+                await send_progress('error', f'❌ Error: {str(db_error)}', 0, {'error': str(db_error)})
                 print("⚠️ Continuando con almacenamiento local...")
                 # Si falla Supabase, continuar con método local
         
