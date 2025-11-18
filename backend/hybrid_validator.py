@@ -6,23 +6,24 @@ from rank_bm25 import BM25Okapi
 class HybridValidator:
     def __init__(self, embedding_model):
         self.model = embedding_model
-        # Umbrales para clasificación de respuestas
+        # Umbrales para clasificación de respuestas (basados en Short Answer Grading - SAG)
         self.thresholds = {
             'excelente': 0.80,   # ≥80% → Excelente
             'bueno': 0.60,       # 60-79% → Bueno  
             'aceptable': 0.45,   # 45-59% → Aceptable
-            'rechazo': 0.35      # <45% → Necesita mejorar
+            'rechazo': 0.45      # <45% → Necesita mejorar
         }
-        # Pesos para combinación híbrida (priorizan similitud semántica)
+        # Pesos optimizados para OCR + parafraseo (basado en literatura SAG)
+        # Priorizan semántica sobre léxico por errores OCR en PDFs
         self.weights = {
-            'bm25': 0.10,        # 10% - Coincidencias léxicas exactas
-            'cosine': 0.75,      # 75% - Similitud semántica (eje principal)
+            'bm25': 0.05,        # 5% - Coincidencias léxicas (reducido por OCR)
+            'cosine': 0.80,      # 80% - Similitud semántica (eje principal)
             'coverage': 0.15     # 15% - Cobertura de keywords clave
         }
-        # Rango de normalización para cosine similarity
-        # Valores típicos de all-MiniLM-L6-v2: 0.25 (sin relación) a 0.80 (muy similar)
-        self.cosine_min = 0.25
-        self.cosine_max = 0.80
+        # Rango de normalización para cosine similarity (valores empíricos)
+        # Basado en all-MiniLM-L6-v2 + análisis de respuestas reales
+        self.cosine_min = 0.30   # Por debajo: casi siempre incorrecto
+        self.cosine_max = 0.80   # Por encima: muy similar al texto
         
         self.stopwords = {'el', 'la', 'los', 'las', 'un', 'una', 'de', 'del', 'a', 'al', 'en', 'por', 'para', 'con', 'y', 'o', 'pero', 'si', 'no', 'que', 'como', 'cuando', 'donde', 'cual', 'quien', 'su', 'sus', 'mi', 'mis', 'tu', 'tus', 'se', 'le', 'lo', 'me', 'te', 'nos', 'os'}
     
@@ -31,13 +32,29 @@ class HybridValidator:
         Normaliza similitud del coseno al rango 0-1 usando límites empíricos
         
         Basado en investigación de Sentence-BERT:
-        - cosine < 0.25: sin relación (0%)
+        - cosine < 0.30: sin relación (0%)
         - cosine = 0.80: muy similar (100%)
         
         Referencia: Reimers & Gurevych (2019), "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks"
         """
         normalized = (cosine_sim - self.cosine_min) / (self.cosine_max - self.cosine_min)
         return max(0.0, min(1.0, normalized))  # Clamp a [0, 1]
+    
+    def length_bonus(self, answer: str) -> float:
+        """
+        Bonus pequeño por respuestas de longitud razonable
+        Evita respuestas telegrama o testamentos
+        
+        Args:
+            answer: Texto de la respuesta del alumno
+            
+        Returns:
+            float: Bonus en [0, 0.05] (máximo 5 puntos extra)
+        """
+        tokens = len(answer.split())
+        if 8 <= tokens <= 80:  # Rango razonable para Active Recall
+            return 0.05
+        return 0.0
     
     def normalize_embedding(self, embedding: np.ndarray) -> np.ndarray:
         norm = np.linalg.norm(embedding)
@@ -130,18 +147,25 @@ class HybridValidator:
         chunk_keywords = self.extract_keywords(chunk['text_full'])
         coverage_score = self.calculate_coverage(answer_keywords, chunk_keywords)
         
-        # Combinar con pesos calibrados (75% semántica, 10% léxica, 15% cobertura)
-        final_score = (
+        # Score base: combinar métricas normalizadas con pesos calibrados
+        # 80% semántica + 15% cobertura + 5% léxico (reducido por OCR)
+        score_base = (
             self.weights['bm25'] * bm25_normalized +
             self.weights['cosine'] * cosine_normalized +
             self.weights['coverage'] * coverage_score
         )
+        
+        # Aplicar bonus por longitud razonable (+5% máximo)
+        bonus = self.length_bonus(answer)
+        final_score = max(0.0, min(1.0, score_base + bonus))  # Clamp a [0,1]
         
         details = {
             'bm25': round(bm25_normalized, 4),
             'cosine': round(cosine_score_raw, 4),  # Raw para logs
             'cosine_normalized': round(cosine_normalized, 4),  # Normalizado
             'coverage': round(coverage_score, 4),
+            'score_base': round(score_base, 4),
+            'length_bonus': round(bonus, 4),
             'final': round(final_score, 4),
             'weights': self.weights,
             'keywords_found': list(
