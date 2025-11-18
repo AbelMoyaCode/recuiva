@@ -553,27 +553,27 @@ document.addEventListener('DOMContentLoaded', function() {
           console.log('📩 Evento SSE recibido:', data);
           
           // ⚡ FORZAR ANIMACIÓN: Solo actualizar si el porcentaje aumentó
-          if (data.percentage !== undefined && data.percentage > lastPercentage) {
+          if (data.progress !== undefined && data.progress > lastPercentage) {
             // Forzar reflow para que la animación CSS se active
             progressBar.style.transition = 'none';
             void progressBar.offsetWidth; // Trigger reflow
             progressBar.style.transition = 'width 1.2s ease-out';
             
             // Actualizar valores
-            progressBar.style.width = `${data.percentage}%`;
-            progressPercentage.textContent = `${data.percentage}%`;
-            lastPercentage = data.percentage;
+            progressBar.style.width = `${data.progress}%`;
+            progressPercentage.textContent = `${data.progress}%`;
+            lastPercentage = data.progress;
             
-            console.log(`🎯 Progreso actualizado: ${lastPercentage}% → ${data.percentage}%`);
+            console.log(`🎯 Progreso actualizado: ${data.progress}%`);
           }
           
           // Actualizar descripción con emoji y texto educativo
-          if (data.description) {
-            progressText.textContent = data.description;
+          if (data.message) {
+            progressText.textContent = data.message;
           }
           
           // Cerrar conexión si está completo
-          if (data.status === 'complete') {
+          if (data.step === 'complete') {
             eventSource.close();
             console.log('✅ SSE completado al 100%');
           }
