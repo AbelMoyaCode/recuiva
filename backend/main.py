@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Recuiva Backend API - Sistema de Active Recall con Validación Semántica
 FastAPI backend con embeddings y base de datos vectorial
@@ -48,7 +48,8 @@ except ImportError as e:
 # Validadores semánticos
 try:
     from semantic_validator import SemanticValidator
-    from advanced_validator import AdvancedValidator, validate_with_advanced_system
+    from advanced_validator import AdvancedValidator
+    from hybrid_validator import HybridValidator
 except ImportError as e:
     print(f"⚠️ Validadores semánticos no disponibles: {e}")
 
@@ -410,7 +411,7 @@ async def upload_material(
         # Chunking del texto
         print("✂️ Dividiendo en chunks...")
         await send_progress('chunking', '✂️ Dividiendo en fragmentos (chunks)...', 30)
-        chunks = semantic_chunking(text, min_words=150, max_words=400, overlap_words=15)
+        chunks = semantic_chunking(text, min_words=120, max_words=280, overlap_words=20)
         print(f"✅ Generados {len(chunks)} chunks")
         await send_progress('chunked', f'✅ {len(chunks)} fragmentos creados', 40, {'total_chunks': len(chunks)})
         
@@ -728,13 +729,19 @@ async def validate_answer(answer: Answer):
             # - Scoring multi-nivel (literal, inferencial, crítico)
             # - Justificación transparente
             
-            print(f"\n🔬 Validando con sistema AVANZADO (multi-nivel)...")
-            classification = validate_with_advanced_system(
+            print(f"\n🔬 Validando con HYBRID VALIDATOR (BM25 + Cosine + Coverage)...")
+            
+            # Instanciar HybridValidator
+            from embeddings_module import load_model
+            embedding_model = load_model()
+            hybrid_validator = HybridValidator(embedding_model)
+            
+            # Validar con HybridValidator
+            classification = hybrid_validator.validate_answer(
+                user_answer=answer.user_answer,
                 user_embedding=user_embedding,
                 material_chunks=material_embeddings,
-                user_answer=answer.user_answer,
-                question_text=question_text,
-                use_advanced=True  # ✅ ACTIVAR SISTEMA MEJORADO
+                question_text=question_text
             )
             
             # Imprimir desglose del scoring
