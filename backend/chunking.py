@@ -237,3 +237,111 @@ def smart_chunk(text: str, target_size: int = 500, min_size: int = 100) -> List[
         print(f"✅ Chunks normalizados correctamente")
     
     return chunks
+
+
+def semantic_chunking(text: str, min_words: int = 150, max_words: int = 400, overlap_words: int = 15) -> List[str]:
+    """
+    🧠 CHUNKING SEMÁNTICO INTELIGENTE - ADAPTATIVO
+    
+    Divide texto por PÁRRAFOS Y ORACIONES (no caracteres arbitrarios).
+    Se adapta al contenido respetando límites semánticos.
+    
+    CARACTERÍSTICAS:
+    ✅ División por párrafos (\n\n) - respeta estructura del documento
+    ✅ Subdivisión por oraciones si párrafo es muy largo
+    ✅ Context anchors: 15 palabras de overlap entre chunks
+    ✅ Rango adaptativo: 150-400 palabras (no caracteres fijos)
+    ✅ Respeta límites de ideas completas
+    
+    EJEMPLO DE RESULTADO:
+    - Chunk antiguo (1000 chars): "...una amiga de convento que se enemis..." (cortado)
+    - Chunk semántico (250 palabras): "En el edificio vivía una amiga de convento que se enemistó 
+      con su familia. Prestaba servicios a la condesa y conocía sus rutinas. Siempre se hablaba 
+      delante de ella. Su ventana de cocina daba exactamente al mismo patio interior..." (completo)
+    
+    Args:
+        text: Texto completo a dividir
+        min_words: Mínimo de palabras por chunk (default: 150)
+        max_words: Máximo de palabras por chunk (default: 400)
+        overlap_words: Palabras de overlap entre chunks (default: 15)
+        
+    Returns:
+        List[str]: Chunks semánticos con context anchors
+    """
+    text = clean_text(text)
+    
+    # 1. DIVIDIR POR PÁRRAFOS (respeta estructura del documento)
+    paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
+    
+    chunks = []
+    current_chunk = []
+    word_count = 0
+    
+    print(f"\n🧠 INICIANDO CHUNKING SEMÁNTICO...")
+    print(f"   Rango: {min_words}-{max_words} palabras por chunk")
+    print(f"   Context anchors: {overlap_words} palabras de overlap")
+    
+    for paragraph in paragraphs:
+        paragraph_words = paragraph.split()
+        paragraph_word_count = len(paragraph_words)
+        
+        # Si el párrafo es muy largo (> max_words), dividirlo por oraciones
+        if paragraph_word_count > max_words:
+            sentences = re.split(r'(?<=[.!?])\s+', paragraph)
+            
+            for sentence in sentences:
+                sentence_words = sentence.split()
+                sentence_word_count = len(sentence_words)
+                
+                # Si agregar esta oración supera max_words, guardar chunk actual
+                if word_count + sentence_word_count > max_words and word_count >= min_words:
+                    # Guardar chunk actual
+                    chunk_text = ' '.join(current_chunk)
+                    chunks.append(chunk_text)
+                    
+                    # Context anchor: últimas N palabras del chunk anterior
+                    overlap = current_chunk[-overlap_words:] if len(current_chunk) >= overlap_words else current_chunk
+                    current_chunk = overlap + sentence_words
+                    word_count = len(current_chunk)
+                else:
+                    current_chunk.extend(sentence_words)
+                    word_count += sentence_word_count
+        else:
+            # Párrafo completo cabe en el chunk actual
+            if word_count + paragraph_word_count > max_words and word_count >= min_words:
+                # Guardar chunk actual
+                chunk_text = ' '.join(current_chunk)
+                chunks.append(chunk_text)
+                
+                # Context anchor
+                overlap = current_chunk[-overlap_words:] if len(current_chunk) >= overlap_words else current_chunk
+                current_chunk = overlap + paragraph_words
+                word_count = len(current_chunk)
+            else:
+                # Agregar párrafo al chunk actual
+                if current_chunk:
+                    current_chunk.append('\n\n')
+                current_chunk.extend(paragraph_words)
+                word_count += paragraph_word_count
+    
+    # Agregar último chunk
+    if current_chunk:
+        chunk_text = ' '.join(current_chunk)
+        chunks.append(chunk_text)
+    
+    # Normalizar chunks
+    if NORMALIZER_AVAILABLE:
+        print(f"🧹 Normalizando {len(chunks)} chunks semánticos...")
+        chunks = [normalize_text(chunk) for chunk in chunks]
+    
+    # Estadísticas
+    chunk_lengths = [len(chunk.split()) for chunk in chunks]
+    avg_words = sum(chunk_lengths) / len(chunks) if chunks else 0
+    
+    print(f"\n✅ CHUNKING SEMÁNTICO COMPLETADO:")
+    print(f"   Total chunks: {len(chunks)}")
+    print(f"   Promedio palabras/chunk: {avg_words:.1f}")
+    print(f"   Rango: {min(chunk_lengths)}-{max(chunk_lengths)} palabras")
+    print(f"   Context anchors: {overlap_words} palabras de overlap\n")
+    
+    return chunks
