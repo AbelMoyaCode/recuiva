@@ -204,16 +204,26 @@ class AdvancedValidator:
         # Ordenar por overlap descendente
         ranked_chunks.sort(key=lambda x: x['keyword_overlap'], reverse=True)
         
-        # ✅ AJUSTADO: Threshold a 40% para balance precisión/recall
-        # Basado en ALGORITMO_VALIDACION_SEMANTICA.md: "Cobertura ≥65%"
-        threshold_overlap = 0.40
-        filtered = [
+        # 🔥 ESTRATEGIA HÍBRIDA: Filtro suave (25%) + Top 30 por keywords
+        # Permite que búsqueda semántica posterior refine
+        threshold_overlap = 0.25  # Reducido 40% → 25% (más permisivo)
+        
+        # Opción A: Filtrar por threshold O top 30 por keyword overlap
+        filtered_by_threshold = [
             c for c in ranked_chunks
             if c['keyword_overlap'] >= threshold_overlap
         ]
         
+        # Opción B: Si muy pocos, tomar top 30 aunque no lleguen al 25%
+        TOP_N_KEYWORDS = 30
+        if len(filtered_by_threshold) < 10:
+            filtered = ranked_chunks[:TOP_N_KEYWORDS]
+            print(f"⚠️ Pocos chunks con ≥{threshold_overlap*100:.0f}%, usando top {TOP_N_KEYWORDS}")
+        else:
+            filtered = filtered_by_threshold
+        
         print(f"\n📊 Keywords extraídos: {query_keywords}")
-        print(f"✂️ Filtrado por keywords: {len(filtered)}/{len(chunks)} chunks con ≥{threshold_overlap*100:.0f}% overlap")
+        print(f"✂️ Filtrado por keywords: {len(filtered)}/{len(chunks)} chunks (threshold: ≥{threshold_overlap*100:.0f}% o top {TOP_N_KEYWORDS})")
         
         # Mostrar top 5 chunks con mayor overlap
         print(f"\n🔝 Top 5 chunks por keyword overlap:")
@@ -421,12 +431,12 @@ class AdvancedValidator:
         shared_keywords = answer_keywords.intersection(chunk_keywords)
         
         keyword_ratio = len(shared_keywords) / len(answer_keywords) if answer_keywords else 0
-        keyword_bonus = keyword_ratio * 100 * self.weights['keyword']  # M├íx 15 puntos
+        keyword_bonus = keyword_ratio * 20  # Máx 20 puntos (antes * 100)
         
         # NIVEL 2: INFERENCIAL (Múltiples chunks relevantes)
-        # Basado en semantic_validator.py: high_sim_chunks threshold 0.65 → 0.50
-        high_sim_chunks = [c for c in top_3_chunks if c['similarity'] > 0.50]
-        context_bonus = len(high_sim_chunks) * 3.33 * self.weights['context']  # Máx 10 puntos
+        # 🔥 Threshold 0.40: más permisivo
+        high_sim_chunks = [c for c in top_3_chunks if c['similarity'] > 0.40]
+        context_bonus = len(high_sim_chunks) * 5  # Máx 15 puntos (5 por chunk)
         
         # NIVEL 3: CRÍTICO (Razonamiento profundo)
         # Detectar reformulación inteligente:
@@ -435,17 +445,17 @@ class AdvancedValidator:
         # - Respuesta elaborada (>100 chars)
         reasoning_bonus = 0
         
-        # ✅ AJUSTE: Bonus para reformulaciones en zona 50-75%
-        # Basado en validacion-semantica.html: "Similitud 45% + Cobertura 35%"
-        if 0.50 <= base_sim < 0.75:
-            if keyword_ratio > 0.60 and len(user_answer) > 100:
-                reasoning_bonus = 12 * self.weights['reasoning']  # Máx 12 puntos
+        # ✅ BONUS para reformulaciones inteligentes (zona 40-70%)
+        # Recompensa cuando keywords + longitud compensan similitud moderada
+        if 0.40 <= base_sim < 0.70:
+            if keyword_ratio > 0.50 and len(user_answer) > 80:
+                reasoning_bonus = 15  # Máx 15 puntos
         
-        # ✅ PENALIZACIÓN SUAVE: Si similitud es 50-60%, reducción mínima
+        # ✅ PENALIZACIÓN SOLO para similitud MUY baja (<40%)
         similarity_penalty = 0
-        if 0.50 <= base_sim < 0.60:
-            similarity_penalty = (0.60 - base_sim) * 40  # Penalización hasta -4 puntos
-            print(f"⚠️ Penalización leve por similitud moderada ({base_sim*100:.1f}%): -{similarity_penalty:.1f} puntos")
+        if base_sim < 0.40:
+            similarity_penalty = (0.40 - base_sim) * 50  # Penalización hasta -20 puntos
+            print(f"⚠️ Penalización por similitud baja ({base_sim*100:.1f}%): -{similarity_penalty:.1f} puntos")
         
         # Score final con penalización
         final_score = min(int(base_score + keyword_bonus + context_bonus + reasoning_bonus - similarity_penalty), 100)
