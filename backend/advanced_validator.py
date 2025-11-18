@@ -359,17 +359,37 @@ class AdvancedValidator:
         
         # ✅ CRÍTICO: Rechazar chunks con similitud < 60% como irrelevantes
         if best_chunk['similarity'] < 0.60:
-            return {
-                'score': 0,
-                'nivel': 'INSUFICIENTE',
-                'color': '#ef4444',
-                'feedback': '❌ Tu respuesta NO tiene relación coherente con el material. El fragmento más cercano tiene solo {:.0f}% de similitud semántica (mínimo requerido: 60%).'.format(best_chunk['similarity'] * 100),
-                'es_correcto': False,
-                'chunks_relacionados': [],
-                'justificacion': 'La respuesta no guarda coherencia semántica suficiente con ningún fragmento del material. Se requiere al menos 60% de similitud para considerar la respuesta válida.',
-                'nivel_lectura': 'LITERAL',
-                'ambiguity_detected': False
-            }
+            return ValidationResult(
+                score_final=0,
+                nivel='INSUFICIENTE',
+                reading_level=ReadingLevel.LITERAL,
+                es_correcto=False,
+                feedback=f"❌ Tu respuesta NO tiene relación coherente con el material.\n\n"
+                        f"📊 Similitud del fragmento más cercano: **{best_chunk['similarity']*100:.1f}%**\n"
+                        f"📏 Mínimo requerido: **60%**\n\n"
+                        f"💡 **Recomendación**: Revisa el material y responde con información más relacionada al contenido.",
+                color='#ef4444',
+                justificacion=f"Rechazado automáticamente: similitud semántica insuficiente ({best_chunk['similarity']*100:.1f}% < 60%). "
+                             f"La respuesta no guarda coherencia con ningún fragmento del material.",
+                scoring_breakdown={
+                    'base_similarity': round(best_chunk['similarity'] * 100, 2),
+                    'keyword_bonus': 0,
+                    'context_bonus': 0,
+                    'reasoning_bonus': 0,
+                    'final_score': 0,
+                    'rejection_reason': 'similitud_insuficiente'
+                },
+                best_chunk={
+                    'chunk_id': best_chunk['chunk_id'],
+                    'text_preview': best_chunk['text_short'][:150],
+                    'similarity': round(best_chunk['similarity'] * 100, 1),
+                    'keyword_overlap': round(best_chunk.get('keyword_overlap', 0) * 100, 1)
+                },
+                alternative_chunks=[],
+                keywords_found=[],
+                chunks_analyzed=len(material_chunks),
+                chunks_filtered=len(filtered_chunks)
+            )
         
         # Base: Similitud semántica (60-70% del score)
         base_sim = best_chunk['similarity']
