@@ -408,12 +408,13 @@ async def upload_material(
             print(f"⚠️ Advertencia: Documento pequeño ({len(text)} caracteres)")
             # Permitir pero advertir
         
-        # Chunking del texto
+        # Chunking del texto (adaptativo según tamaño del PDF)
         print("✂️ Dividiendo en chunks...")
-        await send_progress('chunking', '✂️ Dividiendo en fragmentos (chunks)...', 30)
-        chunks = semantic_chunking(text, min_words=80, max_words=180, overlap_words=20)
-        print(f"✅ Generados {len(chunks)} chunks")
-        await send_progress('chunked', f'✅ {len(chunks)} fragmentos creados', 40, {'total_chunks': len(chunks)})
+        await send_progress('chunking', '✂️ Dividiendo en fragmentos (chunks adaptativos)...', 30)
+        from chunking import adaptive_chunking
+        chunks = adaptive_chunking(text, total_pages)
+        print(f"✅ Generados {len(chunks)} chunks optimizados para {total_pages} páginas")
+        await send_progress('chunked', f'✅ {len(chunks)} fragmentos creados (optimizados)', 40, {'total_chunks': len(chunks), 'total_pages': total_pages})
         
         # Generar embeddings para cada chunk
         print("🧠 Generando embeddings...")

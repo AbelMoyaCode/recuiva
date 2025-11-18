@@ -239,9 +239,57 @@ def smart_chunk(text: str, target_size: int = 500, min_size: int = 100) -> List[
     return chunks
 
 
+def adaptive_chunking(text: str, total_pages: int) -> List[str]:
+    """
+    🎯 CHUNKING ADAPTATIVO INTELIGENTE según tamaño del PDF
+    
+    Ajusta automáticamente los parámetros de chunking para mantener
+    el equilibrio entre precisión y eficiencia según el tamaño del documento.
+    
+    ESTRATEGIA POR TAMAÑO:
+    📘 PDFs pequeños (1-50 págs):    chunks detallados (80-180 palabras)
+    📗 PDFs medianos (51-300 págs):  chunks moderados (150-350 palabras)
+    📕 PDFs grandes (301-1000 págs): chunks amplios (250-600 palabras)
+    📚 PDFs masivos (1000+ págs):    chunks extensos (400-1000 palabras)
+    
+    BENEFICIOS:
+    ✅ Reduce ruido en PDFs grandes (menos chunks = mejor retrieval)
+    ✅ Mantiene detalle en PDFs pequeños
+    ✅ Optimiza tiempo de procesamiento
+    ✅ Mejor balance precisión/escalabilidad
+    
+    Args:
+        text: Texto completo a dividir
+        total_pages: Número total de páginas del PDF
+        
+    Returns:
+        List[str]: Chunks optimizados según tamaño del documento
+    """
+    print(f"\n🎯 CHUNKING ADAPTATIVO para PDF de {total_pages} páginas")
+    
+    if total_pages <= 50:
+        # PDFs pequeños: máximo detalle
+        print("   📘 Estrategia: DETALLADA (80-180 palabras/chunk)")
+        return semantic_chunking(text, min_words=80, max_words=180, overlap_words=20)
+    
+    elif total_pages <= 300:
+        # PDFs medianos: balance detalle/eficiencia
+        print("   📗 Estrategia: MODERADA (150-350 palabras/chunk)")
+        return semantic_chunking(text, min_words=150, max_words=350, overlap_words=30)
+    
+    elif total_pages <= 1000:
+        # PDFs grandes: priorizar coherencia
+        print("   📕 Estrategia: AMPLIA (250-600 palabras/chunk)")
+        return semantic_chunking(text, min_words=250, max_words=600, overlap_words=50)
+    
+    else:
+        # PDFs masivos: reducir ruido al máximo
+        print("   📚 Estrategia: EXTENSIVA (400-1000 palabras/chunk)")
+        return semantic_chunking(text, min_words=400, max_words=1000, overlap_words=80)
+
 def semantic_chunking(text: str, min_words: int = 150, max_words: int = 400, overlap_words: int = 15) -> List[str]:
     """
-    🧠 CHUNKING SEMÁNTICO INTELIGENTE - ADAPTATIVO
+    🧠 CHUNKING SEMÁNTICO INTELIGENTE - BASE
     
     Divide texto por PÁRRAFOS Y ORACIONES (no caracteres arbitrarios).
     Se adapta al contenido respetando límites semánticos.
