@@ -738,26 +738,29 @@ async def validate_answer(answer: Answer):
             
             # Validar con HybridValidator
             classification = hybrid_validator.validate_answer(
+                question=question_text,
                 user_answer=answer.user_answer,
-                user_embedding=user_embedding,
-                material_chunks=material_embeddings,
-                question_text=question_text
+                chunks=material_embeddings
             )
             
-            # Imprimir desglose del scoring
-            print(f"\n📊 DESGLOSE DEL SCORE (Sistema Avanzado):")
-            details = classification.get('scoring_details', {})
-            print(f"   Base (similitud):     {details.get('base_similarity', 0):.1f}%")
-            print(f"   + Keywords:           {details.get('keyword_bonus', 0):.1f}%")
-            print(f"   + Contexto:           {details.get('context_bonus', 0):.1f}%")
-            print(f"   + Razonamiento:       {details.get('reasoning_bonus', 0):.1f}%")
-            print(f"   {'─'*40}")
-            print(f"   SCORE FINAL:          {classification['score_porcentaje']}%")
-            print(f"\n🧠 Nivel de lectura:      {classification.get('reading_level', 'N/A').upper()}")
-            print(f"🔍 Keywords encontradas:  {len(classification.get('keywords_found', []))}")
+            # Mapear resultado de HybridValidator al formato esperado
+            print(f"\n📊 RESULTADO HYBRID VALIDATOR:")
+            print(f"   Confidence: {classification['confidence']}%")
+            print(f"   Category: {classification['category']}")
+            print(f"   Valid: {classification['is_valid']}")
+            print(f"   Method: {classification['scoring_method']}")
             
-            # Obtener best_match del resultado avanzado
-            best_chunk_id = classification.get('best_chunk_id', 0)
+            # Extraer top_3_scores
+            top_3 = classification.get('top_3_scores', [])
+            if top_3:
+                print(f"\n   Top 3 Scores:")
+                for idx, score_info in enumerate(top_3[:3], 1):
+                    details = score_info.get('details', {})
+                    print(f"     {idx}. Score: {score_info['score']:.1f}% (BM25: {details.get('bm25', 0):.3f}, Cosine: {details.get('cosine', 0):.3f}, Coverage: {details.get('coverage', 0):.3f})")
+            
+            # Obtener best_chunk del resultado
+            best_chunk_info = classification.get('best_chunk', {})
+            best_chunk_id = best_chunk_info.get('chunk_id', 0)
             
             # Encontrar chunk correspondiente
             best_match = next(
@@ -765,18 +768,24 @@ async def validate_answer(answer: Answer):
                 material_embeddings[0] if material_embeddings else {}
             )
             
-            # Top chunks desde resultado avanzado
-            top_chunks = classification.get('alternative_chunks', [])
-            if not top_chunks and material_embeddings:
-                # Fallback: usar primeros 3 chunks
-                top_chunks = material_embeddings[:3]
+            # Preparar top chunks desde top_3_scores
+            top_chunks = []
+            for score_info in top_3[:3]:
+                chunk_id = score_info.get('chunk_id', 0)
+                chunk = next((c for c in material_embeddings if c.get('chunk_id') == chunk_id), None)
+                if chunk:
+                    top_chunks.append({
+                        "text_preview": chunk.get('text', '')[:200],
+                        "similarity": score_info['score'] / 100,  # Convertir a 0-1
+                        "chunk_id": chunk_id
+                    })
             
-            print(f"\n✅ Validación completada: {classification['score_porcentaje']}% {'✓' if classification['es_correcto'] else '✗'}")
+            print(f"\n✅ Validación completada: {classification['confidence']}% {'✓' if classification['is_valid'] else '✗'}")
             print(f"{'='*70}\n")
             
             # Calcular posición del chunk
             total_chunks = len(material_embeddings)
-            best_chunk_position = best_chunk_id
+            best_chunk_position = best_chunk_id if isinstance(best_chunk_id, int) else 0
             
             # Calcular página estimada correctamente:
             # Si tenemos 397 chunks en 25 páginas, cada página tiene ~15.88 chunks
@@ -785,15 +794,15 @@ async def validate_answer(answer: Answer):
             
             print(f"📍 Chunk más relevante: {best_chunk_position + 1}/{total_chunks} → Página ~{estimated_page}/{real_pages}")
             
-            # Construir resultado con datos del validador avanzado
+            # Construir resultado con datos de HybridValidator
             result = ValidationResult(
-                score=classification['score_porcentaje'],
-                is_correct=classification['es_correcto'],
-                similarity=details.get('base_similarity', 0) / 100,  # Normalizar a [0, 1]
+                score=classification['confidence'],  # Ya está en porcentaje
+                is_correct=classification['is_valid'],
+                similarity=classification.get('top_3_scores', [{}])[0].get('details', {}).get('cosine', 0),
                 feedback=classification['feedback'],
                 relevant_chunks=[
                     {
-                        "text": chunk.get("text_preview", chunk.get("text_short", ""))[:200],
+                        "text": chunk.get("text_preview", "")[:200],
                         "text_full": chunk.get("text_preview", ""),
                         "similarity": chunk.get("similarity", 0),
                         "position": chunk.get("chunk_id", idx),
@@ -802,17 +811,17 @@ async def validate_answer(answer: Answer):
                     for idx, chunk in enumerate(top_chunks)
                 ],
                 best_match_chunk={
-                    "text": best_match.get("text", ""),
-                    "text_short": best_match.get("text", "")[:200] + ("..." if len(best_match.get("text", "")) > 200 else ""),
-                    "similarity": details.get('base_similarity', 0),
+                    "text": best_match.get("text_full", ""),
+                    "text_short": best_chunk_info.get('text', ''),
+                    "similarity": classification.get('top_3_scores', [{}])[0].get('details', {}).get('cosine', 0),
                     "chunk_id": best_chunk_position,
                     "total_chunks": total_chunks,
                     "estimated_page": estimated_page,
                     "total_pages": real_pages,
-                    # NUEVO: Transparencia
-                    "justification": classification.get('justificacion', ''),
-                    "reading_level": classification.get('reading_level', 'literal'),
-                    "keywords_found": classification.get('keywords_found', [])
+                    # Información de HybridValidator
+                    "justification": f"{classification['category'].upper()}: {classification['feedback']}",
+                    "reading_level": classification['category'],
+                    "keywords_found": classification.get('top_3_scores', [{}])[0].get('details', {}).get('keywords_found', [])
                 }
             )
             
@@ -1475,6 +1484,22 @@ async def validate_answer_by_topic(answer: Answer, authorization: Optional[str] 
         similarities.sort(key=lambda x: x['similarity'], reverse=True)
         top_chunks = similarities[:5]
         
+        # Formatear chunks para SemanticValidator
+        material_embeddings = []
+        for chunk in all_chunks:
+            embedding_vector = chunk['embedding']
+            if isinstance(embedding_vector, str):
+                embedding_vector = json.loads(embedding_vector)
+            if isinstance(embedding_vector, list):
+                embedding_vector = np.array(embedding_vector, dtype=np.float32)
+            
+            material_embeddings.append({
+                "chunk_id": chunk.get('chunk_index', 0),
+                "text": chunk.get('chunk_text', ''),
+                "text_full": chunk.get('chunk_text', ''),
+                "embedding": embedding_vector
+            })
+        
         # Validación semántica con el mejor chunk
         validator = SemanticValidator()
         best_similarity = top_chunks[0]['similarity']
@@ -1487,10 +1512,10 @@ async def validate_answer_by_topic(answer: Answer, authorization: Optional[str] 
                 question_text = question.get("text", "")
         
         validation = validator.validate_answer(
-            question=question_text,
+            user_embedding=answer_embedding,
+            material_chunks=material_embeddings,
             user_answer=answer.user_answer,
-            reference_chunk=top_chunks[0]['chunk']['chunk_text'],
-            similarity_score=best_similarity
+            question_text=question_text
         )
         
         return {
