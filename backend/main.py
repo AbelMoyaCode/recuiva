@@ -794,18 +794,27 @@ async def validate_answer(answer: Answer):
             
             print(f"📍 Chunk más relevante: {best_chunk_position + 1}/{total_chunks} → Página ~{estimated_page}/{real_pages}")
             
+            # Convertir numpy types a Python nativos para evitar error de serialización
+            def to_native(val):
+                if isinstance(val, (np.floating, np.integer)):
+                    return float(val)
+                return val
+            
+            # Obtener cosine similarity del top chunk (convertir a float nativo)
+            top_cosine = to_native(classification.get('top_3_scores', [{}])[0].get('details', {}).get('cosine', 0.0))
+            
             # Construir resultado con datos de HybridValidator
             result = ValidationResult(
-                score=classification['confidence'],  # Ya está en porcentaje
-                is_correct=classification['is_valid'],
-                similarity=classification.get('top_3_scores', [{}])[0].get('details', {}).get('cosine', 0),
-                feedback=classification['feedback'],
+                score=float(classification['confidence']),  # Convertir a float nativo
+                is_correct=bool(classification['is_valid']),
+                similarity=top_cosine,
+                feedback=str(classification['feedback']),
                 relevant_chunks=[
                     {
                         "text": chunk.get("text_preview", "")[:200],
                         "text_full": chunk.get("text_preview", ""),
-                        "similarity": chunk.get("similarity", 0),
-                        "position": chunk.get("chunk_id", idx),
+                        "similarity": float(chunk.get("similarity", 0)),
+                        "position": int(chunk.get("chunk_id", idx)),
                         "total_chunks": total_chunks
                     }
                     for idx, chunk in enumerate(top_chunks)
@@ -813,7 +822,7 @@ async def validate_answer(answer: Answer):
                 best_match_chunk={
                     "text": best_match.get("text_full", ""),
                     "text_short": best_chunk_info.get('text', ''),
-                    "similarity": classification.get('top_3_scores', [{}])[0].get('details', {}).get('cosine', 0),
+                    "similarity": top_cosine,
                     "chunk_id": best_chunk_position,
                     "total_chunks": total_chunks,
                     "estimated_page": estimated_page,
