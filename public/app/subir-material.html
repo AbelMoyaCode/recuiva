@@ -517,14 +517,52 @@ document.addEventListener('DOMContentLoaded', function() {
     const progressText = document.getElementById('progress-text');
     
     try {
-      // Paso 1: Preparar
-      progressBar.style.width = '10%';
-      progressText.textContent = 'Preparando archivo...';
-      await sleep(300);
+      // 🔗 GENERAR SESSION ID ÚNICO PARA SSE
+      const sessionId = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      console.log('🔗 Session ID para SSE:', sessionId);
       
-      // Paso 2: Subir al backend REAL
-      progressBar.style.width = '30%';
-      progressText.textContent = 'Enviando al servidor...';
+      // 🎯 CONECTAR A SSE ANTES DE INICIAR UPLOAD
+      let eventSource = null;
+      try {
+        eventSource = new EventSource(`${API_CONFIG.BASE_URL}/api/upload-progress/${sessionId}`);
+        
+        eventSource.onopen = () => {
+          console.log('✅ Conexión SSE establecida');
+        };
+        
+        eventSource.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          console.log('📩 Evento SSE recibido:', data);
+          
+          // Actualizar barra de progreso REAL
+          if (data.percentage !== undefined) {
+            progressBar.style.width = `${data.percentage}%`;
+          }
+          
+          // Actualizar descripción
+          if (data.description) {
+            progressText.textContent = data.description;
+          }
+          
+          // Cerrar conexión si está completo
+          if (data.status === 'complete') {
+            eventSource.close();
+            console.log('✅ SSE completado');
+          }
+        };
+        
+        eventSource.onerror = (error) => {
+          console.error('❌ Error en SSE:', error);
+          eventSource.close();
+        };
+        
+      } catch (error) {
+        console.error('❌ No se pudo conectar a SSE:', error);
+      }
+      
+      // 📤 SUBIR AL BACKEND CON SESSION ID
+      progressBar.style.width = '5%';
+      progressText.textContent = 'Preparando archivo...';
       
       const formData = new FormData();
       formData.append('file', file);
@@ -532,39 +570,28 @@ document.addEventListener('DOMContentLoaded', function() {
       // Obtener user_id del usuario autenticado
       const user = await SupabaseOperations.getCurrentUser();
       if (!user) {
+        if (eventSource) eventSource.close();
         throw new Error('Usuario no autenticado');
       }
       
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials/upload`, {
         method: 'POST',
         headers: {
-          'X-User-ID': user.id  // Enviar user_id en el header
+          'X-User-ID': user.id,
+          'X-Session-ID': sessionId  // 🔑 ENVIAR SESSION ID AL BACKEND
         },
         body: formData
       });
       
       if (!response.ok) {
+        if (eventSource) eventSource.close();
         const errorData = await response.json().catch(() => ({ detail: 'Error desconocido' }));
         throw new Error(errorData.detail || `Error ${response.status}`);
       }
       
       const data = await response.json();
       
-      // Paso 3: Procesamiento confirmado
-      progressBar.style.width = '60%';
-      progressText.textContent = 'Extrayendo texto del PDF...';
-      await sleep(500);
-      
-      progressBar.style.width = '80%';
-      progressText.textContent = `Generando embeddings (${data.data.total_chunks} chunks)...`;
-      await sleep(500);
-      
-      progressBar.style.width = '100%';
-      progressText.textContent = '¡Completado!';
-      await sleep(800);
-      
       // ✅ Material ya guardado en Supabase por el backend
-      // El backend retorna el UUID del material creado
       const supabaseMaterialId = data.material_id;
       console.log('✅ Material guardado en Supabase con UUID:', supabaseMaterialId);
       
@@ -609,6 +636,12 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('recuiva_last_uploaded_material_id', data.material_id);
       }
       
+      // Cerrar conexión SSE si aún está abierta
+      if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
+        eventSource.close();
+        console.log('🔌 Conexión SSE cerrada manualmente');
+      }
+      
       // Finalizar procesamiento
       progressSection.classList.add('hidden');
       fileInfo.classList.add('hidden');
@@ -623,6 +656,13 @@ document.addEventListener('DOMContentLoaded', function() {
       
     } catch (error) {
       console.error('❌ Error subiendo material:', error);
+      
+      // Cerrar SSE en caso de error
+      if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
+        eventSource.close();
+        console.log('🔌 Conexión SSE cerrada por error');
+      }
+      
       progressBar.style.width = '0%';
       progressText.textContent = '';
       progressSection.classList.add('hidden');
