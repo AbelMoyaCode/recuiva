@@ -751,7 +751,29 @@ async def validate_answer(answer: Answer):
             print(f"   Confidence: {classification['confidence']}%")
             print(f"   Category: {classification['category']}")
             print(f"   Valid: {classification['is_valid']}")
-            print(f"   Method: {classification['scoring_method']}")
+            
+            # ✅ FIX: scoring_method puede no existir en casos de error
+            if 'scoring_method' in classification:
+                print(f"   Method: {classification['scoring_method']}")
+            
+            # Si es un error (respuesta muy corta, etc), devolver inmediatamente
+            if classification['category'] == 'error':
+                print(f"❌ ERROR: {classification.get('feedback', 'Error desconocido')}")
+                return ValidationResult(
+                    score=0.0,
+                    is_correct=False,
+                    similarity=0.0,
+                    feedback=classification.get('feedback', 'Error en la validación'),
+                    relevant_chunks=[],
+                    best_match_chunk={
+                        "text": "",
+                        "text_short": "",
+                        "similarity": 0.0,
+                        "chunk_id": 0,
+                        "total_chunks": len(material_embeddings),
+                        "estimated_page": 1
+                    }
+                )
             
             # Extraer top_3_scores
             top_3 = classification.get('top_3_scores', [])
