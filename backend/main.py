@@ -771,17 +771,24 @@ async def validate_answer(answer: Answer):
                 material_embeddings[0] if material_embeddings else {}
             )
             
-            # Preparar top chunks desde top_3_scores
+            # Preparar top chunks desde top_3_scores (ya vienen ordenados de mayor a menor)
             top_chunks = []
-            for score_info in top_3[:3]:
+            for idx, score_info in enumerate(top_3[:3]):
                 chunk_id = score_info.get('chunk_id', 0)
                 chunk = next((c for c in material_embeddings if c.get('chunk_id') == chunk_id), None)
                 if chunk:
+                    # score_info['score'] ya es score_pct (0-100) con boosts aplicados
+                    # Representa similitud entre RESPUESTA ↔ CHUNK (no chunk ↔ chunk)
                     top_chunks.append({
                         "text_preview": chunk.get('text', '')[:200],
-                        "similarity": score_info['score'] / 100,  # Convertir a 0-1
-                        "chunk_id": chunk_id
+                        "similarity": score_info['score'] / 100,  # Convertir a 0-1 para frontend
+                        "chunk_id": chunk_id,
+                        "rank": idx + 1  # 1=principal, 2=segundo más similar, etc.
                     })
+            
+            print(f"\n✅ Top 3 chunks ordenados por similitud (respuesta ↔ chunk):")
+            for tc in top_chunks:
+                print(f"   {tc['rank']}. Chunk {tc['chunk_id']}: {tc['similarity']*100:.1f}%")
             
             print(f"\n✅ Validación completada: {classification['confidence']}% {'✓' if classification['is_valid'] else '✗'}")
             print(f"{'='*70}\n")

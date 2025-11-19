@@ -597,8 +597,8 @@ window.showValidationResult = function(result) {
             📖 Fragmento Relacionado del Material
           </h4>
           <div class="flex items-center gap-2">
-            <span class="text-xs bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-semibold">
-              ${similarity}% coincidencia
+            <span class="text-xs bg-blue-200 text-blue-800 px-3 py-1 rounded-full font-semibold" title="Similitud semántica entre TU RESPUESTA y este fragmento del material">
+              ${similarity}% con tu respuesta
             </span>
           </div>
         </div>
@@ -661,7 +661,9 @@ window.showValidationResult = function(result) {
                       <span class="material-symbols-outlined text-sm">layers</span>
                       Chunk ${(relChunk.position || 0) + 1} / ${relChunk.total_chunks || totalChunks}
                     </span>
-                    <span class="text-xs text-blue-600 font-mono">${(relChunk.similarity * 100).toFixed(1)}% similar</span>
+                    <span class="text-xs text-blue-600 font-mono" title="Similitud entre TU RESPUESTA y este chunk">
+                      ${(relChunk.similarity * 100).toFixed(1)}% con tu respuesta
+                    </span>
                   </div>
                   <p class="text-gray-700 leading-relaxed italic">
                     "${(relChunk.text || relChunk.text_full || '').substring(0, 300)}${((relChunk.text || relChunk.text_full || '').length > 300) ? '...' : ''}"
