@@ -48,7 +48,6 @@ except ImportError as e:
 # Validadores semánticos
 try:
     from semantic_validator import SemanticValidator
-    from advanced_validator import AdvancedValidator
     from hybrid_validator import HybridValidator
 except ImportError as e:
     print(f"⚠️ Validadores semánticos no disponibles: {e}")
