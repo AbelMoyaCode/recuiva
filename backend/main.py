@@ -516,6 +516,19 @@ async def upload_material(
                             embeddings_to_insert = []
                     
                     print(f"✅ Todos los embeddings guardados en Supabase (pgvector)")
+                    
+                    # ⏱️ NUEVO: Calcular tiempo total de procesamiento
+                    elapsed_time = time.time() - start_time
+                    print(f"\n{'='*70}")
+                    print(f"✅ MATERIAL PROCESADO EXITOSAMENTE")
+                    print(f"{'='*70}")
+                    print(f"⏱️  TIEMPO TOTAL DE PROCESAMIENTO: {elapsed_time:.2f} segundos")
+                    print(f"   📄 Páginas procesadas: {stats.get('real_pages', stats['estimated_pages'])}")
+                    print(f"   ✂️  Chunks generados: {len(chunks)}")
+                    print(f"   🧠 Embeddings creados: {len(embeddings_data)}")
+                    print(f"   💾 Material ID: {material_uuid}")
+                    print(f"{'='*70}\n")
+                    
                     await send_progress('complete', '🎉 Material procesado exitosamente', 100, {'material_id': material_uuid})
                     
                     # Retornar respuesta con UUID de Supabase
@@ -523,6 +536,7 @@ async def upload_material(
                         "success": True,
                         "material_id": material_uuid,
                         "message": f"Material procesado y guardado en Supabase: {len(chunks)} chunks generados",
+                        "processing_time_seconds": round(elapsed_time, 2),  # ✅ NUEVO: Retornar tiempo
                         "data": {
                             "id": material_uuid,
                             "user_id": user_id,
