@@ -17,7 +17,7 @@ import json
 from pathlib import Path
 import os
 
-# ✅ NUEVO: Importar normalizador de texto
+# Aquí se importa normalizador de texto
 from text_normalizer import normalize_text, normalize_text_batch, detect_ocr_errors
 
 # Cargar modelo globalmente para reutilizar
@@ -53,7 +53,7 @@ def generate_embeddings(text: Union[str, List[str]], debug_ocr: bool = False) ->
     model = load_model()
     
     if isinstance(text, str):
-        # ✅ NUEVO: Normalizar texto antes de embedding
+        # Aquí se normaliza el texto antes de embedding
         normalized = normalize_text(text)
         
         # Debug: Mostrar correcciones si se solicita
@@ -67,7 +67,7 @@ def generate_embeddings(text: Union[str, List[str]], debug_ocr: bool = False) ->
         
         return model.encode(normalized, convert_to_numpy=True)
     else:
-        # ✅ NUEVO: Normalizar lista de textos
+        # Normalizar lista de textos
         normalized_list = normalize_text_batch(text)
         
         # Debug: Contar textos con errores
@@ -105,11 +105,7 @@ def calculate_similarity(embedding1: Union[np.ndarray, List],
         return 0.0
     
     similarity = dot_product / (norm1 * norm2)
-    
-    # NO normalizar artificialmente - la similaridad coseno en embeddings
-    # de Sentence Transformers ya está optimizada en rango [0, 1]
-    # porque los embeddings están pre-normalizados
-    # Solo asegurar que esté en rango válido por seguridad
+ 
     return float(max(0.0, min(1.0, similarity)))
 
 def find_most_similar(query_embedding: np.ndarray, 

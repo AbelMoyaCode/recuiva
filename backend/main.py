@@ -20,6 +20,7 @@ import uvicorn
 import json
 from pathlib import Path
 from datetime import datetime
+import time  # ✅ AGREGADO: Para medición de tiempo de procesamiento
 import os
 from dotenv import load_dotenv
 import argparse
@@ -356,6 +357,9 @@ async def upload_material(
             print(f"⚠️ [SSE] No se pudo enviar evento (session_id: {session_id}, existe: {session_id in progress_events if session_id else False})")
     
     try:
+        # ⏱️ NUEVO: Iniciar medición de tiempo
+        start_time = time.time()
+        
         # IMPORTANTE: Requiere autenticación real
         # El user_id DEBE venir del header X-User-ID enviado por el frontend
         # después de que el usuario se autentique con Supabase Auth
@@ -579,12 +583,19 @@ async def upload_material(
         with open(embeddings_file, 'w', encoding='utf-8') as f:
             json.dump(embeddings_data, f, ensure_ascii=False, indent=2)
         
+        # ⏱️ NUEVO: Calcular tiempo total de procesamiento
+        elapsed_time = time.time() - start_time
         print(f"✅ Material {material_id} procesado exitosamente")
+        print(f"⏱️  TIEMPO TOTAL DE PROCESAMIENTO: {elapsed_time:.2f} segundos")
+        print(f"   📄 Páginas procesadas: {stats['real_pages']}")
+        print(f"   ✂️  Chunks generados: {len(chunks)}")
+        print(f"   🧠 Embeddings creados: {len(embeddings_data)}")
         
         return {
             "success": True,
             "material_id": material_id,
             "message": f"Material procesado exitosamente: {len(chunks)} chunks generados",
+            "processing_time_seconds": round(elapsed_time, 2),  # ✅ NUEVO: Retornar tiempo
             "data": material_data
         }
     
