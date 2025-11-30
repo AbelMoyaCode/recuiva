@@ -208,6 +208,59 @@ def extract_with_pymupdf(pdf_content: bytes) -> Tuple[str, int, int]:
     return text.strip(), total_pages, error_count
 
 
+def detect_corrupted_text(text: str) -> Tuple[bool, str]:
+    """
+    Detecta si el texto extraído está corrupto (encoding incorrecto, fuentes propietarias, etc.)
+    
+    Args:
+        text: Texto extraído del PDF
+        
+    Returns:
+        Tuple[bool, str]: (está_corrupto, razón)
+    """
+    if not text or len(text) < 100:
+        return True, "Texto muy corto o vacío"
+    
+    # 1. Detectar caracteres de control o no imprimibles
+    control_chars = len(re.findall(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', text))
+    if control_chars > len(text) * 0.01:  # Más de 1% caracteres de control
+        return True, f"Demasiados caracteres de control ({control_chars})"
+    
+    # 2. Detectar secuencias de símbolos que indican encoding incorrecto
+    # Ej: "→", "←", "↔", "⇒", etc. que aparecen en medio de palabras
+    arrow_in_words = len(re.findall(r'\w[→←↔⇒⇐↑↓]\w', text))
+    if arrow_in_words > 5:
+        return True, f"Símbolos de flecha en palabras ({arrow_in_words})"
+    
+    # 3. Detectar ratio bajo de vocales (texto normal tiene ~40% vocales en español)
+    vowels = len(re.findall(r'[aeiouáéíóúAEIOUÁÉÍÓÚ]', text))
+    letters = len(re.findall(r'[a-záéíóúñA-ZÁÉÍÓÚÑ]', text))
+    if letters > 0:
+        vowel_ratio = vowels / letters
+        if vowel_ratio < 0.25:  # Menos de 25% vocales = probablemente corrupto
+            return True, f"Ratio de vocales muy bajo ({vowel_ratio:.1%})"
+    
+    # 4. Detectar palabras con mezcla inusual de mayúsculas/minúsculas
+    # Ej: "grofeso", "entradJ", "aToda"
+    weird_case = len(re.findall(r'\b[a-z]+[A-Z][a-z]*\b', text))
+    if weird_case > len(text.split()) * 0.05:  # Más de 5% de palabras
+        return True, f"Mezcla inusual de mayúsculas ({weird_case} palabras)"
+    
+    # 5. Detectar secuencias de caracteres raros consecutivos
+    # Ej: ")El", "J→", etc.
+    weird_sequences = len(re.findall(r'[)}\]>][A-Za-z]|[A-Za-z][(\[{<]', text))
+    if weird_sequences > 20:
+        return True, f"Secuencias de caracteres raros ({weird_sequences})"
+    
+    # 6. Detectar palabras que no parecen español/inglés
+    # Palabras de >4 letras sin vocales
+    no_vowel_words = len(re.findall(r'\b[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{5,}\b', text))
+    if no_vowel_words > 10:
+        return True, f"Palabras sin vocales ({no_vowel_words})"
+    
+    return False, "Texto parece normal"
+
+
 def extract_with_pypdf2(pdf_content: bytes) -> Tuple[str, int, int]:
     """Extrae texto con PyPDF2"""
     pdf_file = BytesIO(pdf_content)
@@ -229,11 +282,12 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     """
     Extrae texto de un archivo PDF usando el mejor método disponible
     
-    ✅ ESTRATEGIA OPTIMIZADA PARA VPS 2GB:
+    ✅ ESTRATEGIA MEJORADA:
     1. PyMuPDF primero (rápido, bajo consumo de memoria)
-    2. Si PyMuPDF tiene muchos errores (>5% del texto), usar Tesseract
-    3. Tesseract solo para PDFs pequeños (<50 páginas) o cuando es necesario
-    4. Aplica normalización agresiva al final
+    2. DETECTAR TEXTO CORRUPTO (encoding incorrecto, fuentes propietarias)
+    3. Si texto corrupto → FORZAR Tesseract OCR (lee imagen visual)
+    4. Tesseract para PDFs con texto corrupto o escaneados
+    5. Aplica normalización agresiva al final
     
     Args:
         pdf_content: Contenido del PDF en bytes
@@ -251,6 +305,7 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     # ═══════════════════════════════════════════════════════════════════════
     # PASO 1: PyMuPDF primero (rápido, eficiente en memoria)
     # ═══════════════════════════════════════════════════════════════════════
+    pymupdf_corrupted = False
     if PYMUPDF_AVAILABLE:
         try:
             text_mupdf, pages_mupdf, errors_mupdf = extract_with_pymupdf(pdf_content)
@@ -258,33 +313,37 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
             total_pages = pages_mupdf
             print(f"   PyMuPDF: {len(text_mupdf)} chars, {errors_mupdf} errores, {pages_mupdf} páginas")
             
-            # Calcular ratio de errores
-            error_ratio = errors_mupdf / max(len(text_mupdf.split()), 1)
-            
-            # Si PyMuPDF funcionó bien (menos de 5% errores), usarlo directamente
-            if error_ratio < 0.05 and len(text_mupdf) > 100:
-                print(f"   ✅ PyMuPDF tiene baja tasa de errores ({error_ratio:.2%}), usando directamente")
-                text = aggressive_text_cleanup(text_mupdf)
-                print(f"✅ Texto extraído: {len(text)} caracteres de {pages_mupdf} páginas")
-                gc.collect()
-                return text, pages_mupdf
+            # ✅ NUEVO: Detectar texto corrupto
+            is_corrupted, corruption_reason = detect_corrupted_text(text_mupdf)
+            if is_corrupted:
+                print(f"   ⚠️ TEXTO CORRUPTO DETECTADO: {corruption_reason}")
+                pymupdf_corrupted = True
+            else:
+                # Calcular ratio de errores OCR
+                error_ratio = errors_mupdf / max(len(text_mupdf.split()), 1)
                 
+                # Si PyMuPDF funcionó bien (menos de 5% errores y no corrupto), usarlo directamente
+                if error_ratio < 0.05 and len(text_mupdf) > 100:
+                    print(f"   ✅ PyMuPDF tiene baja tasa de errores ({error_ratio:.2%}), usando directamente")
+                    text = aggressive_text_cleanup(text_mupdf)
+                    print(f"✅ Texto extraído: {len(text)} caracteres de {pages_mupdf} páginas")
+                    gc.collect()
+                    return text, pages_mupdf
+                    
         except Exception as e:
             print(f"   ❌ PyMuPDF falló: {e}")
     
     # ═══════════════════════════════════════════════════════════════════════
-    # PASO 2: Tesseract OCR solo si es necesario Y el PDF es pequeño
+    # PASO 2: Tesseract OCR si texto corrupto O muchos errores
     # ═══════════════════════════════════════════════════════════════════════
     if TESSERACT_AVAILABLE:
-        # Solo usar Tesseract si:
-        # 1. El PDF es pequeño (<50 páginas) - evitar OOM
-        # 2. PyMuPDF tuvo muchos errores
-        # 3. PyMuPDF no está disponible
-        
         use_tesseract = False
         reason = ""
         
-        if not results:
+        if pymupdf_corrupted:
+            use_tesseract = True
+            reason = "Texto corrupto detectado - OCR forzado"
+        elif not results:
             use_tesseract = True
             reason = "PyMuPDF no disponible"
         elif total_pages <= 50:
@@ -292,14 +351,21 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
             reason = f"PDF pequeño ({total_pages} páginas)"
         elif results and results[0][3] > len(results[0][1].split()) * 0.10:  # >10% errores
             use_tesseract = True
-            reason = "PyMuPDF tiene muchos errores"
+            reason = "PyMuPDF tiene muchos errores OCR"
         
         if use_tesseract:
             try:
-                print(f"   🔍 Intentando Tesseract ({reason})...")
+                print(f"   🔍 Usando Tesseract OCR ({reason})...")
                 text_tess, pages_tess, errors_tess = extract_with_tesseract(pdf_content)
-                results.append(('Tesseract', text_tess, pages_tess, errors_tess))
-                print(f"   Tesseract: {len(text_tess)} chars, {errors_tess} errores detectados")
+                
+                # Verificar que Tesseract produjo texto válido
+                is_tess_corrupted, tess_reason = detect_corrupted_text(text_tess)
+                if not is_tess_corrupted and len(text_tess) > 100:
+                    results.append(('Tesseract', text_tess, pages_tess, errors_tess))
+                    print(f"   Tesseract: {len(text_tess)} chars, {errors_tess} errores detectados")
+                else:
+                    print(f"   ⚠️ Tesseract también produjo texto problemático: {tess_reason}")
+                
                 gc.collect()
             except Exception as e:
                 print(f"   ❌ Tesseract falló: {e}")
@@ -309,23 +375,35 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     # ═══════════════════════════════════════════════════════════════════════
     # PASO 3: PyPDF2 como último recurso
     # ═══════════════════════════════════════════════════════════════════════
-    if not results and PYPDF2_AVAILABLE:
-        try:
-            text_pypdf2, pages_pypdf2, errors_pypdf2 = extract_with_pypdf2(pdf_content)
-            results.append(('PyPDF2', text_pypdf2, pages_pypdf2, errors_pypdf2))
-            print(f"   PyPDF2: {len(text_pypdf2)} chars, {errors_pypdf2} errores detectados")
-        except Exception as e:
-            print(f"   ❌ PyPDF2 falló: {e}")
+    if not results or (len(results) == 1 and pymupdf_corrupted):
+        if PYPDF2_AVAILABLE:
+            try:
+                text_pypdf2, pages_pypdf2, errors_pypdf2 = extract_with_pypdf2(pdf_content)
+                results.append(('PyPDF2', text_pypdf2, pages_pypdf2, errors_pypdf2))
+                print(f"   PyPDF2: {len(text_pypdf2)} chars, {errors_pypdf2} errores detectados")
+            except Exception as e:
+                print(f"   ❌ PyPDF2 falló: {e}")
     
     if not results:
         raise Exception("No se pudo extraer texto del PDF con ningún método")
     
     # ═══════════════════════════════════════════════════════════════════════
     # ELEGIR EL MEJOR RESULTADO
-    # Prioridad: menos errores > más texto
+    # Prioridad: Tesseract si PyMuPDF estaba corrupto, sino el de menos errores
     # ═══════════════════════════════════════════════════════════════════════
-    best = min(results, key=lambda x: x[3])  # x[3] = error_count
-    print(f"   ✅ Usando {best[0]} (menos errores: {best[3]})")
+    
+    # Si hay resultado de Tesseract y PyMuPDF estaba corrupto, preferir Tesseract
+    if pymupdf_corrupted:
+        tesseract_result = next((r for r in results if r[0] == 'Tesseract'), None)
+        if tesseract_result and len(tesseract_result[1]) > 100:
+            best = tesseract_result
+            print(f"   ✅ Usando Tesseract (PyMuPDF tenía texto corrupto)")
+        else:
+            best = min(results, key=lambda x: x[3])
+            print(f"   ⚠️ Usando {best[0]} (Tesseract no disponible o falló)")
+    else:
+        best = min(results, key=lambda x: x[3])  # x[3] = error_count
+        print(f"   ✅ Usando {best[0]} (menos errores: {best[3]})")
     
     text = best[1]
     total_pages = best[2]
