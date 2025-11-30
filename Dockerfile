@@ -31,7 +31,7 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Instalar solo dependencias de runtime (sin build-essential)
-# ✅ Agregamos ocrmypdf para pre-procesar PDFs corruptos
+# ✅ Agregamos ocrmypdf + unpaper para pre-procesar PDFs corruptos
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-spa \
@@ -39,6 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     ghostscript \
     ocrmypdf \
+    unpaper \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
