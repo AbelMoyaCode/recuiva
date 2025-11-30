@@ -22,13 +22,15 @@ class HybridValidator:
             'coverage': 0.15     # 15% - Cobertura de keywords clave
         }
         # Rango de normalización para cosine similarity (valores empíricos)
+        # AJUSTADO: Para PDFs con texto corrupto/OCR, los cosines son más bajos
         # Basado en all-MiniLM-L6-v2 + análisis de respuestas reales
-        self.cosine_min = 0.30   # Por debajo: casi siempre incorrecto
-        self.cosine_max = 0.80   # Por encima: muy similar al texto
+        self.cosine_min = 0.25   # Por debajo: casi siempre incorrecto (antes: 0.30)
+        self.cosine_max = 0.70   # Por encima: muy similar al texto (antes: 0.80)
         
         # Min-max scaling para porcentaje 0-100%
-        self.expected_min = 0.30  # Respuesta muy mala → 0%
-        self.expected_max = 0.90  # Respuesta excelente → 100%
+        # AJUSTADO: Más tolerante para texto con errores de espaciado
+        self.expected_min = 0.25  # Respuesta muy mala → 0% (antes: 0.30)
+        self.expected_max = 0.85  # Respuesta excelente → 100% (antes: 0.90)
         
         self.stopwords = {'el', 'la', 'los', 'las', 'un', 'una', 'de', 'del', 'a', 'al', 'en', 'por', 'para', 'con', 'y', 'o', 'pero', 'si', 'no', 'que', 'como', 'cuando', 'donde', 'cual', 'quien', 'su', 'sus', 'mi', 'mis', 'tu', 'tus', 'se', 'le', 'lo', 'me', 'te', 'nos', 'os'}
     
@@ -136,7 +138,14 @@ class HybridValidator:
             # Intenciones/Propósito
             'con qué intención', 'con que intencion',
             'para qué', 'para que', 'cuál es el propósito', 'cual es el proposito',
-            'qué pretende', 'que pretende'
+            'qué pretende', 'que pretende',
+            
+            # Significado/Simbolismo (NUEVO)
+            'qué representa', 'que representa', 'qué simboliza', 'que simboliza',
+            'qué significa', 'que significa', 'cuál es el significado', 'cual es el significado',
+            'qué importancia', 'que importancia', 'cuál es la importancia', 'cual es la importancia',
+            'qué papel', 'que papel', 'qué rol', 'que rol',
+            'qué sentido', 'que sentido'
         ]
         
         question_lower = question.lower()
