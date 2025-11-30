@@ -549,15 +549,17 @@ def extract_with_pypdf2(pdf_content: bytes) -> Tuple[str, int, int]:
 
 def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     """
-    Extrae texto de un archivo PDF usando el mejor método disponible
+    Extrae texto de un archivo PDF usando métodos RÁPIDOS (sin OCR)
     
-    ✅ ESTRATEGIA OPTIMIZADA - PDFTOTEXT PRIMERO (INSTANTÁNEO):
+    ✅ ESTRATEGIA RÁPIDA - SIN OCR:
     
     Orden de prioridad:
-    1. PDFTOTEXT (instantáneo, extrae texto embebido real)
-    2. OCRMYPDF --force-ocr (si pdftotext falla o texto corrupto)
-    3. Tesseract directo como fallback
-    4. PyMuPDF/PyPDF2 como último recurso
+    1. PDFTOTEXT (instantáneo, extrae texto embebido)
+    2. PyMuPDF (rápido, extrae texto embebido)
+    3. PyPDF2 (rápido, último recurso)
+    
+    ⚠️ NO usa OCR (Tesseract/ocrmypdf) - eso toma minutos
+    El texto puede tener espacios raros pero funciona para validación semántica.
     
     Args:
         pdf_content: Contenido del PDF en bytes
@@ -567,144 +569,64 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     """
     import gc
     
-    results = []
-    total_pages = 0
-    
-    print(f"📖 Extrayendo texto del PDF...")
+    print(f"📖 Extrayendo texto del PDF (modo rápido, sin OCR)...")
     
     # ═══════════════════════════════════════════════════════════════════════
-    # PASO 0: PDFTOTEXT (INSTANTÁNEO - Primera opción)
+    # PASO 1: PDFTOTEXT (INSTANTÁNEO - Primera opción)
     # ═══════════════════════════════════════════════════════════════════════
     if PDFTOTEXT_AVAILABLE:
         print("   ⚡ Intentando pdftotext (instantáneo)...")
-        text_pdftotext, pages_pdftotext = extract_with_pdftotext(pdf_content)
-        
-        if len(text_pdftotext.strip()) > 100:
-            is_corrupted, reason = detect_corrupted_text(text_pdftotext)
+        try:
+            text_pdftotext, pages_pdftotext = extract_with_pdftotext(pdf_content)
             
-            if not is_corrupted:
-                print(f"   ✅ pdftotext exitoso: {len(text_pdftotext)} chars, texto limpio")
+            if len(text_pdftotext.strip()) > 50:
+                print(f"   ✅ pdftotext exitoso: {len(text_pdftotext)} chars, {pages_pdftotext} páginas")
                 text = aggressive_text_cleanup(text_pdftotext)
                 gc.collect()
                 return text, pages_pdftotext
             else:
-                print(f"   ⚠️ pdftotext produjo texto con problemas: {reason}")
-                print("   🔄 Cambiando a OCR...")
-        else:
-            print(f"   ⚠️ pdftotext produjo muy poco texto ({len(text_pdftotext)} chars)")
-            print("   🔄 Cambiando a OCR...")
+                print(f"   ⚠️ pdftotext produjo muy poco texto ({len(text_pdftotext)} chars)")
+        except Exception as e:
+            print(f"   ⚠️ pdftotext falló: {e}")
     
     # ═══════════════════════════════════════════════════════════════════════
-    # PASO 1: OCRMYPDF (si pdftotext falló)
-    # ═══════════════════════════════════════════════════════════════════════
-    processed_pdf = pdf_content
-    if OCRMYPDF_AVAILABLE:
-        print("   🔧 Pre-procesando PDF con ocrmypdf...")
-        processed_pdf = preprocess_pdf_with_ocrmypdf(pdf_content)
-    
-    # ═══════════════════════════════════════════════════════════════════════
-    # PASO 2: Contar páginas y extraer con PyMuPDF (del PDF procesado)
+    # PASO 2: PyMuPDF (rápido - segunda opción)
     # ═══════════════════════════════════════════════════════════════════════
     if PYMUPDF_AVAILABLE:
+        print("   📖 Intentando PyMuPDF...")
         try:
-            import fitz
-            pdf_doc = fitz.open(stream=processed_pdf, filetype="pdf")
-            total_pages = len(pdf_doc)
-            pdf_doc.close()
-            print(f"   📄 PDF tiene {total_pages} páginas")
-            
-            # Si usamos ocrmypdf, PyMuPDF debería extraer el texto OCR limpio
-            if OCRMYPDF_AVAILABLE and processed_pdf != pdf_content:
-                text_mupdf, pages_mupdf, errors_mupdf = extract_with_pymupdf(processed_pdf)
-                is_corrupted, reason = detect_corrupted_text(text_mupdf)
-                
-                if not is_corrupted and len(text_mupdf.strip()) > 100:
-                    print(f"   ✅ ocrmypdf + PyMuPDF: {len(text_mupdf)} chars, texto limpio")
-                    text = aggressive_text_cleanup(text_mupdf)
-                    gc.collect()
-                    return text, pages_mupdf
-                else:
-                    print(f"   ⚠️ ocrmypdf produjo texto con problemas: {reason}")
-                    
-        except Exception as e:
-            print(f"   ⚠️ No se pudo procesar con PyMuPDF: {e}")
-    
-    # ═══════════════════════════════════════════════════════════════════════
-    # PASO 3: TESSERACT OCR DIRECTO (fallback si ocrmypdf falló)
-    # ═══════════════════════════════════════════════════════════════════════
-    if TESSERACT_AVAILABLE:
-        try:
-            print(f"   🔍 Usando Tesseract OCR directo...")
-            text_tess, pages_tess, errors_tess = extract_with_tesseract(pdf_content)
-            
-            # Verificar que Tesseract produjo texto válido
-            if len(text_tess.strip()) > 100:
-                is_corrupted, reason = detect_corrupted_text(text_tess)
-                if not is_corrupted:
-                    results.append(('Tesseract', text_tess, pages_tess, errors_tess))
-                    total_pages = pages_tess
-                    print(f"   ✅ Tesseract: {len(text_tess)} chars, texto limpio")
-                    
-                    # Usar Tesseract directamente
-                    text = aggressive_text_cleanup(text_tess)
-                    gc.collect()
-                    print(f"✅ Texto extraído con OCR: {len(text)} caracteres de {pages_tess} páginas")
-                    return text, pages_tess
-                else:
-                    print(f"   ⚠️ Tesseract produjo texto con problemas: {reason}")
-                    results.append(('Tesseract', text_tess, pages_tess, errors_tess))
-            else:
-                print(f"   ⚠️ Tesseract produjo muy poco texto ({len(text_tess)} chars)")
-                
-        except Exception as e:
-            print(f"   ❌ Tesseract falló: {e}")
-    
-    # ═══════════════════════════════════════════════════════════════════════
-    # PASO 3: PyMuPDF como FALLBACK (solo si Tesseract falló)
-    # ═══════════════════════════════════════════════════════════════════════
-    if PYMUPDF_AVAILABLE and not results:
-        try:
-            print(f"   📖 Fallback a PyMuPDF...")
             text_mupdf, pages_mupdf, errors_mupdf = extract_with_pymupdf(pdf_content)
-            results.append(('PyMuPDF', text_mupdf, pages_mupdf, errors_mupdf))
-            total_pages = pages_mupdf
-            print(f"   PyMuPDF: {len(text_mupdf)} chars, {errors_mupdf} errores")
+            
+            if len(text_mupdf.strip()) > 50:
+                print(f"   ✅ PyMuPDF exitoso: {len(text_mupdf)} chars, {pages_mupdf} páginas")
+                text = aggressive_text_cleanup(text_mupdf)
+                gc.collect()
+                return text, pages_mupdf
+            else:
+                print(f"   ⚠️ PyMuPDF produjo muy poco texto ({len(text_mupdf)} chars)")
         except Exception as e:
-            print(f"   ❌ PyMuPDF falló: {e}")
+            print(f"   ⚠️ PyMuPDF falló: {e}")
     
     # ═══════════════════════════════════════════════════════════════════════
-    # PASO 4: PyPDF2 como último recurso
+    # PASO 3: PyPDF2 (último recurso rápido)
     # ═══════════════════════════════════════════════════════════════════════
-    if not results and PYPDF2_AVAILABLE:
+    if PYPDF2_AVAILABLE:
+        print("   📄 Intentando PyPDF2...")
         try:
-            print(f"   📄 Último recurso: PyPDF2...")
             text_pypdf2, pages_pypdf2, errors_pypdf2 = extract_with_pypdf2(pdf_content)
-            results.append(('PyPDF2', text_pypdf2, pages_pypdf2, errors_pypdf2))
-            total_pages = pages_pypdf2
-            print(f"   PyPDF2: {len(text_pypdf2)} chars")
+            
+            if len(text_pypdf2.strip()) > 50:
+                print(f"   ✅ PyPDF2 exitoso: {len(text_pypdf2)} chars, {pages_pypdf2} páginas")
+                text = aggressive_text_cleanup(text_pypdf2)
+                gc.collect()
+                return text, pages_pypdf2
+            else:
+                print(f"   ⚠️ PyPDF2 produjo muy poco texto ({len(text_pypdf2)} chars)")
         except Exception as e:
-            print(f"   ❌ PyPDF2 falló: {e}")
+            print(f"   ⚠️ PyPDF2 falló: {e}")
     
-    if not results:
-        raise Exception("No se pudo extraer texto del PDF con ningún método")
-    
-    # ═══════════════════════════════════════════════════════════════════════
-    # ELEGIR EL MEJOR RESULTADO (el de menos errores)
-    # ═══════════════════════════════════════════════════════════════════════
-    best = min(results, key=lambda x: x[3])  # x[3] = error_count
-    print(f"   ✅ Usando {best[0]}")
-    
-    text = best[1]
-    total_pages = best[2]
-    
-    # Limpiar texto extraído
-    text = aggressive_text_cleanup(text)
-    
-    # Limpiar memoria
-    gc.collect()
-    
-    print(f"✅ Texto extraído: {len(text)} caracteres de {total_pages} páginas")
-    return text, total_pages
+    # Si llegamos aquí, ningún método funcionó
+    raise Exception("No se pudo extraer texto del PDF con ningún método rápido")
 
 
 def aggressive_text_cleanup(text: str) -> str:
