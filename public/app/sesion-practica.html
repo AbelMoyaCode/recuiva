@@ -502,30 +502,170 @@ function closeErrorModal() {
 // ===================================================================
 // ✅ FUNCIÓN PARA LIMPIAR TEXTO OCR (solo visualización, NO afecta validación)
 // ===================================================================
+
+// Detectar tipo de contenido
+function detectContentType(text) {
+  if (!text || typeof text !== 'string') return { type: 'texto', icon: '📄', label: 'Texto' };
+  
+  const lower = text.toLowerCase();
+  
+  // Detectar si hay referencia a imagen/gráfico/tabla
+  const imagePatterns = [
+    /\[?figura\s*\d*\]?/i, /\[?imagen\s*\d*\]?/i, /\[?gráfico\s*\d*\]?/i,
+    /\[?tabla\s*\d*\]?/i, /\[?cuadro\s*\d*\]?/i, /\[?ilustración\s*\d*\]?/i,
+    /ver\s+imagen/i, /ver\s+figura/i, /ver\s+gráfico/i,
+    /como\s+se\s+muestra/i, /como\s+se\s+observa/i,
+    /según\s+el\s+gráfico/i, /según\s+la\s+tabla/i,
+    /\[img\]/i, /\[graph\]/i, /\[chart\]/i
+  ];
+  
+  const hasImageReference = imagePatterns.some(p => p.test(text));
+  
+  // Detectar diálogo (guiones de diálogo)
+  const dialogueLines = (text.match(/^[\s]*[—–-]\s*.+/gm) || []).length;
+  const hasDialogue = dialogueLines >= 2 || /^[\s]*[—–-]\s*["«¿¡]/.test(text);
+  
+  // Detectar verso/poesía (líneas cortas con mayúsculas al inicio)
+  const lines = text.split('\n').filter(l => l.trim().length > 0);
+  const shortLines = lines.filter(l => l.trim().length < 60 && l.trim().length > 5);
+  const isVerse = lines.length >= 3 && shortLines.length / lines.length > 0.7;
+  
+  // Detectar lista/enumeración
+  const hasList = /^\s*[\d]+[.)]\s+/m.test(text) || /^\s*[•●○▪-]\s+/m.test(text) || /^\s*[a-z]\)\s+/im.test(text);
+  
+  // Detectar cita textual
+  const hasQuote = /^["«"].*["»"]$/m.test(text.trim()) || /cita:|citando:|según\s+\w+:/i.test(text);
+  
+  // Detectar artículo/académico
+  const isAcademic = /abstract|resumen|introducción|conclusión|bibliografía|referencias/i.test(text) ||
+                     /\(\d{4}\)|et\s+al\.|pp?\.\s*\d+/i.test(text);
+  
+  // Detectar título/encabezado
+  const isTitle = text.length < 100 && /^[A-ZÁÉÍÓÚÑ\d]/.test(text.trim()) && 
+                  !text.includes('.') && lines.length <= 2;
+  
+  // Priorizar detección
+  if (hasImageReference) return { type: 'imagen', icon: '🖼️', label: 'Contiene referencia a imagen/gráfico', hasImage: true };
+  if (hasDialogue) return { type: 'dialogo', icon: '💬', label: 'Diálogo/Guion' };
+  if (isVerse) return { type: 'verso', icon: '📜', label: 'Verso/Poesía' };
+  if (hasList) return { type: 'lista', icon: '📋', label: 'Lista/Enumeración' };
+  if (hasQuote) return { type: 'cita', icon: '💭', label: 'Cita textual' };
+  if (isAcademic) return { type: 'academico', icon: '🎓', label: 'Texto académico' };
+  if (isTitle) return { type: 'titulo', icon: '📌', label: 'Título/Encabezado' };
+  
+  return { type: 'prosa', icon: '📖', label: 'Prosa narrativa' };
+}
+
 function cleanTextForDisplay(text) {
   if (!text || typeof text !== 'string') return text;
   
-  return text
-    // Separar palabras pegadas (camelCase o PascalCase accidentales)
+  let cleaned = text
+    // ═══════════════════════════════════════════════════════════
+    // 1. CORRECCIÓN DE ERRORES OCR COMUNES
+    // ═══════════════════════════════════════════════════════════
+    // Separar palabras pegadas (camelCase accidental)
     .replace(/([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])/g, '$1 $2')
-    // Números que parecen letras (errores OCR comunes)
+    // Números que parecen letras (errores OCR)
     .replace(/(\w)1(\w)/g, '$1l$2')     // 1 → l (ej: "co1lar" → "collar")
     .replace(/(\w)0(\w)/g, '$1o$2')     // 0 → o (ej: "c0mo" → "como")
     .replace(/(\w)5(\w)/g, '$1s$2')     // 5 → s (ej: "ca5a" → "casa")
+    .replace(/\bl\b(?=\s+[a-z])/gi, 'I') // "l" sola → "I" (inglés)
+    
+    // ═══════════════════════════════════════════════════════════
+    // 2. PUNTUACIÓN Y ESPACIOS
+    // ═══════════════════════════════════════════════════════════
     // Múltiples espacios a uno solo
-    .replace(/\s+/g, ' ')
-    // Espacios antes de puntuación
-    .replace(/\s+([.,;:!?])/g, '$1')
+    .replace(/[ \t]+/g, ' ')
+    // Espacios antes de puntuación (quitar)
+    .replace(/\s+([.,;:!?)\]}»"])/g, '$1')
     // Espacio después de puntuación si falta
     .replace(/([.,;:!?])([a-záéíóúñA-ZÁÉÍÓÚÑ])/g, '$1 $2')
-    // Limpiar guiones extraños
-    .replace(/\s*-\s*/g, '-')
-    .replace(/--+/g, '—')
-    // Comillas mal formadas
+    // Espacio después de abrir paréntesis/comillas (quitar)
+    .replace(/([(\[{«"'])\s+/g, '$1')
+    // Puntos suspensivos
+    .replace(/\.{2,}/g, '…')
+    .replace(/…+/g, '…')
+    
+    // ═══════════════════════════════════════════════════════════
+    // 3. GUIONES Y DIÁLOGOS
+    // ═══════════════════════════════════════════════════════════
+    // Normalizar guiones de diálogo
+    .replace(/^[\s]*[-–]\s*/gm, '— ')   // Guión al inicio de línea → guión largo
+    .replace(/\s*[-–]\s*/g, ' — ')       // Guiones en medio → guión largo con espacios
+    .replace(/—\s*—/g, '—')              // Doble guión → uno solo
+    
+    // ═══════════════════════════════════════════════════════════
+    // 4. COMILLAS Y CARACTERES ESPECIALES
+    // ═══════════════════════════════════════════════════════════
     .replace(/[""]/g, '"')
     .replace(/['']/g, "'")
-    // Trim final
+    .replace(/[`´]/g, "'")
+    // Comillas españolas
+    .replace(/"([^"]+)"/g, '«$1»')
+    
+    // ═══════════════════════════════════════════════════════════
+    // 5. SALTOS DE LÍNEA Y PÁRRAFOS
+    // ═══════════════════════════════════════════════════════════
+    // Múltiples saltos de línea → máximo 2
+    .replace(/\n{3,}/g, '\n\n')
+    // Líneas que terminan con guión (palabra cortada) → unir
+    .replace(/-\s*\n\s*/g, '')
+    // Salto de línea solo → espacio (a menos que sea párrafo)
+    .replace(/([a-záéíóúñ,;])\n([a-záéíóúñ])/gi, '$1 $2')
+    
+    // ═══════════════════════════════════════════════════════════
+    // 6. LIMPIEZA FINAL
+    // ═══════════════════════════════════════════════════════════
+    .replace(/\s+$/gm, '')  // Espacios al final de línea
     .trim();
+  
+  return cleaned;
+}
+
+// Función para formatear el chunk según su tipo
+function formatChunkForDisplay(text) {
+  if (!text || typeof text !== 'string') return { html: text, contentType: detectContentType(text) };
+  
+  const contentType = detectContentType(text);
+  let cleaned = cleanTextForDisplay(text);
+  let html = cleaned;
+  
+  // Formatear según tipo de contenido
+  switch(contentType.type) {
+    case 'dialogo':
+      // Resaltar líneas de diálogo
+      html = cleaned.replace(/^(—\s*.+)$/gm, '<span class="text-indigo-700 font-medium">$1</span>');
+      break;
+      
+    case 'verso':
+      // Preservar saltos de línea y centrar
+      html = cleaned.split('\n').map(l => `<span class="block text-center">${l}</span>`).join('');
+      break;
+      
+    case 'lista':
+      // Formatear como lista
+      html = cleaned.replace(/^(\s*[\d]+[.)]\s+)/gm, '<span class="font-bold text-blue-600">$1</span>');
+      html = html.replace(/^(\s*[•●○▪-]\s+)/gm, '<span class="text-blue-600">$1</span>');
+      break;
+      
+    case 'cita':
+      // Estilo de cita
+      html = `<span class="italic border-l-2 border-gray-400 pl-3 block">${cleaned}</span>`;
+      break;
+      
+    case 'imagen':
+      // Agregar advertencia de imagen
+      html = `<div class="bg-yellow-50 border border-yellow-200 rounded p-2 mb-2 text-xs text-yellow-700">
+        ⚠️ Este fragmento hace referencia a una imagen o gráfico que no se puede mostrar aquí.
+      </div>${cleaned}`;
+      break;
+      
+    default:
+      // Prosa normal - solo limpieza
+      html = cleaned;
+  }
+  
+  return { html, contentType, cleaned };
 }
 
 // ===================================================================
@@ -805,15 +945,36 @@ window.showValidationResult = function(result) {
   if (chunksEl && result.bestMatchChunk) {
     const chunk = result.bestMatchChunk;
     const chunkTextRaw = chunk.text || chunk.text_full || chunk;
-    // ✅ LIMPIEZA VISUAL: Mejorar legibilidad del texto OCR (NO afecta validación)
-    const chunkText = typeof chunkTextRaw === 'string' ? cleanTextForDisplay(chunkTextRaw) : chunkTextRaw;
+    
+    // ✅ LIMPIEZA VISUAL INTELIGENTE: Detectar tipo de contenido y formatear
+    const formatted = typeof chunkTextRaw === 'string' 
+      ? formatChunkForDisplay(chunkTextRaw) 
+      : { html: chunkTextRaw, contentType: detectContentType(''), cleaned: chunkTextRaw };
+    
+    const chunkText = formatted.cleaned;
+    const contentType = formatted.contentType;
+    const formattedHtml = formatted.html;
+    
     const similarity = chunk.similarity ? (chunk.similarity * 100).toFixed(1) : (result.score * 100).toFixed(1);
     const chunkId = chunk.chunk_id !== undefined ? chunk.chunk_id : 0;
     const totalChunks = chunk.total_chunks || 0;
     const estimatedPage = chunk.estimated_page || Math.floor((chunkId * 500) / 2500);
     
+    // Determinar estilo según tipo de contenido
+    const typeStyles = {
+      'imagen': 'from-yellow-50 to-amber-50 border-yellow-300',
+      'dialogo': 'from-indigo-50 to-purple-50 border-indigo-300',
+      'verso': 'from-pink-50 to-rose-50 border-pink-300',
+      'lista': 'from-cyan-50 to-sky-50 border-cyan-300',
+      'cita': 'from-gray-50 to-slate-50 border-gray-300',
+      'academico': 'from-emerald-50 to-teal-50 border-emerald-300',
+      'titulo': 'from-orange-50 to-amber-50 border-orange-300',
+      'prosa': 'from-blue-50 to-indigo-50 border-blue-300'
+    };
+    const gradientStyle = typeStyles[contentType.type] || typeStyles['prosa'];
+    
     chunksEl.innerHTML = `
-      <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-5 shadow-md">
+      <div class="bg-gradient-to-br ${gradientStyle} border-2 rounded-xl p-5 shadow-md">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-bold text-blue-900 text-lg flex items-center gap-2">
             <span class="material-symbols-outlined text-2xl">auto_stories</span>
@@ -824,6 +985,19 @@ window.showValidationResult = function(result) {
               ${similarity}% con tu respuesta
             </span>
           </div>
+        </div>
+        
+        <!-- ✅ NUEVO: Tipo de contenido detectado -->
+        <div class="mb-3 flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 shadow-sm">
+            <span class="text-lg">${contentType.icon}</span>
+            <span>${contentType.label}</span>
+          </span>
+          ${contentType.hasImage ? `
+            <span class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 border border-yellow-300 rounded-full text-xs font-medium text-yellow-800">
+              ⚠️ Contiene imagen/gráfico (no visible)
+            </span>
+          ` : ''}
         </div>
         
         <!-- Información de ubicación del chunk -->
@@ -842,15 +1016,15 @@ window.showValidationResult = function(result) {
           </div>
         </div>
         
-        <!-- Contenido del chunk -->
+        <!-- Contenido del chunk con formato según tipo -->
         <div class="bg-white rounded-lg p-4 border-l-4 border-blue-500 shadow-sm">
           <p class="text-sm text-gray-500 font-semibold mb-2 uppercase tracking-wide flex items-center gap-2">
             <span class="material-symbols-outlined text-lg">bookmark</span>
-            🎯 Fragmento EXACTO del material que coincide con tu respuesta:
+            🎯 Fragmento del material (${contentType.label}):
           </p>
-          <blockquote class="text-base text-gray-800 leading-relaxed font-serif italic border-l-2 border-blue-300 pl-4 py-2 max-h-60 overflow-y-auto">
-            "${typeof chunkText === 'string' ? chunkText : JSON.stringify(chunkText)}"
-          </blockquote>
+          <div class="text-base text-gray-800 leading-relaxed max-h-60 overflow-y-auto ${contentType.type === 'verso' ? 'text-center' : ''} ${contentType.type === 'cita' ? 'italic' : ''}">
+            ${formattedHtml}
+          </div>
         </div>
         
         <!-- Explicación contextual -->
@@ -878,21 +1052,26 @@ window.showValidationResult = function(result) {
             </summary>
             <div class="mt-3 space-y-2">
               ${result.relevantChunks.slice(1, 3).map((relChunk, idx) => {
-                const relText = cleanTextForDisplay(relChunk.text || relChunk.text_full || '');
+                const relTextRaw = relChunk.text || relChunk.text_full || '';
+                const relFormatted = formatChunkForDisplay(relTextRaw);
+                const relContentType = relFormatted.contentType;
                 return `
                 <div class="bg-white rounded-lg p-3 border border-blue-200 text-sm">
                   <div class="flex items-center justify-between mb-2">
-                    <span class="font-semibold text-gray-600 flex items-center gap-1">
-                      <span class="material-symbols-outlined text-sm">layers</span>
-                      Chunk ${(relChunk.position || 0) + 1} / ${relChunk.total_chunks || totalChunks}
-                    </span>
+                    <div class="flex items-center gap-2">
+                      <span class="font-semibold text-gray-600 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">layers</span>
+                        Chunk ${(relChunk.position || 0) + 1} / ${relChunk.total_chunks || totalChunks}
+                      </span>
+                      <span class="text-xs bg-gray-100 px-2 py-0.5 rounded-full">${relContentType.icon} ${relContentType.label}</span>
+                    </div>
                     <span class="text-xs text-blue-600 font-mono" title="Similitud entre TU RESPUESTA y este chunk">
                       ${(relChunk.similarity * 100).toFixed(1)}% con tu respuesta
                     </span>
                   </div>
-                  <p class="text-gray-700 leading-relaxed italic">
-                    "${relText.substring(0, 300)}${relText.length > 300 ? '...' : ''}"
-                  </p>
+                  <div class="text-gray-700 leading-relaxed ${relContentType.type === 'cita' ? 'italic' : ''}">
+                    ${relFormatted.cleaned.substring(0, 300)}${relFormatted.cleaned.length > 300 ? '...' : ''}
+                  </div>
                 </div>
               `}).join('')}
             </div>

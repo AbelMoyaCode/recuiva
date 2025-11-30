@@ -1,47 +1,29 @@
--- ========================================
--- ESQUEMA DE BASE DE DATOS PARA RECUIVA
--- ========================================
--- Este archivo debe ejecutarse en Supabase SQL Editor
--- Ir a: Dashboard > SQL Editor > New Query > Pegar este código > Run
+-- ============================================================
+-- 📚 ESQUEMA DE BASE DE DATOS PARA RECUIVA
+-- ============================================================
+-- Sistema de Active Recall con validación semántica mediante IA
+-- Arquitectura: PostgreSQL + pgvector + Supabase
+-- 
+-- INSTRUCCIONES:
+-- 1. Ir a Supabase Dashboard > SQL Editor
+-- 2. Crear New Query
+-- 3. Copiar y pegar TODO este archivo
+-- 4. Ejecutar (Run)
+-- 
+-- ⚠️ IMPORTANTE: Este schema está diseñado para una instalación LIMPIA
+-- NO ejecutar en base de datos con datos existentes sin hacer backup primero
+-- 
+-- Autor: Abel Jesús Moya Acosta
+-- Fecha: Noviembre 2024
+-- Proyecto: Taller Integrador I - UPAO
+-- ============================================================
 
--- ========================================
--- 🔥 MIGRACIONES (EJECUTAR PRIMERO SI LAS TABLAS YA EXISTEN)
--- ========================================
--- Copiar desde aquí y ejecutar en Supabase SQL Editor
+-- ============================================================
+-- SECCIÓN 1: EXTENSIONES
+-- ============================================================
 
--- ========================================
--- PASO 1: Habilitar extensión pgvector para embeddings
--- ========================================
+-- Extensión pgvector para embeddings vectoriales (384 dimensiones)
 CREATE EXTENSION IF NOT EXISTS vector;
-
--- ========================================
--- PASO 2: Permitir que file_path sea NULL
--- ========================================
-ALTER TABLE public.materials 
-ALTER COLUMN file_path DROP NOT NULL;
-
--- ========================================
--- PASO 3: Agregar columnas faltantes a tabla questions
--- ========================================
-ALTER TABLE public.questions 
-ADD COLUMN IF NOT EXISTS topic TEXT,
-ADD COLUMN IF NOT EXISTS difficulty TEXT DEFAULT 'medium',
-ADD COLUMN IF NOT EXISTS expected_answer TEXT;
-
--- ========================================
--- PASO 4: Agregar columnas faltantes a tabla materials
--- ========================================
-ALTER TABLE public.materials 
-ADD COLUMN IF NOT EXISTS total_chunks INTEGER DEFAULT 0,
-ADD COLUMN IF NOT EXISTS total_characters INTEGER DEFAULT 0,
-ADD COLUMN IF NOT EXISTS estimated_pages INTEGER DEFAULT 0,
-ADD COLUMN IF NOT EXISTS storage_bucket TEXT DEFAULT 'materials',
-ADD COLUMN IF NOT EXISTS storage_path TEXT,
-ADD COLUMN IF NOT EXISTS processing_status TEXT DEFAULT 'pending';
-
--- ========================================
--- FIN DE MIGRACIONES
--- ========================================
 
 -- ========================================
 -- TABLA: materials
@@ -490,827 +472,46 @@ WHERE sr.next_review <= CURRENT_DATE
 ORDER BY sr.next_review ASC;
 
 -- ========================================
--- DATOS DE EJEMPLO (OPCIONAL - SOLO PARA DESARROLLO)
--- ========================================
--- NO ejecutar en producción, solo para testing local
-
--- Insertar usuario de prueba (requiere que ya exista en auth.users)
--- INSERT INTO public.user_profiles (id, full_name, institution)
--- VALUES (
---     '00000000-0000-0000-0000-000000000000', -- Reemplazar con UUID real de auth.users
---     'Usuario de Prueba',
---     'Universidad de Ejemplo'
--- );
-
--- ========================================
--- VERIFICACIÓN
--- ========================================
--- Ejecuta estas queries para verificar que todo se creó correctamente:
-
--- Ver todas las tablas creadas
--- SELECT * FROM information_schema.tables WHERE table_schema = 'public';
-
--- Ver todas las políticas RLS
--- SELECT * FROM pg_policies WHERE schemaname = 'public';
-
--- Verificar que pgvector está habilitado
-SELECT * FROM pg_extension WHERE extname = 'vector';
-
--- Ver columnas de material_embeddings
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'material_embeddings';
-
--- Ver políticas RLS
-SELECT policyname 
-FROM pg_policies 
-WHERE tablename = 'material_embeddings';
-
--- Ver estadísticas de embeddings
--- SELECT * FROM material_embeddings_stats;
-
--- ========================================
--- EJEMPLOS DE USO DE BÚSQUEDA VECTORIAL
+-- SECCIÓN 7: TABLAS ADICIONALES (SPRINT 2)
 -- ========================================
 
--- Ejemplo 1: Buscar chunks similares a un embedding
--- (Reemplaza el array con un embedding real de 384 dimensiones)
-/*
-SELECT * FROM search_similar_chunks(
-    '[0.1, 0.2, 0.3, ...]'::vector(384),  -- Embedding de la pregunta
-    'uuid-del-material'::UUID,             -- ID del material
-    0.5,                                   -- Umbral de similitud mínima (0-1)
-    5                                      -- Top 5 resultados
-);
-*/
-
--- Ejemplo 2: Búsqueda manual con operador de distancia
-/*
-SELECT 
-    chunk_text,
-    chunk_index,
-    1 - (embedding <=> '[0.1, 0.2, ...]'::vector(384)) AS similarity
-FROM material_embeddings
-WHERE material_id = 'uuid-del-material'
-ORDER BY embedding <=> '[0.1, 0.2, ...]'::vector(384)
-LIMIT 10;
-*/
-
--- Ejemplo 3: Ver todos los embeddings de un material
-/*
-SELECT 
-    chunk_index,
-    LEFT(chunk_text, 100) as preview,
-    created_at
-FROM material_embeddings
-WHERE material_id = 'uuid-del-material'
-ORDER BY chunk_index;
-*/
-
--- Ejemplo 4: Contar embeddings por material
-/*
-SELECT 
-    m.title,
-    COUNT(me.id) as total_embeddings,
-    m.total_chunks
-FROM materials m
-LEFT JOIN material_embeddings me ON m.id = me.material_id
-WHERE m.user_id = auth.uid()
-GROUP BY m.id, m.title, m.total_chunks;
-*/
--- ============================================================
--- FIX: Políticas RLS faltantes para tabla materials
--- ============================================================
--- Problema: La tabla materials tiene RLS habilitado pero no tiene
--- políticas, por lo que rechaza todas las inserciones.
--- Solución: Agregar políticas CRUD para usuarios autenticados
--- ============================================================
-
-
--- ============================================================
--- FIX DEFINITIVO: Eliminar políticas antiguas y crear nuevas
--- ============================================================
-
--- PASO 1: ELIMINAR TODAS LAS POLÍTICAS ANTIGUAS DE LA TABLA MATERIALS
-DROP POLICY IF EXISTS "Users can view own materials" ON public.materials;
-DROP POLICY IF EXISTS "Users can insert own materials" ON public.materials;
-DROP POLICY IF EXISTS "Users can update own materials" ON public.materials;
-DROP POLICY IF EXISTS "Users can delete own materials" ON public.materials;
-DROP POLICY IF EXISTS "Users can view their own materials" ON public.materials;
-DROP POLICY IF EXISTS "Users can insert their own materials" ON public.materials;
-DROP POLICY IF EXISTS "Users can update their own materials" ON public.materials;
-DROP POLICY IF EXISTS "Users can delete their own materials" ON public.materials;
-
--- PASO 2: CREAR POLÍTICAS NUEVAS CON TO authenticated
-CREATE POLICY "Users can view own materials" 
-    ON public.materials FOR SELECT 
-    TO authenticated
-    USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own materials" 
-    ON public.materials FOR INSERT 
-    TO authenticated
-    WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own materials" 
-    ON public.materials FOR UPDATE 
-    TO authenticated
-    USING (auth.uid() = user_id)
-    WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own materials" 
-    ON public.materials FOR DELETE 
-    TO authenticated
-    USING (auth.uid() = user_id);
-
--- PASO 3: VERIFICAR QUE SOLO EXISTEN 4 POLÍTICAS
-SELECT 
-    policyname,
-    cmd,
-    roles
-FROM pg_policies
-WHERE tablename = 'materials'
-ORDER BY policyname;
-
--- Deberías ver exactamente 4 filas:
--- 1. Users can delete own materials | DELETE | {authenticated}
--- 2. Users can insert own materials | INSERT | {authenticated}
--- 3. Users can update own materials | UPDATE | {authenticated}
--- 4. Users can view own materials   | SELECT | {authenticated}
-
-
-SELECT policyname FROM pg_policies WHERE tablename = 'materials';
-
-SELECT policyname, cmd, roles FROM pg_policies WHERE tablename = 'materials' ORDER BY cmd;
-
-
-
-
-
-
-
-
--- ============================================
--- FIX: Agregar columnas faltantes en tabla answers
--- Ejecutar en Supabase SQL Editor
--- ============================================
-
--- PASO 1: Verificar columnas actuales
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'answers' 
-ORDER BY ordinal_position;
-
--- PASO 2: Agregar columnas faltantes (si no existen)
-
--- Columna: similarity (similitud semántica)
-DO $$ 
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'answers' AND column_name = 'similarity'
-    ) THEN
-        ALTER TABLE public.answers 
-        ADD COLUMN similarity DECIMAL(5,4);
-        
-        RAISE NOTICE '✅ Columna similarity agregada';
-    ELSE
-        RAISE NOTICE '⚠️ Columna similarity ya existe';
-    END IF;
-END $$;
-
--- Columna: is_correct (si pasó el umbral)
-DO $$ 
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'answers' AND column_name = 'is_correct'
-    ) THEN
-        ALTER TABLE public.answers 
-        ADD COLUMN is_correct BOOLEAN DEFAULT FALSE;
-        
-        RAISE NOTICE '✅ Columna is_correct agregada';
-    ELSE
-        RAISE NOTICE '⚠️ Columna is_correct ya existe';
-    END IF;
-END $$;
-
--- Columna: feedback (feedback textual)
-DO $$ 
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'answers' AND column_name = 'feedback'
-    ) THEN
-        ALTER TABLE public.answers 
-        ADD COLUMN feedback TEXT;
-        
-        RAISE NOTICE '✅ Columna feedback agregada';
-    ELSE
-        RAISE NOTICE '⚠️ Columna feedback ya existe';
-    END IF;
-END $$;
-
--- Columna: best_match_chunk (chunk más relevante)
-DO $$ 
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'answers' AND column_name = 'best_match_chunk'
-    ) THEN
-        ALTER TABLE public.answers 
-        ADD COLUMN best_match_chunk TEXT;
-        
-        RAISE NOTICE '✅ Columna best_match_chunk agregada';
-    ELSE
-        RAISE NOTICE '⚠️ Columna best_match_chunk ya existe';
-    END IF;
-END $$;
-
--- Columna: relevant_chunks (top chunks relevantes)
-DO $$ 
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'answers' AND column_name = 'relevant_chunks'
-    ) THEN
-        ALTER TABLE public.answers 
-        ADD COLUMN relevant_chunks JSONB;
-        
-        RAISE NOTICE '✅ Columna relevant_chunks agregada';
-    ELSE
-        RAISE NOTICE '⚠️ Columna relevant_chunks ya existe';
-    END IF;
-END $$;
-
--- PASO 3: Verificar columnas después de agregar
-SELECT column_name, data_type, is_nullable
-FROM information_schema.columns 
-WHERE table_name = 'answers' 
-ORDER BY ordinal_position;
-
--- ============================================
--- RESULTADO ESPERADO:
--- ============================================
--- id                  | uuid              | NO
--- user_id             | uuid              | NO
--- question_id         | uuid              | NO
--- answer_text         | text              | NO
--- score               | numeric           | NO
--- similarity          | numeric           | YES  ✅ NUEVA
--- is_correct          | boolean           | YES  ✅ NUEVA
--- classification      | text              | NO
--- feedback            | text              | YES  ✅ NUEVA
--- best_match_chunk    | text              | YES  ✅ NUEVA
--- relevant_chunks     | jsonb             | YES  ✅ NUEVA
--- created_at          | timestamp         | YES
--- ============================================
-
-
-
-
-
-SELECT id, email, full_name FROM users 
-WHERE id = 'a7ad2f68-3946-4e40-b73a-fe2867d9af0f';
-
-INSERT INTO users (id, email, full_name, created_at, updated_at) 
-VALUES (
-    'a7ad2f68-3946-4e40-b73a-fe2867d9af0f',
-    'juan.perez@example.com',
-    'Juan Pérez',
-    NOW(),
-    NOW()
-);
-
-
-
-
--- 2. Si NO existe, crear el usuario MOCK
--- (Ejecutar SOLO si la consulta anterior no devuelve resultados)
-INSERT INTO users (
-    id,
-    email,
-    full_name,
-    created_at,
-    updated_at
-) VALUES (
-    'a7ad2f68-3946-4e40-b73a-fe2867d9af0f',
-    'juan.perez@example.com',
-    'Juan Pérez',
-    NOW(),
-    NOW()
-)
-ON CONFLICT (id) DO NOTHING;
-
-
-
--- 3. Verificar que se creó correctamente
-SELECT id, email, full_name, created_at 
-FROM users 
-WHERE id = 'a7ad2f68-3946-4e40-b73a-fe2867d9af0f';
-
-
--- 5. Ver los materiales de este usuario
-SELECT 
-    id,
-    title,
-    file_name,
-    total_chunks,
-    real_pages,
-    processing_status,
-    created_at
-FROM materials 
-WHERE user_id = 'a7ad2f68-3946-4e40-b73a-fe2867d9af0f'
-ORDER BY created_at DESC;
-
-
-SELECT 
-    id, 
-    title, 
-    user_id,
-    total_chunks,
-    created_at
-FROM materials 
-WHERE user_id = '49ae3509-edb7-44b4-9ccd-004629409430'
-ORDER BY created_at DESC;
-
-
-
-
-
-
-
-
-
-
-
-
-
--- 2.1 Permitir a usuarios autenticados SUBIR sus propias fotos
-CREATE POLICY "Users can upload their own avatar"
-ON storage.objects
-FOR INSERT
-TO authenticated
-WITH CHECK (
-  bucket_id = 'avatars' 
-  AND (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- 2.2 Permitir a usuarios autenticados ACTUALIZAR sus propias fotos
-CREATE POLICY "Users can update their own avatar"
-ON storage.objects
-FOR UPDATE
-TO authenticated
-USING (
-  bucket_id = 'avatars' 
-  AND (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- 2.3 Permitir a usuarios autenticados ELIMINAR sus propias fotos
-CREATE POLICY "Users can delete their own avatar"
-ON storage.objects
-FOR DELETE
-TO authenticated
-USING (
-  bucket_id = 'avatars' 
-  AND (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- 2.4 Permitir a TODOS (incluso no autenticados) VER las fotos
-CREATE POLICY "Anyone can view avatars"
-ON storage.objects
-FOR SELECT
-TO public
-USING (bucket_id = 'avatars');
-
-
-SELECT 
-  policyname,
-  cmd,
-  roles
-FROM pg_policies
-WHERE tablename = 'objects'
-  AND policyname LIKE '%avatar%'
-ORDER BY policyname;
-
-
-
-
-
-
-
-
-
-
-SELECT 
-  id, 
-  name, 
-  public,
-  file_size_limit,
-  allowed_mime_types
-FROM storage.buckets 
-WHERE name = 'avatars';
-
-
-
-
-
-
-
-
-UPDATE user_profiles 
-SET avatar_url = 'https://xqicgzqgluslzleddmfv.supabase.co/storage/...'
-WHERE id = 'user_id';
-
-
--- Verificar que la extensión pgvector está instalada
-SELECT * FROM pg_extension WHERE extname = 'vector';
-
-
-
--- Query corregido dimension de embeddings 
-SELECT 
-  chunk_index,
-  LEFT(chunk_text, 50) AS preview,
-  array_length(embedding, 1) AS dimensions
-FROM material_embeddings
-LIMIT 5;
-
-
-SELECT 
-  m.title AS material,
-  COUNT(me.id) AS num_chunks,
-  ROUND(COUNT(me.id) * 1.5, 2) AS size_kb
-FROM materials m
-LEFT JOIN material_embeddings me ON m.id = me.material_id
-GROUP BY m.id, m.title
-ORDER BY num_chunks DESC;
-
-
-SELECT 
-  indexname,
-  indexdef
-FROM pg_indexes
-WHERE tablename = 'material_embeddings';
-
-SELECT proname 
-FROM pg_proc 
-WHERE proname = 'match_material_chunks';
-
-
-
-CREATE EXTENSION IF NOT EXISTS vector;
-
-CREATE TABLE IF NOT EXISTS public.materials (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    title TEXT NOT NULL,
-    file_name TEXT NOT NULL,
-    file_path TEXT,
-    file_type TEXT NOT NULL,
-    total_chunks INTEGER DEFAULT 0,
-    total_characters INTEGER DEFAULT 0,
-    estimated_pages INTEGER DEFAULT 0,
-    storage_bucket TEXT DEFAULT 'materials',
-    storage_path TEXT,
-    processing_status TEXT DEFAULT 'pending',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.material_embeddings (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    material_id UUID NOT NULL REFERENCES public.materials(id) ON DELETE CASCADE,
-    chunk_index INTEGER NOT NULL,
-    chunk_text TEXT NOT NULL,
-    embedding vector(384) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(material_id, chunk_index)
-);
-
-CREATE TABLE IF NOT EXISTS public.folders (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    parent_folder_id UUID REFERENCES public.folders(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    path TEXT,
-    color TEXT DEFAULT '#FF6B35',
-    icon TEXT DEFAULT 'folder',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.material_folders (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    material_id UUID NOT NULL REFERENCES public.materials(id) ON DELETE CASCADE,
-    folder_id UUID NOT NULL REFERENCES public.folders(id) ON DELETE CASCADE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(material_id, folder_id)
-);
-
-CREATE TABLE IF NOT EXISTS public.questions (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    material_id UUID NOT NULL REFERENCES public.materials(id) ON DELETE CASCADE,
-    question_text TEXT NOT NULL,
-    topic TEXT,
-    difficulty TEXT DEFAULT 'medium',
-    expected_answer TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.answers (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    question_id UUID NOT NULL REFERENCES public.questions(id) ON DELETE CASCADE,
-    answer_text TEXT NOT NULL,
-    score DECIMAL(5,2) NOT NULL,
-    similarity DECIMAL(5,4),
-    is_correct BOOLEAN DEFAULT FALSE,
-    classification TEXT NOT NULL,
-    feedback TEXT,
-    best_match_chunk TEXT,
-    relevant_chunks JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.user_profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    full_name TEXT,
-    avatar_url TEXT,
-    bio TEXT,
-    institution TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.spaced_repetition (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    question_id UUID NOT NULL REFERENCES public.questions(id) ON DELETE CASCADE,
-    next_review DATE NOT NULL,
-    interval_days INT NOT NULL DEFAULT 1,
-    ease_factor DECIMAL(4,2) NOT NULL DEFAULT 2.5,
-    repetitions INT NOT NULL DEFAULT 0,
-    last_score DECIMAL(5,2),
-    last_review DATE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(user_id, question_id)
-);
-
-
-CREATE INDEX IF NOT EXISTS idx_materials_user_id ON public.materials(user_id);
-CREATE INDEX IF NOT EXISTS idx_materials_status ON public.materials(processing_status);
-
-CREATE INDEX IF NOT EXISTS idx_embeddings_ivfflat
-ON public.material_embeddings 
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
-
-CREATE INDEX IF NOT EXISTS idx_embeddings_material_id ON public.material_embeddings(material_id);
-
-CREATE INDEX IF NOT EXISTS idx_folders_user_id ON public.folders(user_id);
-CREATE INDEX IF NOT EXISTS idx_folders_parent_id ON public.folders(parent_folder_id);
-
-CREATE INDEX IF NOT EXISTS idx_material_folders_material ON public.material_folders(material_id);
-CREATE INDEX IF NOT EXISTS idx_material_folders_folder ON public.material_folders(folder_id);
-
-CREATE INDEX IF NOT EXISTS idx_questions_user_id ON public.questions(user_id);
-CREATE INDEX IF NOT EXISTS idx_questions_material_id ON public.questions(material_id);
-
-CREATE INDEX IF NOT EXISTS idx_answers_user_id ON public.answers(user_id);
-CREATE INDEX IF NOT EXISTS idx_answers_question_id ON public.answers(question_id);
-CREATE INDEX IF NOT EXISTS idx_answers_score ON public.answers(score);
-
-CREATE INDEX IF NOT EXISTS idx_spaced_user_id ON public.spaced_repetition(user_id);
-CREATE INDEX IF NOT EXISTS idx_spaced_question_id ON public.spaced_repetition(question_id);
-CREATE INDEX IF NOT EXISTS idx_spaced_next_review ON public.spaced_repetition(next_review);
-
-
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_materials_updated_at 
-    BEFORE UPDATE ON public.materials 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_folders_updated_at 
-    BEFORE UPDATE ON public.folders 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_user_profiles_updated_at 
-    BEFORE UPDATE ON public.user_profiles 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_spaced_repetition_updated_at 
-    BEFORE UPDATE ON public.spaced_repetition 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-
-
-
-
-SELECT * FROM information_schema.tables WHERE table_schema = 'public';
-SELECT * FROM pg_extension WHERE extname = 'vector';
-SELECT policyname, cmd, roles FROM pg_policies WHERE tablename = 'materials' ORDER BY policyname;
-
-
-
+-- Tabla: TOPICS (Temas de estudio organizados por carpetas)
 CREATE TABLE IF NOT EXISTS public.topics (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
+    folder_id UUID REFERENCES public.folders(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS public.generated_questions (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    material_id UUID REFERENCES public.materials(id) ON DELETE CASCADE,
-    topic_id UUID REFERENCES public.topics(id) ON DELETE CASCADE,
-    question_text TEXT NOT NULL,
-    question_type TEXT NOT NULL,
-    reference_chunk_index INTEGER,
-    concepts TEXT[],
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-
-ALTER TABLE public.materials 
-ADD COLUMN IF NOT EXISTS topic_id UUID REFERENCES public.topics(id) ON DELETE SET NULL;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public';
-
-
-
-
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'materials';
-
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'answers';
-
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'questions';
-
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'material_embeddings';
-
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'generated_questions';
-
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'topics';
-
-
-
-
-
-
-SELECT * FROM pg_extension WHERE extname = 'vector';
-
-
-
-
-SELECT policyname, cmd, roles 
-FROM pg_policies 
-WHERE tablename IN (
-  'materials', 
-  'material_embeddings', 
-  'folders', 
-  'material_folders', 
-  'questions', 
-  'answers', 
-  'user_profiles', 
-  'spaced_repetition'
-)
-ORDER BY tablename, policyname;
-
-
-
-
-
-
-SELECT indexname, indexdef 
-FROM pg_indexes 
-WHERE tablename IN (
-  'materials', 
-  'material_embeddings', 
-  'questions', 
-  'answers', 
-  'spaced_repetition'
-);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- ========================================
--- SPRINT 2: CREAR TABLAS Y COLUMNAS FALTANTES
--- ========================================
-
--- 1. Crear tabla TOPICS
-CREATE TABLE IF NOT EXISTS public.topics (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    description TEXT,
-    folder_id UUID REFERENCES public.folders(id) ON DELETE CASCADE, -- NUEVO: relación con carpeta
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 2. Crear tabla GENERATED_QUESTIONS
-CREATE TABLE IF NOT EXISTS public.generated_questions (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    material_id UUID REFERENCES public.materials(id) ON DELETE CASCADE,
-    topic_id UUID REFERENCES public.topics(id) ON DELETE CASCADE,
-    question_text TEXT NOT NULL,
-    question_type TEXT NOT NULL,
-    reference_chunk_index INTEGER,
-    concepts TEXT[],
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 3. Agregar columna TOPIC_ID a tabla MATERIALS
-ALTER TABLE public.materials 
-ADD COLUMN IF NOT EXISTS topic_id UUID REFERENCES public.topics(id) ON DELETE SET NULL;
-
--- 4. Crear índices para TOPICS
 CREATE INDEX IF NOT EXISTS idx_topics_user_id ON public.topics(user_id);
 CREATE INDEX IF NOT EXISTS idx_topics_folder_id ON public.topics(folder_id);
 
--- 5. Crear índices para GENERATED_QUESTIONS
+-- Tabla: GENERATED_QUESTIONS (Preguntas generadas automáticamente)
+CREATE TABLE IF NOT EXISTS public.generated_questions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    material_id UUID REFERENCES public.materials(id) ON DELETE CASCADE,
+    topic_id UUID REFERENCES public.topics(id) ON DELETE CASCADE,
+    question_text TEXT NOT NULL,
+    question_type TEXT NOT NULL,
+    reference_chunk_index INTEGER,
+    concepts TEXT[],
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_generated_questions_material_id ON public.generated_questions(material_id);
 CREATE INDEX IF NOT EXISTS idx_generated_questions_topic_id ON public.generated_questions(topic_id);
 
--- 6. Habilitar RLS en TOPICS
-ALTER TABLE public.topics ENABLE ROW LEVEL SECURITY;
+-- ========================================
+-- SECCIÓN 8: POLÍTICAS RLS PARA TABLAS ADICIONALES
+-- ========================================
 
--- 7. Crear políticas RLS para TOPICS
+-- Habilitar RLS
+ALTER TABLE public.topics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.generated_questions ENABLE ROW LEVEL SECURITY;
+
+-- Políticas para TOPICS
 CREATE POLICY "Users can view own topics" 
     ON public.topics FOR SELECT 
     TO authenticated
@@ -1331,10 +532,7 @@ CREATE POLICY "Users can delete own topics"
     TO authenticated
     USING (auth.uid() = user_id);
 
--- 8. Habilitar RLS en GENERATED_QUESTIONS
-ALTER TABLE public.generated_questions ENABLE ROW LEVEL SECURITY;
-
--- 9. Crear políticas RLS para GENERATED_QUESTIONS
+-- Políticas para GENERATED_QUESTIONS
 CREATE POLICY "Users can view own generated questions" 
     ON public.generated_questions FOR SELECT 
     TO authenticated
@@ -1365,65 +563,29 @@ CREATE POLICY "Users can delete own generated questions"
         )
     );
 
--- ========================================
--- VERIFICACIÓN FINAL
--- ========================================
-
--- Verificar que las tablas nuevas existen
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
-AND table_name IN ('topics', 'generated_questions');
-
--- Verificar que topic_id existe en materials
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'materials' AND column_name = 'topic_id';
-
--- Verificar políticas de topics
-SELECT policyname 
-FROM pg_policies 
-WHERE tablename = 'topics';
-
--- Verificar políticas de generated_questions
-SELECT policyname 
-FROM pg_policies 
-WHERE tablename = 'generated_questions';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- Agregar columna folder_id a tabla topics (relación con carpetas)
-ALTER TABLE public.topics 
-ADD COLUMN IF NOT EXISTS folder_id UUID REFERENCES public.folders(id) ON DELETE CASCADE;
-
--- Crear índice para folder_id
-CREATE INDEX IF NOT EXISTS idx_topics_folder_id ON public.topics(folder_id);
-
--- Verificar que se agregó
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'topics' AND column_name = 'folder_id';
-
-
--- Ver todas las columnas de topics
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'topics';
+-- ============================================================
+-- ✅ INSTALACIÓN COMPLETA
+-- ============================================================
+-- 
+-- Todas las tablas, índices, funciones, triggers, vistas y políticas
+-- han sido creadas correctamente.
+-- 
+-- PRÓXIMOS PASOS:
+-- 1. Verificar extensión pgvector:
+--    SELECT * FROM pg_extension WHERE extname = 'vector';
+-- 
+-- 2. Ver tablas creadas:
+--    SELECT table_name FROM information_schema.tables 
+--    WHERE table_schema = 'public' ORDER BY table_name;
+-- 
+-- 3. Ver políticas RLS:
+--    SELECT tablename, policyname, cmd 
+--    FROM pg_policies WHERE schemaname = 'public' 
+--    ORDER BY tablename, policyname;
+-- 
+-- 4. Configurar Supabase Storage (opcional):
+--    - Crear bucket 'materials' para PDFs
+--    - Crear bucket 'avatars' para fotos de perfil
+--    - Configurar políticas RLS para Storage
+-- 
+-- ============================================================
