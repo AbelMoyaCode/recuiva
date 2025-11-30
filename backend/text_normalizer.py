@@ -53,32 +53,80 @@ def normalize_text(text: str) -> str:
     if not text or not isinstance(text, str):
         return ""
     
-    # 1. Remover espacios innecesarios entre sílabas (error OCR común)
-    # Detecta patrones como: "fo to sín te sis" (espacios entre letras cortas)
-    # Estrategia mejorada: Capturar fragmentos de 1-5 letras con espacios
+    # ═══════════════════════════════════════════════════════════════════════
+    # FASE 1: PATRONES ESPECÍFICOS DE ERRORES OCR DETECTADOS
+    # ═══════════════════════════════════════════════════════════════════════
     
-    # Primero: fragmentos muy cortos (1-2 letras)
+    # Patrón: "Henriet te" → "Henriette" (palabra + fragmento corto)
+    # Detecta: palabra larga + espacio + 1-3 letras que deberían estar juntas
+    text = re.sub(r'(\w{4,})\s+([a-záéíóúñ]{1,3})\b', r'\1\2', text, flags=re.IGNORECASE)
+    
+    # Patrón: "consuf amilia" → "consufamilia" (fragmento + palabra larga)
+    # Detecta: fragmento corto + espacio + palabra que debería estar junta
+    text = re.sub(r'\b([a-záéíóúñ]{3,6})\s+([a-záéíóúñ]{4,})', r'\1\2', text, flags=re.IGNORECASE)
+    
+    # Patrón: "interr ogó" → "interrogó" (palabra cortada al azar)
+    text = re.sub(r'(\w{3,})\s+([a-záéíóúñ]{2,4})\b', r'\1\2', text, flags=re.IGNORECASE)
+    
+    # Patrón: "V alorbe" → "Valorbe" (mayúscula + espacio + resto)
+    text = re.sub(r'\b([A-ZÁÉÍÓÚÑ])\s+([a-záéíóúñ]{3,})', r'\1\2', text)
+    
+    # Patrón: "¿Henriet te?" → "¿Henriette?" (con signos de puntuación)
+    text = re.sub(r'([¿¡])(\w+)\s+(\w{1,3})([?!])', r'\1\2\3\4', text)
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # FASE 2: PALABRAS PEGADAS (sin espacio donde debería haber)
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # Patrón: "Esteesun" → "Este es un" (mayúscula en medio indica nueva palabra)
+    text = re.sub(r'([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])', r'\1 \2', text)
+    
+    # Patrón: "losdemás" → "los demás" (artículos pegados)
+    common_articles = ['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'al', 'del']
+    for art in common_articles:
+        # "losdemás" → "los demás"
+        text = re.sub(rf'\b({art})([a-záéíóúñ]{{3,}})', rf'\1 \2', text, flags=re.IGNORECASE)
+        # "delobrero" → "del obrero"
+        text = re.sub(rf'([a-záéíóúñ]{{3,}})({art})\b', rf'\1 \2', text, flags=re.IGNORECASE)
+    
+    # Patrón: "conlas" → "con las", "eneste" → "en este" (preposiciones pegadas)
+    common_preps = ['con', 'en', 'de', 'a', 'por', 'para', 'sin', 'sobre', 'entre', 'hasta', 'desde']
+    for prep in common_preps:
+        text = re.sub(rf'\b({prep})([a-záéíóúñ]{{3,}})', rf'\1 \2', text, flags=re.IGNORECASE)
+        text = re.sub(rf'([a-záéíóúñ]{{3,}})({prep})\b', rf'\1 \2', text, flags=re.IGNORECASE)
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # FASE 3: FRAGMENTACIÓN TRADICIONAL (sílabas sueltas)
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # Fragmentos muy cortos (1-2 letras)
     for _ in range(5):
         text = re.sub(r'\b(\w{1,2})\s+(\w{1,2})\b', r'\1\2', text)
     
-    # Segundo: fragmentos medianos (2-4 letras + 3-6 letras)
-    # Ejemplo: "pr ecise" → "precise"
+    # Fragmentos medianos (2-4 letras + 3-6 letras)
     for _ in range(3):
         text = re.sub(r'\b(\w{2,4})\s+(\w{3,6})\b', r'\1\2', text)
     
-    # 2. Remover guiones de separación de línea (ej: "trans- formación")
+    # ═══════════════════════════════════════════════════════════════════════
+    # FASE 4: LIMPIEZA GENERAL
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # Remover guiones de separación de línea (ej: "trans- formación")
     text = re.sub(r'(\w)-\s+(\w)', r'\1\2', text)
     
-    # 3. Normalizar espacios múltiples a un solo espacio
+    # Normalizar espacios múltiples a un solo espacio
     text = re.sub(r'\s{2,}', ' ', text)
     
-    # 4. Remover espacios antes de puntuación
-    text = re.sub(r'\s+([.,;:!?¿¡»])', r'\1', text)
+    # Remover espacios antes de puntuación
+    text = re.sub(r'\s+([.,;:!?¿¡»)])', r'\1', text)
     
-    # 5. Agregar espacio después de puntuación si no existe
-    text = re.sub(r'([.,;:!?])([A-Za-zÁ-úÑñ])', r'\1 \2', text)
+    # Agregar espacio después de puntuación si no existe
+    text = re.sub(r'([.,;:!?])([A-Za-zÁ-úÑñ¿¡])', r'\1 \2', text)
     
-    # 6. Trimear y retornar
+    # Espacios después de abrir paréntesis/comillas (quitar)
+    text = re.sub(r'([(\[{«"\'¿¡])\s+', r'\1', text)
+    
+    # Trimear y retornar
     return text.strip()
 
 
