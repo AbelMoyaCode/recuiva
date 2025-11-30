@@ -43,8 +43,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Verificar instalación de Tesseract y ocrmypdf
-RUN tesseract --version && tesseract --list-langs && ocrmypdf --version
+# Verificar instalación de Tesseract, ocrmypdf y pdftotext
+RUN tesseract --version && tesseract --list-langs && ocrmypdf --version && pdftotext -v
 
 # Copiar virtualenv desde builder
 COPY --from=builder /opt/venv /opt/venv

@@ -27,12 +27,16 @@ import shutil
 PDFTOTEXT_AVAILABLE = False
 
 try:
-    result = subprocess.run(['pdftotext', '-v'], capture_output=True, text=True, stderr=subprocess.STDOUT)
-    if 'pdftotext' in result.stdout.lower() or result.returncode == 0:
+    # pdftotext -v escribe la versión en stderr, no stdout
+    result = subprocess.run(['pdftotext', '-v'], capture_output=True, text=True)
+    # Combinar stdout y stderr para buscar la versión
+    output = (result.stdout + result.stderr).lower()
+    if 'pdftotext' in output or 'poppler' in output or result.returncode == 0:
         PDFTOTEXT_AVAILABLE = True
-        print("✅ pdftotext disponible (INSTANTÁNEO - primera opción)")
-except:
-    print("⚠️ pdftotext no disponible")
+        version_info = (result.stdout + result.stderr).strip().split('\n')[0]
+        print(f"✅ pdftotext disponible: {version_info} (INSTANTÁNEO - primera opción)")
+except Exception as e:
+    print(f"⚠️ pdftotext no disponible: {e}")
 
 # ═══════════════════════════════════════════════════════════════════════
 # OCRMYPDF - SEGUNDA OPCIÓN PARA PDFs CORRUPTOS
