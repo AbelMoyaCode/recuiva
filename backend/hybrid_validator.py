@@ -82,8 +82,26 @@ class HybridValidator:
         """
         Detecta si una pregunta es inferencial por palabras clave.
         
-        Las preguntas inferenciales requieren deducción/razonamiento
-        basado en el texto, no solo recuerdo literal.
+        BASADO EN: Taxonomía de Bloom + Investigación en Reading Comprehension
+        
+        NIVELES DE COMPRENSIÓN (Barrett, 1968; Bloom, 1956):
+        
+        1. LITERAL: Recordar información explícita del texto
+           - "¿Quién...?", "¿Cuándo...?", "¿Dónde...?", "¿Qué dijo...?"
+           
+        2. INFERENCIAL: Deducir información implícita
+           - "¿Por qué...?", "¿Qué sugiere...?", "¿Cómo se explica...?"
+           
+        3. CRÍTICO/EVALUATIVO: Juzgar y valorar
+           - "¿Qué opinas...?", "¿Estás de acuerdo...?"
+        
+        Las preguntas inferenciales requieren que el lector:
+        - Conecte información de diferentes partes del texto
+        - Use conocimiento previo + información del texto
+        - Haga deducciones lógicas
+        
+        Referencia: Education Endowment Foundation (2025), 
+        "Reading Comprehension Strategies" - Making inferences
         
         Args:
             question: Texto de la pregunta
@@ -91,55 +109,101 @@ class HybridValidator:
         Returns:
             bool: True si es inferencial, False si es literal
         """
+        # Keywords para preguntas INFERENCIALES (requieren razonamiento)
         inferential_keywords = [
-            'por qué', 'por que',
-            'qué razones', 'que razones',
-            'cómo deduce', 'como deduce',
-            'cómo se explica', 'como se explica',
-            'qué motivo', 'que motivo',
-            'qué evidencia', 'que evidencia',
-            'qué permite deducir', 'que permite deducir',
-            'qué sugiere', 'que sugiere',
-            'cómo sabes', 'como sabes',
-            'qué indicio', 'que indicio',
-            'qué detalle señala', 'que detalle señala'
+            # Causales - "¿Por qué?"
+            'por qué', 'por que', 'cuál es la razón', 'cual es la razon',
+            'qué razones', 'que razones', 'qué motivo', 'que motivo',
+            'a qué se debe', 'a que se debe', 'cómo se explica', 'como se explica',
+            
+            # Inferenciales - Deducción
+            'qué sugiere', 'que sugiere', 'qué indica', 'que indica',
+            'qué permite deducir', 'que permite deducir', 'qué implica', 'que implica',
+            'qué evidencia', 'que evidencia', 'qué indicio', 'que indicio',
+            'cómo deduce', 'como deduce', 'cómo sabes', 'como sabes',
+            'qué puedes inferir', 'que puedes inferir',
+            'qué conclusión', 'que conclusion',
+            
+            # Predictivas
+            'qué pasaría si', 'que pasaria si', 'qué crees que', 'que crees que',
+            'qué hubiera pasado', 'que hubiera pasado',
+            
+            # Comparativas/Analíticas
+            'en qué se diferencia', 'en que se diferencia',
+            'qué relación', 'que relacion', 'cómo se relaciona', 'como se relaciona',
+            'qué tienen en común', 'que tienen en comun',
+            
+            # Intenciones/Propósito
+            'con qué intención', 'con que intencion',
+            'para qué', 'para que', 'cuál es el propósito', 'cual es el proposito',
+            'qué pretende', 'que pretende'
         ]
+        
         question_lower = question.lower()
         return any(keyword in question_lower for keyword in inferential_keywords)
     
     def apply_pedagogical_boost(self, score_raw: float, cosine: float, 
                                 user_answer: str, ref_text: str, question: str = "") -> float:
         """
-        Booster pedagógico para respuestas concisas pero correctas
-        + boost inferencial para preguntas de razonamiento.
+        Booster pedagógico para respuestas de comprensión lectora.
         
-        Problema 1: embeddings penalizan asimetría de longitud.
-        Si el usuario sintetiza bien (pocas palabras, idea correcta),
-        el cosine baja artificialmente.
+        ═══════════════════════════════════════════════════════════════
+        BASADO EN INVESTIGACIÓN:
+        ═══════════════════════════════════════════════════════════════
         
-        Problema 2: preguntas inferenciales requieren razonamiento,
-        no solo recuerdo literal. Merecen reconocimiento extra.
+        1. Sentence-BERT (Reimers & Gurevych, 2019):
+           - Cosine similarity en embeddings tiene rango efectivo [0.3-0.8]
+           - Por debajo de 0.3: sin relación semántica
+           - Por encima de 0.6: alta similitud
+           
+        2. Short Answer Grading (Lloyd et al., 2022):
+           - Las respuestas parafraseadas son tan válidas como las literales
+           - El contenido semántico importa más que las palabras exactas
+           
+        3. Reading Comprehension Strategies (EEF, 2025):
+           - Preguntas inferenciales requieren conectar ideas
+           - La respuesta correcta puede NO contener palabras del texto
+           
+        ═══════════════════════════════════════════════════════════════
+        ESTRATEGIA DE BOOST:
+        ═══════════════════════════════════════════════════════════════
         
-        Soluciones:
-        - Boost por brevedad: si cosine >= 0.40 Y respuesta corta → x1.3-1.5
-        - Boost inferencial: si pregunta inferencial Y cosine >= 0.55 → x1.25
-        
-        Referencias: Gemini 3 Pro analysis (Nov 2025), GPT-4o recommendations
+        A) LITERAL (recuerdo directo):
+           - Threshold: cosine >= 0.40
+           - Boost: x1.3 si respuesta concisa
+           
+        B) INFERENCIAL (razonamiento):
+           - Threshold: cosine >= 0.35 (más flexible!)
+           - Boost: x1.4 (reconoce esfuerzo cognitivo mayor)
+           - El usuario puede usar palabras propias
         
         Args:
             score_raw: Score antes del boost [0,1]
-            cosine: Similitud de embeddings [0,1]
+            cosine: Similitud de embeddings normalizada [0,1]
             user_answer: Texto de la respuesta del usuario
             ref_text: Texto del chunk de referencia
-            question: Texto de la pregunta (opcional, para boost inferencial)
+            question: Texto de la pregunta (para detectar tipo)
             
         Returns:
             float: Score después del boost (máx 0.99)
         """
-        BASE_THRESHOLD = 0.40  # Mínimo cosine para aplicar boost
-        INFERENTIAL_THRESHOLD = 0.55  # Mínimo cosine para boost inferencial
+        is_inferential = question and self.is_inferential_question(question)
         
-        # Solo aplicar si hay similitud razonable
+        # Umbrales diferenciados según tipo de pregunta
+        if is_inferential:
+            # Preguntas inferenciales: más tolerantes
+            # El usuario usa sus propias palabras para explicar
+            BASE_THRESHOLD = 0.30      # Más bajo: permite parafraseo
+            BOOST_THRESHOLD = 0.35     # Umbral para boost
+            BOOST_FACTOR = 1.45        # Boost más alto: reconoce razonamiento
+            print(f"   🧠 Pregunta INFERENCIAL detectada - umbral flexible")
+        else:
+            # Preguntas literales: estándar
+            BASE_THRESHOLD = 0.40
+            BOOST_THRESHOLD = 0.45
+            BOOST_FACTOR = 1.30
+        
+        # Si está por debajo del umbral base, no hay boost
         if cosine < BASE_THRESHOLD:
             return score_raw
         
@@ -148,19 +212,23 @@ class HybridValidator:
         len_ref = max(len(ref_text.split()), 1)
         len_ratio = len_user / len_ref
         
-        # Boost 1: Respuestas concisas pero correctas
-        if len_ratio < 0.5:
-            # Boost progresivo según qué tan corta sea
-            boost_factor = 1.5 if len_ratio < 0.3 else 1.3
-            boosted = score_raw * boost_factor
-            return min(boosted, 0.99)  # Nunca 100% automático
+        boosted = score_raw
         
-        # Boost 2: Preguntas inferenciales bien razonadas
-        if question and self.is_inferential_question(question) and cosine >= INFERENTIAL_THRESHOLD:
-            boosted = score_raw * 1.25
-            return min(boosted, 0.99)
+        # Boost 1: Respuestas concisas pero correctas (síntesis)
+        if len_ratio < 0.5 and cosine >= BOOST_THRESHOLD:
+            # El usuario sintetizó bien la información
+            factor = 1.5 if len_ratio < 0.3 else 1.35
+            boosted = score_raw * factor
+            print(f"   📝 Boost síntesis aplicado: x{factor:.2f}")
         
-        return score_raw
+        # Boost 2: Preguntas inferenciales con respuesta razonada
+        elif is_inferential and cosine >= BOOST_THRESHOLD:
+            # El usuario demostró comprensión profunda
+            boosted = score_raw * BOOST_FACTOR
+            print(f"   🎯 Boost inferencial aplicado: x{BOOST_FACTOR:.2f}")
+        
+        # Limitar a 99% máximo (nunca dar 100% automáticamente)
+        return min(boosted, 0.99)
     
     def normalize_embedding(self, embedding: np.ndarray) -> np.ndarray:
         norm = np.linalg.norm(embedding)
