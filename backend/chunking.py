@@ -126,7 +126,7 @@ except ImportError:
     print("⚠️ text_normalizer no disponible")
 
 
-def extract_with_pdftotext(pdf_content: bytes) -> tuple[str, int]:
+def extract_with_pdftotext(pdf_content: bytes, original_filename: str = "documento") -> tuple[str, int]:
     """
     Extrae texto de un PDF usando pdftotext (poppler-utils)
     
@@ -134,9 +134,11 @@ def extract_with_pdftotext(pdf_content: bytes) -> tuple[str, int]:
     - INSTANTÁNEO (no hace OCR)
     - Extrae texto embebido real del PDF
     - Mantiene layout y espaciado correcto
+    - Guarda una copia .txt con el nombre original
     
     Args:
         pdf_content: Contenido del PDF en bytes
+        original_filename: Nombre del archivo PDF original
         
     Returns:
         tuple: (texto extraído, número de páginas)
@@ -171,13 +173,21 @@ def extract_with_pdftotext(pdf_content: bytes) -> tuple[str, int]:
         with open(output_path, 'r', encoding='utf-8', errors='ignore') as f:
             text = f.read()
         
-        # ✅ Guardar copia del TXT para verificación (en /data/)
+        # ✅ Guardar copia del TXT con el nombre original del PDF
         try:
             data_dir = os.environ.get('DATA_DIR', '/data')
-            txt_copy_path = os.path.join(data_dir, 'ultimo_pdf_convertido.txt')
+            txt_dir = os.path.join(data_dir, 'txt_convertidos')
+            os.makedirs(txt_dir, exist_ok=True)
+            
+            # Generar nombre del TXT basado en el PDF original
+            base_name = os.path.splitext(original_filename)[0]  # Quitar .pdf
+            txt_filename = f"{base_name}.txt"
+            txt_copy_path = os.path.join(txt_dir, txt_filename)
+            
             with open(txt_copy_path, 'w', encoding='utf-8') as f:
                 f.write(text)
-            print(f"   📄 TXT guardado en: {txt_copy_path}")
+            print(f"   📄 TXT guardado: {txt_filename}")
+            print(f"   📂 Ubicación: {txt_copy_path}")
         except Exception as e:
             print(f"   ⚠️ No se pudo guardar copia TXT: {e}")
         
@@ -557,7 +567,7 @@ def extract_with_pypdf2(pdf_content: bytes) -> Tuple[str, int, int]:
     return text.strip(), total_pages, error_count
 
 
-def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
+def extract_text_from_pdf(pdf_content: bytes, original_filename: str = "documento.pdf") -> tuple[str, int]:
     """
     Extrae texto de un archivo PDF usando métodos RÁPIDOS (sin OCR)
     
@@ -573,6 +583,7 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     
     Args:
         pdf_content: Contenido del PDF en bytes
+        original_filename: Nombre del archivo PDF original (para guardar TXT)
         
     Returns:
         tuple: (texto extraído, número total de páginas)
@@ -580,6 +591,7 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     import gc
     
     print(f"📖 Extrayendo texto del PDF (modo rápido, sin OCR)...")
+    print(f"   📁 Archivo: {original_filename}")
     
     # ═══════════════════════════════════════════════════════════════════════
     # PASO 1: PDFTOTEXT (INSTANTÁNEO - Primera opción)
@@ -587,7 +599,7 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     if PDFTOTEXT_AVAILABLE:
         print("   ⚡ Intentando pdftotext (instantáneo)...")
         try:
-            text_pdftotext, pages_pdftotext = extract_with_pdftotext(pdf_content)
+            text_pdftotext, pages_pdftotext = extract_with_pdftotext(pdf_content, original_filename)
             
             if len(text_pdftotext.strip()) > 50:
                 print(f"   ✅ pdftotext exitoso: {len(text_pdftotext)} chars, {pages_pdftotext} páginas")

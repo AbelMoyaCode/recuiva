@@ -390,7 +390,7 @@ async def upload_material(
         if file.filename.endswith('.pdf'):
             print("📄 Extrayendo texto de PDF...")
             await send_progress('extracting', '📖 Extrayendo texto de PDF...', 15)
-            text, pdf_page_count = extract_text_from_pdf(content)
+            text, pdf_page_count = extract_text_from_pdf(content, file.filename)
             print(f"📄 PDF con {pdf_page_count} páginas reales")
             await send_progress('extracted', f'✅ Texto extraído: {pdf_page_count} páginas', 25, {'pages': pdf_page_count})
         else:
