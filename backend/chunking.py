@@ -4,11 +4,16 @@ Divide textos largos en fragmentos manejables para embeddings
 
 Autor: Abel Jesús Moya Acosta
 Fecha: 7 de octubre de 2025
+
+✅ ACTUALIZADO: Usando PyMuPDF (fitz) en lugar de PyPDF2
+   - Mejor extracción de texto
+   - Mantiene espaciado correcto
+   - Más rápido y preciso
 """
 
 import re
 from typing import List
-import PyPDF2
+import fitz  # PyMuPDF - MEJOR que PyPDF2
 from io import BytesIO
 
 # ✅ NUEVO: Importar normalizador para limpiar chunks de errores OCR
@@ -20,9 +25,16 @@ except ImportError:
     NORMALIZER_AVAILABLE = False
     print("⚠️ text_normalizer no disponible, chunks pueden tener errores OCR")
 
+
 def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     """
-    Extrae texto de un archivo PDF
+    Extrae texto de un archivo PDF usando PyMuPDF (fitz)
+    
+    ✅ VENTAJAS sobre PyPDF2:
+    - Mejor manejo de espacios entre palabras
+    - Detecta estructura de párrafos
+    - Más rápido (C++ backend)
+    - Soporta más formatos de PDF
     
     Args:
         pdf_content: Contenido del PDF en bytes
@@ -31,24 +43,65 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
         tuple: (texto extraído, número total de páginas)
     """
     try:
-        pdf_file = BytesIO(pdf_content)
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        # Abrir PDF desde bytes
+        pdf_document = fitz.open(stream=pdf_content, filetype="pdf")
         
         text = ""
-        total_pages = len(pdf_reader.pages)
+        total_pages = len(pdf_document)
         
-        print(f"📖 Extrayendo texto de {total_pages} páginas...")
+        print(f"📖 Extrayendo texto de {total_pages} páginas con PyMuPDF...")
         
-        for i, page in enumerate(pdf_reader.pages):
+        for i, page in enumerate(pdf_document):
             if i % 10 == 0:
                 print(f"   Procesando página {i+1}/{total_pages}...")
-            text += page.extract_text() + "\n"
+            
+            # ✅ Extraer texto con opciones mejoradas
+            # flags: TEXT_PRESERVE_WHITESPACE mantiene espacios correctos
+            page_text = page.get_text("text", flags=fitz.TEXT_PRESERVE_WHITESPACE)
+            
+            # Limpiar saltos de línea excesivos pero mantener párrafos
+            page_text = re.sub(r'\n{3,}', '\n\n', page_text)
+            
+            text += page_text + "\n\n"
         
-        print(f"✅ Texto extraído: {len(text)} caracteres de {total_pages} páginas")
+        pdf_document.close()
+        
+        # Limpieza adicional
+        text = clean_extracted_text(text)
+        
+        print(f"✅ Texto extraído: {len(text)} caracteres de {total_pages} páginas (PyMuPDF)")
         return text.strip(), total_pages
         
     except Exception as e:
-        raise Exception(f"Error extrayendo texto del PDF: {str(e)}")
+        raise Exception(f"Error extrayendo texto del PDF con PyMuPDF: {str(e)}")
+
+
+def clean_extracted_text(text: str) -> str:
+    """
+    Limpieza específica para texto extraído por PyMuPDF
+    
+    Args:
+        text: Texto crudo extraído
+        
+    Returns:
+        str: Texto limpio
+    """
+    # Remover caracteres de control excepto saltos de línea
+    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
+    
+    # Normalizar espacios (pero no saltos de línea)
+    text = re.sub(r'[^\S\n]+', ' ', text)
+    
+    # Unir palabras cortadas por guión al final de línea
+    text = re.sub(r'(\w)-\n(\w)', r'\1\2', text)
+    
+    # Remover líneas que solo tienen números (paginación)
+    text = re.sub(r'^\s*\d+\s*$', '', text, flags=re.MULTILINE)
+    
+    # Remover líneas vacías múltiples
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    
+    return text.strip()
 
 def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> List[str]:
     """
