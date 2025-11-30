@@ -258,6 +258,25 @@ def detect_corrupted_text(text: str) -> Tuple[bool, str]:
     if no_vowel_words > 10:
         return True, f"Palabras sin vocales ({no_vowel_words})"
     
+    # 7. ✅ NUEVO: Detectar espacios insertados incorrectamente dentro de palabras
+    # Patrón: letra espacio 1-2 letras espacio letra (ej: "d e l a" o "rein a")
+    fragmented_words = len(re.findall(r'\b[a-záéíóú]\s[a-záéíóú]{1,2}\s[a-záéíóú]', text.lower()))
+    if fragmented_words > 20:
+        return True, f"Palabras fragmentadas por espacios ({fragmented_words})"
+    
+    # 8. ✅ NUEVO: Detectar palabras pegadas sin espacios
+    # Patrón: secuencias muy largas de letras minúsculas (>25 caracteres sin espacio)
+    glued_words = len(re.findall(r'[a-záéíóú]{25,}', text.lower()))
+    if glued_words > 10:
+        return True, f"Palabras pegadas sin espacios ({glued_words})"
+    
+    # 9. ✅ NUEVO: Detectar patrón específico de espaciado incorrecto
+    # "del a" en lugar de "de la", "enwww" en lugar de "en www"
+    bad_spacing_patterns = len(re.findall(r'\b(de|en|la|el|un|los|las|por|con)\s[a-z]\s', text.lower()))
+    bad_spacing_patterns += len(re.findall(r'[a-z](www|http|com|org|net)', text.lower()))
+    if bad_spacing_patterns > 15:
+        return True, f"Espaciado incorrecto detectado ({bad_spacing_patterns})"
+    
     return False, "Texto parece normal"
 
 
