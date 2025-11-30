@@ -2,11 +2,21 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Instalar dependencias del sistema
+# ═══════════════════════════════════════════════════════════════════════
+# INSTALAR DEPENDENCIAS DEL SISTEMA
+# ═══════════════════════════════════════════════════════════════════════
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    # ✅ TESSERACT OCR - Para extracción de texto de PDFs
+    tesseract-ocr \
+    tesseract-ocr-spa \
+    # ✅ POPPLER - Requerido por pdf2image para convertir PDF a imágenes
+    poppler-utils \
     && rm -rf /var/lib/apt/lists/*
+
+# Verificar instalación de Tesseract
+RUN tesseract --version && tesseract --list-langs
 
 # Copiar requirements
 COPY backend/requirements.txt .

@@ -5,36 +5,169 @@ Divide textos largos en fragmentos manejables para embeddings
 Autor: Abel Jesús Moya Acosta
 Fecha: 7 de octubre de 2025
 
-✅ ACTUALIZADO: Usando PyMuPDF (fitz) en lugar de PyPDF2
-   - Mejor extracción de texto
-   - Mantiene espaciado correcto
-   - Más rápido y preciso
+✅ ACTUALIZADO: Sistema con Tesseract OCR REAL
+   - PRIMERO intenta Tesseract OCR (lee imágenes, mejor calidad)
+   - Si Tesseract falla, usa PyMuPDF o PyPDF2 como fallback
+   - Normalización agresiva post-extracción
 """
 
 import re
-from typing import List
-import fitz  # PyMuPDF - MEJOR que PyPDF2
+from typing import List, Tuple
 from io import BytesIO
+import os
 
-# ✅ NUEVO: Importar normalizador para limpiar chunks de errores OCR
+# ═══════════════════════════════════════════════════════════════════════
+# TESSERACT OCR - MEJOR CALIDAD (lee la imagen visual del PDF)
+# ═══════════════════════════════════════════════════════════════════════
+TESSERACT_AVAILABLE = False
+
+# Rutas posibles de Tesseract según SO
+TESSERACT_PATHS = [
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe",  # Windows
+    "/usr/bin/tesseract",                              # Linux (Docker/Ubuntu)
+    "/usr/local/bin/tesseract",                        # macOS Homebrew
+]
+
+try:
+    import pytesseract
+    from pdf2image import convert_from_bytes
+    
+    # Buscar Tesseract en las rutas conocidas
+    tesseract_found = False
+    for path in TESSERACT_PATHS:
+        if os.path.exists(path):
+            pytesseract.pytesseract.tesseract_cmd = path
+            tesseract_found = True
+            break
+    
+    # Si no se encontró en rutas conocidas, intentar usar el del PATH del sistema
+    if not tesseract_found:
+        # En Linux/Docker, tesseract suele estar en PATH
+        import shutil
+        tesseract_in_path = shutil.which("tesseract")
+        if tesseract_in_path:
+            pytesseract.pytesseract.tesseract_cmd = tesseract_in_path
+            tesseract_found = True
+    
+    if tesseract_found:
+        # Verificar que funciona
+        version = pytesseract.get_tesseract_version()
+        TESSERACT_AVAILABLE = True
+        print(f"✅ Tesseract OCR v{version} disponible (MEJOR CALIDAD)")
+    else:
+        print(f"⚠️ Tesseract no encontrado en rutas conocidas ni en PATH")
+        
+except ImportError as e:
+    print(f"⚠️ pytesseract o pdf2image no disponible: {e}")
+except Exception as e:
+    print(f"⚠️ Error inicializando Tesseract: {e}")
+
+# ═══════════════════════════════════════════════════════════════════════
+# FALLBACKS: PyMuPDF y PyPDF2
+# ═══════════════════════════════════════════════════════════════════════
+try:
+    import fitz  # PyMuPDF
+    PYMUPDF_AVAILABLE = True
+    print("✅ PyMuPDF disponible (fallback)")
+except ImportError:
+    PYMUPDF_AVAILABLE = False
+    print("⚠️ PyMuPDF no disponible")
+
+try:
+    import PyPDF2
+    PYPDF2_AVAILABLE = True
+    print("✅ PyPDF2 disponible (fallback)")
+except ImportError:
+    PYPDF2_AVAILABLE = False
+    print("⚠️ PyPDF2 no disponible")
+
+# ✅ Normalizador para limpiar chunks de errores OCR
 try:
     from text_normalizer import normalize_text
     NORMALIZER_AVAILABLE = True
     print("✅ text_normalizer cargado - chunks serán normalizados")
 except ImportError:
     NORMALIZER_AVAILABLE = False
-    print("⚠️ text_normalizer no disponible, chunks pueden tener errores OCR")
+    print("⚠️ text_normalizer no disponible")
+
+
+def extract_with_tesseract(pdf_content: bytes) -> Tuple[str, int, int]:
+    """
+    Extrae texto usando Tesseract OCR REAL
+    
+    Convierte cada página del PDF a imagen y aplica OCR.
+    MEJOR para PDFs con texto corrupto o escaneados.
+    """
+    print("🔍 Usando Tesseract OCR (mejor calidad)...")
+    
+    # Convertir PDF a imágenes (una por página)
+    images = convert_from_bytes(pdf_content, dpi=300)
+    total_pages = len(images)
+    
+    text = ""
+    error_count = 0
+    
+    for i, image in enumerate(images):
+        if i % 5 == 0:
+            print(f"   OCR página {i+1}/{total_pages}...")
+        
+        # Aplicar OCR con idioma español
+        page_text = pytesseract.image_to_string(image, lang='spa+eng')
+        
+        # Contar posibles errores
+        error_count += len(re.findall(r'[a-z]{3,}[A-Z][a-z]{2,}', page_text))
+        error_count += len(re.findall(r'\b\w{1,2}\s+\w{1,2}\s+\w{1,2}\b', page_text))
+        
+        text += page_text + "\n\n"
+    
+    print(f"   ✅ Tesseract completado: {len(text)} caracteres")
+    return text.strip(), total_pages, error_count
+
+
+def extract_with_pymupdf(pdf_content: bytes) -> Tuple[str, int, int]:
+    """Extrae texto con PyMuPDF"""
+    pdf_document = fitz.open(stream=pdf_content, filetype="pdf")
+    text = ""
+    total_pages = len(pdf_document)
+    error_count = 0
+    
+    for page in pdf_document:
+        page_text = page.get_text("text")
+        # Contar errores de OCR (palabras pegadas o fragmentadas)
+        error_count += len(re.findall(r'[a-z]{3,}[A-Z][a-z]{2,}', page_text))  # palabrasPegadas
+        error_count += len(re.findall(r'\b\w{1,2}\s+\w{1,2}\s+\w{1,2}\b', page_text))  # f ra g men tos
+        text += page_text + "\n\n"
+    
+    pdf_document.close()
+    return text.strip(), total_pages, error_count
+
+
+def extract_with_pypdf2(pdf_content: bytes) -> Tuple[str, int, int]:
+    """Extrae texto con PyPDF2"""
+    pdf_file = BytesIO(pdf_content)
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
+    text = ""
+    total_pages = len(pdf_reader.pages)
+    error_count = 0
+    
+    for page in pdf_reader.pages:
+        page_text = page.extract_text() or ""
+        error_count += len(re.findall(r'[a-z]{3,}[A-Z][a-z]{2,}', page_text))
+        error_count += len(re.findall(r'\b\w{1,2}\s+\w{1,2}\s+\w{1,2}\b', page_text))
+        text += page_text + "\n"
+    
+    return text.strip(), total_pages, error_count
 
 
 def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     """
-    Extrae texto de un archivo PDF usando PyMuPDF (fitz)
+    Extrae texto de un archivo PDF usando el mejor método disponible
     
-    ✅ VENTAJAS sobre PyPDF2:
-    - Mejor manejo de espacios entre palabras
-    - Detecta estructura de párrafos
-    - Más rápido (C++ backend)
-    - Soporta más formatos de PDF
+    ✅ ESTRATEGIA (en orden de preferencia):
+    1. Tesseract OCR (MEJOR - lee imagen visual)
+    2. PyMuPDF como fallback
+    3. PyPDF2 como último recurso
+    4. Aplica normalización agresiva al final
     
     Args:
         pdf_content: Contenido del PDF en bytes
@@ -42,64 +175,142 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     Returns:
         tuple: (texto extraído, número total de páginas)
     """
-    try:
-        # Abrir PDF desde bytes
-        pdf_document = fitz.open(stream=pdf_content, filetype="pdf")
-        
-        text = ""
-        total_pages = len(pdf_document)
-        
-        print(f"📖 Extrayendo texto de {total_pages} páginas con PyMuPDF...")
-        
-        for i, page in enumerate(pdf_document):
-            if i % 10 == 0:
-                print(f"   Procesando página {i+1}/{total_pages}...")
-            
-            # ✅ Extraer texto con opciones mejoradas
-            # flags: TEXT_PRESERVE_WHITESPACE mantiene espacios correctos
-            page_text = page.get_text("text", flags=fitz.TEXT_PRESERVE_WHITESPACE)
-            
-            # Limpiar saltos de línea excesivos pero mantener párrafos
-            page_text = re.sub(r'\n{3,}', '\n\n', page_text)
-            
-            text += page_text + "\n\n"
-        
-        pdf_document.close()
-        
-        # Limpieza adicional
-        text = clean_extracted_text(text)
-        
-        print(f"✅ Texto extraído: {len(text)} caracteres de {total_pages} páginas (PyMuPDF)")
-        return text.strip(), total_pages
-        
-    except Exception as e:
-        raise Exception(f"Error extrayendo texto del PDF con PyMuPDF: {str(e)}")
+    results = []
+    
+    print(f"📖 Extrayendo texto del PDF...")
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # OPCIÓN 1: Tesseract OCR (MEJOR CALIDAD)
+    # ═══════════════════════════════════════════════════════════════════════
+    if TESSERACT_AVAILABLE:
+        try:
+            text_tess, pages_tess, errors_tess = extract_with_tesseract(pdf_content)
+            results.append(('Tesseract', text_tess, pages_tess, errors_tess))
+            print(f"   Tesseract: {len(text_tess)} chars, {errors_tess} errores detectados")
+        except Exception as e:
+            print(f"   ❌ Tesseract falló: {e}")
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # FALLBACKS: PyMuPDF y PyPDF2
+    # ═══════════════════════════════════════════════════════════════════════
+    if PYMUPDF_AVAILABLE:
+        try:
+            text_mupdf, pages_mupdf, errors_mupdf = extract_with_pymupdf(pdf_content)
+            results.append(('PyMuPDF', text_mupdf, pages_mupdf, errors_mupdf))
+            print(f"   PyMuPDF: {len(text_mupdf)} chars, {errors_mupdf} errores detectados")
+        except Exception as e:
+            print(f"   ❌ PyMuPDF falló: {e}")
+    
+    if PYPDF2_AVAILABLE:
+        try:
+            text_pypdf2, pages_pypdf2, errors_pypdf2 = extract_with_pypdf2(pdf_content)
+            results.append(('PyPDF2', text_pypdf2, pages_pypdf2, errors_pypdf2))
+            print(f"   PyPDF2: {len(text_pypdf2)} chars, {errors_pypdf2} errores detectados")
+        except Exception as e:
+            print(f"   ❌ PyPDF2 falló: {e}")
+    
+    if not results:
+        raise Exception("No se pudo extraer texto del PDF con ningún método")
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # ELEGIR EL MEJOR RESULTADO
+    # Prioridad: Tesseract > menos errores > más texto
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # Si Tesseract está disponible y funcionó, usarlo siempre
+    tesseract_result = next((r for r in results if r[0] == 'Tesseract'), None)
+    if tesseract_result and len(tesseract_result[1]) > 100:
+        best = tesseract_result
+        print(f"   ✅ Usando Tesseract OCR (mejor calidad)")
+    else:
+        # Fallback: elegir el método con menos errores
+        best = min(results, key=lambda x: x[3])  # x[3] = error_count
+        print(f"   ✅ Usando {best[0]} (menos errores: {best[3]})")
+    best = min(results, key=lambda x: x[3])  # x[3] = error_count
+    print(f"   ✅ Usando {best[0]} (menos errores: {best[3]})")
+    
+    text = best[1]
+    total_pages = best[2]
+    
+    # Limpiar texto extraído
+    text = aggressive_text_cleanup(text)
+    
+    print(f"✅ Texto extraído: {len(text)} caracteres de {total_pages} páginas")
+    return text, total_pages
 
 
-def clean_extracted_text(text: str) -> str:
+def aggressive_text_cleanup(text: str) -> str:
     """
-    Limpieza específica para texto extraído por PyMuPDF
+    Limpieza AGRESIVA de texto extraído de PDF
     
-    Args:
-        text: Texto crudo extraído
-        
-    Returns:
-        str: Texto limpio
+    Corrige los errores más comunes de OCR/extracción:
+    - Palabras pegadas: "serreconocido" → "ser reconocido"
+    - Fragmentación: "histori a" → "historia"
+    - Espacios en medio: "quienlohabí a" → "quien lo había"
     """
-    # Remover caracteres de control excepto saltos de línea
-    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
+    if not text:
+        return text
     
-    # Normalizar espacios (pero no saltos de línea)
-    text = re.sub(r'[^\S\n]+', ' ', text)
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 1: Separar palabras pegadas (camelCase accidental)
+    # ═══════════════════════════════════════════════════════════════════════
+    # "serreconocido" → "ser reconocido" (minúscula seguida de mayúscula)
+    text = re.sub(r'([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])', r'\1 \2', text)
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 2: Unir fragmentos sueltos (errores OCR típicos)
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # Patrón: "palabra + espacio + 1-3 letras" → unir
+    # Ej: "histori a" → "historia", "Henriet te" → "Henriette"
+    for _ in range(5):  # Repetir varias veces para casos anidados
+        text = re.sub(r'(\w{3,})\s+([a-záéíóúñ]{1,3})\b', r'\1\2', text, flags=re.IGNORECASE)
+    
+    # Patrón: "1-4 letras + espacio + palabra" → unir
+    # Ej: "a doptar" → "adoptar"
+    for _ in range(3):
+        text = re.sub(r'\b([a-záéíóúñ]{1,4})\s+([a-záéíóúñ]{3,})', r'\1\2', text, flags=re.IGNORECASE)
+    
+    # Patrón: Mayúscula + espacio + resto
+    # Ej: "V alorbe" → "Valorbe"
+    text = re.sub(r'\b([A-ZÁÉÍÓÚÑ])\s+([a-záéíóúñ]{2,})', r'\1\2', text)
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 3: Separar palabras que deberían estar separadas
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # Artículos pegados a palabras
+    articles = ['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'al', 'del']
+    for art in articles:
+        # "losdemás" → "los demás"
+        text = re.sub(rf'\b({art})([a-záéíóúñ]{{3,}})', rf'\1 \2', text, flags=re.IGNORECASE)
+    
+    # Preposiciones pegadas
+    preps = ['con', 'en', 'de', 'por', 'para', 'sin', 'sobre', 'entre', 'hasta', 'desde', 'como', 'que']
+    for prep in preps:
+        text = re.sub(rf'\b({prep})([a-záéíóúñ]{{3,}})', rf'\1 \2', text, flags=re.IGNORECASE)
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 4: Limpiar puntuación y espacios
+    # ═══════════════════════════════════════════════════════════════════════
     
     # Unir palabras cortadas por guión al final de línea
-    text = re.sub(r'(\w)-\n(\w)', r'\1\2', text)
+    text = re.sub(r'(\w)-\s*\n\s*(\w)', r'\1\2', text)
+    
+    # Múltiples espacios → uno solo
+    text = re.sub(r'[ \t]+', ' ', text)
+    
+    # Múltiples saltos de línea → máximo 2
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    
+    # Espacios antes de puntuación
+    text = re.sub(r'\s+([.,;:!?])', r'\1', text)
+    
+    # Espacio después de puntuación si falta
+    text = re.sub(r'([.,;:!?])([a-záéíóúñA-ZÁÉÍÓÚÑ¿¡])', r'\1 \2', text)
     
     # Remover líneas que solo tienen números (paginación)
     text = re.sub(r'^\s*\d+\s*$', '', text, flags=re.MULTILINE)
-    
-    # Remover líneas vacías múltiples
-    text = re.sub(r'\n{3,}', '\n\n', text)
     
     return text.strip()
 
