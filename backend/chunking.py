@@ -171,6 +171,16 @@ def extract_with_pdftotext(pdf_content: bytes) -> tuple[str, int]:
         with open(output_path, 'r', encoding='utf-8', errors='ignore') as f:
             text = f.read()
         
+        # ✅ Guardar copia del TXT para verificación (en /data/)
+        try:
+            data_dir = os.environ.get('DATA_DIR', '/data')
+            txt_copy_path = os.path.join(data_dir, 'ultimo_pdf_convertido.txt')
+            with open(txt_copy_path, 'w', encoding='utf-8') as f:
+                f.write(text)
+            print(f"   📄 TXT guardado en: {txt_copy_path}")
+        except Exception as e:
+            print(f"   ⚠️ No se pudo guardar copia TXT: {e}")
+        
         # Contar páginas con PyMuPDF o estimación
         num_pages = 1
         if PYMUPDF_AVAILABLE:
