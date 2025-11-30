@@ -285,88 +285,59 @@ def repair_corrupted_spacing(text: str) -> str:
     """
     Repara texto con espaciado corrupto de PDFs con fuentes propietarias
     
-    ✅ ESTRATEGIA AGRESIVA:
-    1. Primero: Unir fragmentos de palabras (quitar espacios incorrectos)
-    2. Segundo: Separar palabras pegadas
-    3. Tercero: Correcciones específicas
+    ✅ ESTRATEGIA GENÉRICA (funciona para cualquier PDF):
+    1. Unir fragmentos de palabras (espacios incorrectos dentro de palabras)
+    2. Separar palabras pegadas usando patrones del español
+    3. Limpieza final
     """
     if not text or len(text) < 50:
         return text
     
     # ═══════════════════════════════════════════════════════════════════════
     # PASO 1: UNIR FRAGMENTOS DE PALABRAS
-    # Patrón: letra(s) + espacio + 1-2 letras + espacio/fin
+    # Patrón: palabra + espacio + 1-2 letras sueltas
     # Ejemplo: "rein a" → "reina", "histori a" → "historia"
     # ═══════════════════════════════════════════════════════════════════════
     
-    # Unir fragmentos: "palabra a" o "palabr a" → "palabraa" o "palabra"
     for _ in range(10):  # Múltiples pasadas para casos anidados
         old_text = text
-        # Patrón: palabra + espacio + 1-2 letras al final
-        text = re.sub(r'(\b\w{2,})\s+([a-záéíóúñ]{1,2})\b', r'\1\2', text)
-        # Patrón: 1-2 letras + espacio + palabra
-        text = re.sub(r'\b([a-záéíóúñ]{1,2})\s+(\w{2,}\b)', r'\1\2', text)
+        # Unir: "palabr a" → "palabra" (palabra + espacio + 1-2 letras)
+        text = re.sub(r'(\b\w{2,})\s+([a-záéíóúñ]{1,2})\b(?!\s+[a-záéíóúñ]{1,2}\b)', r'\1\2', text)
+        # Unir: "a doptar" → "adoptar" (1-2 letras + espacio + palabra)
+        text = re.sub(r'\b([a-záéíóúñ]{1,2})\s+([a-záéíóúñ]{3,}\b)', r'\1\2', text)
         if text == old_text:
             break
     
-    # Casos especiales de fragmentación
-    text = re.sub(r'\bdel\s+a\s+', 'de la ', text)  # "del a " → "de la "
-    text = re.sub(r'\bEL\s+EJANDRI\s+A\b', 'ALEJANDRÍA', text, flags=re.IGNORECASE)
-    text = re.sub(r'\bel\s+ejandri\s+a\b', 'alejandría', text, flags=re.IGNORECASE)
-    text = re.sub(r'\bA\s+ustria\b', 'Austria', text)
-    text = re.sub(r'\bcon\s+de\s+sa\b', 'condesa', text, flags=re.IGNORECASE)
-    
     # ═══════════════════════════════════════════════════════════════════════
     # PASO 2: SEPARAR PALABRAS PEGADAS
+    # Usar artículos, preposiciones y conjunciones del español
     # ═══════════════════════════════════════════════════════════════════════
     
-    # Artículos pegados
-    articles = ['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'al', 'del']
-    for art in articles:
-        # "losbailes" → "los bailes"
-        text = re.sub(rf'\b({art})([a-záéíóúñ]{{3,}})', rf'\1 \2', text, flags=re.IGNORECASE)
+    # Casos especiales: preposición + artículo pegados (dela, delos, enla, etc.)
+    text = re.sub(r'\b(de)(l?[ao]s?)\b', r'\1 \2', text, flags=re.IGNORECASE)  # dela → de la
+    text = re.sub(r'\b(en)(l?[ao]s?)\b', r'\1 \2', text, flags=re.IGNORECASE)  # enla → en la
+    text = re.sub(r'\b(con)(l?[ao]s?)\b', r'\1 \2', text, flags=re.IGNORECASE)  # conla → con la
+    text = re.sub(r'\b(por)(l?[ao]s?)\b', r'\1 \2', text, flags=re.IGNORECASE)  # porla → por la
+    text = re.sub(r'\b(para)(l?[ao]s?)\b', r'\1 \2', text, flags=re.IGNORECASE)  # parala → para la
+    text = re.sub(r'\b(sin)(l?[ao]s?)\b', r'\1 \2', text, flags=re.IGNORECASE)  # sinla → sin la
     
-    # Preposiciones pegadas
-    preps = ['con', 'en', 'de', 'por', 'para', 'sin', 'sobre', 'entre', 'hasta', 'desde', 'como', 'que']
-    for prep in preps:
-        text = re.sub(rf'\b({prep})([a-záéíóúñ]{{3,}})', rf'\1 \2', text, flags=re.IGNORECASE)
+    # Artículos pegados a la siguiente palabra (3+ letras)
+    text = re.sub(r'\b(el|la|los|las|un|una|unos|unas)([a-záéíóúñ]{3,})', r'\1 \2', text, flags=re.IGNORECASE)
     
-    # Patrones específicos de palabras pegadas
-    pegadas = [
-        (r'\bdeobras\b', 'de obras'),
-        (r'\bdominio\s*público\b', 'dominio público'),
-        (r'\bELcollar\b', 'El collar'),
-        (r'\bMaurice\s*LEBLANC\b', 'Maurice Leblanc'),
-        (r'\bcomolos\b', 'como los'),
-        (r'\bDosotresveces\b', 'Dos o tres veces'),
-        (r'\bsolemnidades\s*importantes\b', 'solemnidades importantes'),
-        (r'\blucíasobresus\b', 'lucía sobre sus'),
-        (r'\bblancos\s*hombros\b', 'blancos hombros'),
-        (r'\bmaravilloso\s*collar\b', 'maravilloso collar'),
-        (r'\bembajad\s*ade\b', 'embajada de'),
-        (r'\bveladas\s*delady\b', 'veladas de lady'),
-        (r'\bconmotivo\b', 'con motivo'),
-        (r'\balaño\b', 'al año'),
-        (r'\benefecto\b', 'en efecto'),
-        (r'\btalcomo\b', 'tal como'),
-        (r'\bdurante\s*casi\b', 'durante casi'),
-        (r'\bcasiunsiglo\b', 'casi un siglo'),
-        (r'\btrendevida\b', 'tren de vida'),
-        (r'\bantesque\b', 'antes que'),
-        (r'\benajenar\b', 'enajenar'),
-        (r'\bLIBRO\s*DE\s*SCARGADO\b', 'Libro descargado', re.IGNORECASE),
-        (r'\bTUSITIOWEB\b', 'tu sitio web'),
-        (r'\bESPERAMOSQUELO\b', 'Esperamos que lo'),
-        (r'\bDISFRUTÉIS\b', 'disfrutéis'),
-        (r'\bPROJECT\s*GUTENBERG\b', 'Project Gutenberg'),
-    ]
+    # Preposiciones pegadas (3+ letras después)
+    text = re.sub(r'\b(de|del|al|en|con|por|para|sin|sobre|entre|hasta|desde|hacia)([a-záéíóúñ]{3,})', r'\1 \2', text, flags=re.IGNORECASE)
     
-    for pattern, replacement in pegadas:
-        if len(pattern) > 2:  # Evitar patrones muy cortos
-            try:
-                text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
-            except:
-                pass
+    # Conjunciones pegadas
+    text = re.sub(r'\b(y|e|o|u|que|como|si|ni|pero|sino|aunque)([a-záéíóúñ]{3,})', r'\1 \2', text, flags=re.IGNORECASE)
+    
+    # Pronombres pegados
+    text = re.sub(r'\b(se|me|te|nos|os|lo|le|les|su|sus)([a-záéíóúñ]{3,})', r'\1 \2', text, flags=re.IGNORECASE)
+    
+    # Verbos comunes pegados
+    text = re.sub(r'\b(es|era|fue|son|han|ha|hay|tiene|tenía)([a-záéíóúñ]{3,})', r'\1 \2', text, flags=re.IGNORECASE)
+    
+    # Adverbios pegados
+    text = re.sub(r'\b(no|ya|muy|tan|más|menos|bien|mal|solo)([a-záéíóúñ]{3,})', r'\1 \2', text, flags=re.IGNORECASE)
     
     # ═══════════════════════════════════════════════════════════════════════
     # PASO 3: LIMPIEZA FINAL
@@ -378,7 +349,7 @@ def repair_corrupted_spacing(text: str) -> str:
     # Espacios antes de puntuación
     text = re.sub(r'\s+([.,;:!?])', r'\1', text)
     
-    # Espacio después de puntuación
+    # Espacio después de puntuación si falta
     text = re.sub(r'([.,;:!?])([a-záéíóúñA-ZÁÉÍÓÚÑ¿¡])', r'\1 \2', text)
     
     return text
