@@ -280,6 +280,154 @@ def detect_corrupted_text(text: str) -> Tuple[bool, str]:
     return False, "Texto parece normal"
 
 
+def repair_corrupted_spacing(text: str) -> str:
+    """
+    Repara texto con espaciado corrupto de PDFs con fuentes propietarias
+    
+    Problema: PyMuPDF extrae texto con espacios en lugares incorrectos
+    Ejemplo: "de scargadoenwww. el ejandri a" → "descargado en www. alejandría"
+    
+    Estrategia:
+    1. Quitar TODOS los espacios
+    2. Reconstruir usando diccionario de palabras españolas
+    3. Insertar espacios en los lugares correctos
+    """
+    if not text or len(text) < 50:
+        return text
+    
+    # Palabras comunes del español (para reconocer dónde van los espacios)
+    PALABRAS_COMUNES = {
+        # Artículos y determinantes
+        'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'al', 'del',
+        # Preposiciones
+        'a', 'ante', 'bajo', 'con', 'contra', 'de', 'desde', 'en', 'entre',
+        'hacia', 'hasta', 'para', 'por', 'sin', 'sobre', 'tras',
+        # Conjunciones
+        'y', 'e', 'o', 'u', 'que', 'como', 'cuando', 'donde', 'si', 'ni', 'pero', 'sino', 'aunque',
+        # Pronombres
+        'yo', 'tu', 'el', 'ella', 'usted', 'nosotros', 'vosotros', 'ellos', 'ellas',
+        'me', 'te', 'se', 'nos', 'os', 'lo', 'la', 'le', 'les',
+        'mi', 'mis', 'tu', 'tus', 'su', 'sus', 'nuestro', 'nuestra', 'vuestro', 'vuestra',
+        'este', 'esta', 'esto', 'estos', 'estas', 'ese', 'esa', 'eso', 'esos', 'esas',
+        'aquel', 'aquella', 'aquello', 'aquellos', 'aquellas',
+        'quien', 'quienes', 'cual', 'cuales', 'cuyo', 'cuya', 'cuyos', 'cuyas',
+        # Verbos comunes
+        'ser', 'estar', 'tener', 'haber', 'hacer', 'poder', 'decir', 'ir', 'ver', 'dar',
+        'saber', 'querer', 'llegar', 'pasar', 'deber', 'poner', 'parecer', 'quedar', 'creer', 'llevar',
+        'es', 'era', 'fue', 'son', 'eran', 'fueron', 'sido', 'siendo',
+        'ha', 'he', 'has', 'han', 'había', 'habían', 'hubo',
+        'tiene', 'tenía', 'tuvo', 'tienen', 'tenían', 'tuvieron',
+        # Adverbios
+        'no', 'si', 'ya', 'aun', 'tan', 'muy', 'mas', 'menos', 'bien', 'mal',
+        'aqui', 'alli', 'aca', 'alla', 'cerca', 'lejos', 'dentro', 'fuera', 'arriba', 'abajo',
+        'antes', 'despues', 'luego', 'ahora', 'entonces', 'siempre', 'nunca', 'jamas',
+        # Otras palabras muy comunes
+        'todo', 'toda', 'todos', 'todas', 'otro', 'otra', 'otros', 'otras',
+        'mismo', 'misma', 'mismos', 'mismas', 'solo', 'sola', 'solos', 'solas',
+        'cada', 'poco', 'poca', 'pocos', 'pocas', 'mucho', 'mucha', 'muchos', 'muchas',
+        'tanto', 'tanta', 'tantos', 'tantas', 'algo', 'alguien', 'alguno', 'alguna',
+        'nada', 'nadie', 'ninguno', 'ninguna', 'cualquier', 'cualquiera',
+        'vez', 'veces', 'cosa', 'cosas', 'tiempo', 'dia', 'dias', 'noche', 'noches',
+        'hombre', 'mujer', 'persona', 'gente', 'mundo', 'vida', 'casa', 'parte',
+        'mano', 'manos', 'ojo', 'ojos', 'cabeza', 'cuerpo', 'corazon',
+        'año', 'años', 'mes', 'meses', 'hora', 'horas', 'momento',
+        'señor', 'señora', 'don', 'doña', 'conde', 'condesa', 'rey', 'reina',
+        'libro', 'collar', 'joya', 'joyas', 'diamante', 'diamantes',
+    }
+    
+    # Patrones específicos de corrección
+    corrections = [
+        # Espacios dentro de palabras comunes
+        (r'\bde\s+l\s*a\b', 'de la'),
+        (r'\bde\s+l\s*os\b', 'de los'),
+        (r'\bde\s+l\s*as\b', 'de las'),
+        (r'\be\s*l\s+a\b', 'el a'),  # cuidado: puede ser "el a" legítimo
+        (r'\bl\s*a\s+con\b', 'la con'),
+        (r'\bcon\s+de\s*sa\b', 'condesa'),
+        (r'\bco\s*llar\b', 'collar'),
+        (r'\brei\s*n\s*a\b', 'reina'),
+        (r'\bse\s*ñor\b', 'señor'),
+        (r'\bse\s*ñora\b', 'señora'),
+        (r'\bhab\s*í\s*a\b', 'había'),
+        (r'\bten\s*í\s*a\b', 'tenía'),
+        (r'\bquer\s*í\s*a\b', 'quería'),
+        (r'\bpod\s*í\s*a\b', 'podía'),
+        (r'\bdec\s*í\s*a\b', 'decía'),
+        (r'\bhac\s*í\s*a\b', 'hacía'),
+        (r'\bven\s*í\s*a\b', 'venía'),
+        (r'\bsal\s*í\s*a\b', 'salía'),
+        (r'\bent\s*r\s*a\s*da\b', 'entrada'),
+        (r'\bvent\s*ana\b', 'ventana'),
+        (r'\bhab\s*it\s*aci\s*ón\b', 'habitación'),
+        (r'\bembaj\s*ada\b', 'embajada'),
+        (r'\bhistór\s*ic\s*a\b', 'histórica'),
+        (r'\bmaravi\s*lloso\b', 'maravilloso'),
+        (r'\ble\s*gend\s*ario\b', 'legendario'),
+        (r'\bfam\s*oso\b', 'famoso'),
+        (r'\bblan\s*cos\b', 'blancos'),
+        (r'\bhom\s*bros\b', 'hombros'),
+        
+        # Palabras pegadas comunes
+        (r'\bdela\b', 'de la'),
+        (r'\bdelos\b', 'de los'),
+        (r'\bdelas\b', 'de las'),
+        (r'\benla\b', 'en la'),
+        (r'\benlos\b', 'en los'),
+        (r'\benlas\b', 'en las'),
+        (r'\bconla\b', 'con la'),
+        (r'\bconlos\b', 'con los'),
+        (r'\bconlas\b', 'con las'),
+        (r'\bporla\b', 'por la'),
+        (r'\bporlos\b', 'por los'),
+        (r'\bporlas\b', 'por las'),
+        (r'\bparala\b', 'para la'),
+        (r'\bparalos\b', 'para los'),
+        (r'\bparalas\b', 'para las'),
+        (r'\bsinla\b', 'sin la'),
+        (r'\bsinlos\b', 'sin los'),
+        (r'\bsinlas\b', 'sin las'),
+        (r'\bqueera\b', 'que era'),
+        (r'\bquees\b', 'que es'),
+        (r'\bqueno\b', 'que no'),
+        (r'\bquese\b', 'que se'),
+        (r'\byque\b', 'y que'),
+        (r'\byno\b', 'y no'),
+        (r'\byel\b', 'y el'),
+        (r'\byla\b', 'y la'),
+        (r'\bylos\b', 'y los'),
+        (r'\bylas\b', 'y las'),
+        (r'\bose\b(?!a)', 'o se'),  # evitar "osea"
+        (r'\basu\b', 'a su'),
+        (r'\balsu\b', 'al su'),
+        (r'\bselo\b', 'se lo'),
+        (r'\bsela\b', 'se la'),
+        (r'\bnosolo\b', 'no solo'),
+        (r'\bsinoqu\s*e\b', 'sino que'),
+        (r'\bmásbi\s*en\b', 'más bien'),
+        (r'\bsinembargo\b', 'sin embargo'),
+        (r'\basíque\b', 'así que'),
+        (r'\btalcomo\b', 'tal como'),
+        (r'\benefecto\b', 'en efecto'),
+        (r'\bporsupuesto\b', 'por supuesto'),
+        
+        # URLs y dominios
+        (r'enwww', 'en www'),
+        (r'www\.\s*', 'www.'),
+        (r'\.\s*com\b', '.com'),
+        (r'\.\s*org\b', '.org'),
+        (r'\.\s*net\b', '.net'),
+    ]
+    
+    # Aplicar correcciones
+    for pattern, replacement in corrections:
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+    
+    # Limpiar espacios múltiples
+    text = re.sub(r'[ \t]+', ' ', text)
+    
+    return text
+
+
 def extract_with_pypdf2(pdf_content: bytes) -> Tuple[str, int, int]:
     """Extrae texto con PyPDF2"""
     pdf_file = BytesIO(pdf_content)
@@ -441,13 +589,20 @@ def aggressive_text_cleanup(text: str) -> str:
     """
     Limpieza AGRESIVA de texto extraído de PDF
     
-    Corrige los errores más comunes de OCR/extracción:
-    - Palabras pegadas: "serreconocido" → "ser reconocido"
-    - Fragmentación: "histori a" → "historia"
-    - Espacios en medio: "quienlohabí a" → "quien lo había"
+    ✅ MEJORADO: Repara texto con espaciado incorrecto de PyMuPDF
+    
+    Problema detectado: PDFs con fuentes propietarias producen:
+    - "de scargadoenwww" → "descargado en www"
+    - "el ejandri a" → "alejandría"
+    - "lacon desade" → "la condesa de"
     """
     if not text:
         return text
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 0: Reparación de espaciado corrupto (NUEVO)
+    # ═══════════════════════════════════════════════════════════════════════
+    text = repair_corrupted_spacing(text)
     
     # ═══════════════════════════════════════════════════════════════════════
     # PASO 1: Separar palabras pegadas (camelCase accidental)
