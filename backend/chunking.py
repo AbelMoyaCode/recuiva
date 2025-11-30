@@ -126,15 +126,16 @@ def extract_with_tesseract(pdf_content: bytes) -> Tuple[str, int, int]:
         total_pages = 0
     
     # Si el PDF es muy grande (>100 páginas), usar DPI más bajo o fallback
+    # ✅ MEJORADO: DPI más alto para mejor calidad de OCR
     if total_pages > 100:
-        print(f"   ⚠️ PDF muy grande ({total_pages} págs), usando DPI bajo (100) para ahorrar memoria")
-        dpi = 100
-    elif total_pages > 50:
-        print(f"   📄 PDF mediano ({total_pages} págs), usando DPI 150")
+        print(f"   ⚠️ PDF muy grande ({total_pages} págs), usando DPI 150 para ahorrar memoria")
         dpi = 150
-    else:
-        print(f"   📄 PDF pequeño ({total_pages} págs), usando DPI 200")
+    elif total_pages > 50:
+        print(f"   📄 PDF mediano ({total_pages} págs), usando DPI 200")
         dpi = 200
+    else:
+        print(f"   📄 PDF pequeño ({total_pages} págs), usando DPI 300 (alta calidad)")
+        dpi = 300
     
     text = ""
     error_count = 0
@@ -284,146 +285,101 @@ def repair_corrupted_spacing(text: str) -> str:
     """
     Repara texto con espaciado corrupto de PDFs con fuentes propietarias
     
-    Problema: PyMuPDF extrae texto con espacios en lugares incorrectos
-    Ejemplo: "de scargadoenwww. el ejandri a" → "descargado en www. alejandría"
-    
-    Estrategia:
-    1. Quitar TODOS los espacios
-    2. Reconstruir usando diccionario de palabras españolas
-    3. Insertar espacios en los lugares correctos
+    ✅ ESTRATEGIA AGRESIVA:
+    1. Primero: Unir fragmentos de palabras (quitar espacios incorrectos)
+    2. Segundo: Separar palabras pegadas
+    3. Tercero: Correcciones específicas
     """
     if not text or len(text) < 50:
         return text
     
-    # Palabras comunes del español (para reconocer dónde van los espacios)
-    PALABRAS_COMUNES = {
-        # Artículos y determinantes
-        'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'al', 'del',
-        # Preposiciones
-        'a', 'ante', 'bajo', 'con', 'contra', 'de', 'desde', 'en', 'entre',
-        'hacia', 'hasta', 'para', 'por', 'sin', 'sobre', 'tras',
-        # Conjunciones
-        'y', 'e', 'o', 'u', 'que', 'como', 'cuando', 'donde', 'si', 'ni', 'pero', 'sino', 'aunque',
-        # Pronombres
-        'yo', 'tu', 'el', 'ella', 'usted', 'nosotros', 'vosotros', 'ellos', 'ellas',
-        'me', 'te', 'se', 'nos', 'os', 'lo', 'la', 'le', 'les',
-        'mi', 'mis', 'tu', 'tus', 'su', 'sus', 'nuestro', 'nuestra', 'vuestro', 'vuestra',
-        'este', 'esta', 'esto', 'estos', 'estas', 'ese', 'esa', 'eso', 'esos', 'esas',
-        'aquel', 'aquella', 'aquello', 'aquellos', 'aquellas',
-        'quien', 'quienes', 'cual', 'cuales', 'cuyo', 'cuya', 'cuyos', 'cuyas',
-        # Verbos comunes
-        'ser', 'estar', 'tener', 'haber', 'hacer', 'poder', 'decir', 'ir', 'ver', 'dar',
-        'saber', 'querer', 'llegar', 'pasar', 'deber', 'poner', 'parecer', 'quedar', 'creer', 'llevar',
-        'es', 'era', 'fue', 'son', 'eran', 'fueron', 'sido', 'siendo',
-        'ha', 'he', 'has', 'han', 'había', 'habían', 'hubo',
-        'tiene', 'tenía', 'tuvo', 'tienen', 'tenían', 'tuvieron',
-        # Adverbios
-        'no', 'si', 'ya', 'aun', 'tan', 'muy', 'mas', 'menos', 'bien', 'mal',
-        'aqui', 'alli', 'aca', 'alla', 'cerca', 'lejos', 'dentro', 'fuera', 'arriba', 'abajo',
-        'antes', 'despues', 'luego', 'ahora', 'entonces', 'siempre', 'nunca', 'jamas',
-        # Otras palabras muy comunes
-        'todo', 'toda', 'todos', 'todas', 'otro', 'otra', 'otros', 'otras',
-        'mismo', 'misma', 'mismos', 'mismas', 'solo', 'sola', 'solos', 'solas',
-        'cada', 'poco', 'poca', 'pocos', 'pocas', 'mucho', 'mucha', 'muchos', 'muchas',
-        'tanto', 'tanta', 'tantos', 'tantas', 'algo', 'alguien', 'alguno', 'alguna',
-        'nada', 'nadie', 'ninguno', 'ninguna', 'cualquier', 'cualquiera',
-        'vez', 'veces', 'cosa', 'cosas', 'tiempo', 'dia', 'dias', 'noche', 'noches',
-        'hombre', 'mujer', 'persona', 'gente', 'mundo', 'vida', 'casa', 'parte',
-        'mano', 'manos', 'ojo', 'ojos', 'cabeza', 'cuerpo', 'corazon',
-        'año', 'años', 'mes', 'meses', 'hora', 'horas', 'momento',
-        'señor', 'señora', 'don', 'doña', 'conde', 'condesa', 'rey', 'reina',
-        'libro', 'collar', 'joya', 'joyas', 'diamante', 'diamantes',
-    }
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 1: UNIR FRAGMENTOS DE PALABRAS
+    # Patrón: letra(s) + espacio + 1-2 letras + espacio/fin
+    # Ejemplo: "rein a" → "reina", "histori a" → "historia"
+    # ═══════════════════════════════════════════════════════════════════════
     
-    # Patrones específicos de corrección
-    corrections = [
-        # Espacios dentro de palabras comunes
-        (r'\bde\s+l\s*a\b', 'de la'),
-        (r'\bde\s+l\s*os\b', 'de los'),
-        (r'\bde\s+l\s*as\b', 'de las'),
-        (r'\be\s*l\s+a\b', 'el a'),  # cuidado: puede ser "el a" legítimo
-        (r'\bl\s*a\s+con\b', 'la con'),
-        (r'\bcon\s+de\s*sa\b', 'condesa'),
-        (r'\bco\s*llar\b', 'collar'),
-        (r'\brei\s*n\s*a\b', 'reina'),
-        (r'\bse\s*ñor\b', 'señor'),
-        (r'\bse\s*ñora\b', 'señora'),
-        (r'\bhab\s*í\s*a\b', 'había'),
-        (r'\bten\s*í\s*a\b', 'tenía'),
-        (r'\bquer\s*í\s*a\b', 'quería'),
-        (r'\bpod\s*í\s*a\b', 'podía'),
-        (r'\bdec\s*í\s*a\b', 'decía'),
-        (r'\bhac\s*í\s*a\b', 'hacía'),
-        (r'\bven\s*í\s*a\b', 'venía'),
-        (r'\bsal\s*í\s*a\b', 'salía'),
-        (r'\bent\s*r\s*a\s*da\b', 'entrada'),
-        (r'\bvent\s*ana\b', 'ventana'),
-        (r'\bhab\s*it\s*aci\s*ón\b', 'habitación'),
-        (r'\bembaj\s*ada\b', 'embajada'),
-        (r'\bhistór\s*ic\s*a\b', 'histórica'),
-        (r'\bmaravi\s*lloso\b', 'maravilloso'),
-        (r'\ble\s*gend\s*ario\b', 'legendario'),
-        (r'\bfam\s*oso\b', 'famoso'),
-        (r'\bblan\s*cos\b', 'blancos'),
-        (r'\bhom\s*bros\b', 'hombros'),
-        
-        # Palabras pegadas comunes
-        (r'\bdela\b', 'de la'),
-        (r'\bdelos\b', 'de los'),
-        (r'\bdelas\b', 'de las'),
-        (r'\benla\b', 'en la'),
-        (r'\benlos\b', 'en los'),
-        (r'\benlas\b', 'en las'),
-        (r'\bconla\b', 'con la'),
-        (r'\bconlos\b', 'con los'),
-        (r'\bconlas\b', 'con las'),
-        (r'\bporla\b', 'por la'),
-        (r'\bporlos\b', 'por los'),
-        (r'\bporlas\b', 'por las'),
-        (r'\bparala\b', 'para la'),
-        (r'\bparalos\b', 'para los'),
-        (r'\bparalas\b', 'para las'),
-        (r'\bsinla\b', 'sin la'),
-        (r'\bsinlos\b', 'sin los'),
-        (r'\bsinlas\b', 'sin las'),
-        (r'\bqueera\b', 'que era'),
-        (r'\bquees\b', 'que es'),
-        (r'\bqueno\b', 'que no'),
-        (r'\bquese\b', 'que se'),
-        (r'\byque\b', 'y que'),
-        (r'\byno\b', 'y no'),
-        (r'\byel\b', 'y el'),
-        (r'\byla\b', 'y la'),
-        (r'\bylos\b', 'y los'),
-        (r'\bylas\b', 'y las'),
-        (r'\bose\b(?!a)', 'o se'),  # evitar "osea"
-        (r'\basu\b', 'a su'),
-        (r'\balsu\b', 'al su'),
-        (r'\bselo\b', 'se lo'),
-        (r'\bsela\b', 'se la'),
-        (r'\bnosolo\b', 'no solo'),
-        (r'\bsinoqu\s*e\b', 'sino que'),
-        (r'\bmásbi\s*en\b', 'más bien'),
-        (r'\bsinembargo\b', 'sin embargo'),
-        (r'\basíque\b', 'así que'),
-        (r'\btalcomo\b', 'tal como'),
+    # Unir fragmentos: "palabra a" o "palabr a" → "palabraa" o "palabra"
+    for _ in range(10):  # Múltiples pasadas para casos anidados
+        old_text = text
+        # Patrón: palabra + espacio + 1-2 letras al final
+        text = re.sub(r'(\b\w{2,})\s+([a-záéíóúñ]{1,2})\b', r'\1\2', text)
+        # Patrón: 1-2 letras + espacio + palabra
+        text = re.sub(r'\b([a-záéíóúñ]{1,2})\s+(\w{2,}\b)', r'\1\2', text)
+        if text == old_text:
+            break
+    
+    # Casos especiales de fragmentación
+    text = re.sub(r'\bdel\s+a\s+', 'de la ', text)  # "del a " → "de la "
+    text = re.sub(r'\bEL\s+EJANDRI\s+A\b', 'ALEJANDRÍA', text, flags=re.IGNORECASE)
+    text = re.sub(r'\bel\s+ejandri\s+a\b', 'alejandría', text, flags=re.IGNORECASE)
+    text = re.sub(r'\bA\s+ustria\b', 'Austria', text)
+    text = re.sub(r'\bcon\s+de\s+sa\b', 'condesa', text, flags=re.IGNORECASE)
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 2: SEPARAR PALABRAS PEGADAS
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # Artículos pegados
+    articles = ['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'al', 'del']
+    for art in articles:
+        # "losbailes" → "los bailes"
+        text = re.sub(rf'\b({art})([a-záéíóúñ]{{3,}})', rf'\1 \2', text, flags=re.IGNORECASE)
+    
+    # Preposiciones pegadas
+    preps = ['con', 'en', 'de', 'por', 'para', 'sin', 'sobre', 'entre', 'hasta', 'desde', 'como', 'que']
+    for prep in preps:
+        text = re.sub(rf'\b({prep})([a-záéíóúñ]{{3,}})', rf'\1 \2', text, flags=re.IGNORECASE)
+    
+    # Patrones específicos de palabras pegadas
+    pegadas = [
+        (r'\bdeobras\b', 'de obras'),
+        (r'\bdominio\s*público\b', 'dominio público'),
+        (r'\bELcollar\b', 'El collar'),
+        (r'\bMaurice\s*LEBLANC\b', 'Maurice Leblanc'),
+        (r'\bcomolos\b', 'como los'),
+        (r'\bDosotresveces\b', 'Dos o tres veces'),
+        (r'\bsolemnidades\s*importantes\b', 'solemnidades importantes'),
+        (r'\blucíasobresus\b', 'lucía sobre sus'),
+        (r'\bblancos\s*hombros\b', 'blancos hombros'),
+        (r'\bmaravilloso\s*collar\b', 'maravilloso collar'),
+        (r'\bembajad\s*ade\b', 'embajada de'),
+        (r'\bveladas\s*delady\b', 'veladas de lady'),
+        (r'\bconmotivo\b', 'con motivo'),
+        (r'\balaño\b', 'al año'),
         (r'\benefecto\b', 'en efecto'),
-        (r'\bporsupuesto\b', 'por supuesto'),
-        
-        # URLs y dominios
-        (r'enwww', 'en www'),
-        (r'www\.\s*', 'www.'),
-        (r'\.\s*com\b', '.com'),
-        (r'\.\s*org\b', '.org'),
-        (r'\.\s*net\b', '.net'),
+        (r'\btalcomo\b', 'tal como'),
+        (r'\bdurante\s*casi\b', 'durante casi'),
+        (r'\bcasiunsiglo\b', 'casi un siglo'),
+        (r'\btrendevida\b', 'tren de vida'),
+        (r'\bantesque\b', 'antes que'),
+        (r'\benajenar\b', 'enajenar'),
+        (r'\bLIBRO\s*DE\s*SCARGADO\b', 'Libro descargado', re.IGNORECASE),
+        (r'\bTUSITIOWEB\b', 'tu sitio web'),
+        (r'\bESPERAMOSQUELO\b', 'Esperamos que lo'),
+        (r'\bDISFRUTÉIS\b', 'disfrutéis'),
+        (r'\bPROJECT\s*GUTENBERG\b', 'Project Gutenberg'),
     ]
     
-    # Aplicar correcciones
-    for pattern, replacement in corrections:
-        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+    for pattern, replacement in pegadas:
+        if len(pattern) > 2:  # Evitar patrones muy cortos
+            try:
+                text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+            except:
+                pass
     
-    # Limpiar espacios múltiples
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 3: LIMPIEZA FINAL
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # Múltiples espacios → uno solo
     text = re.sub(r'[ \t]+', ' ', text)
+    
+    # Espacios antes de puntuación
+    text = re.sub(r'\s+([.,;:!?])', r'\1', text)
+    
+    # Espacio después de puntuación
+    text = re.sub(r'([.,;:!?])([a-záéíóúñA-ZÁÉÍÓÚÑ¿¡])', r'\1 \2', text)
     
     return text
 
