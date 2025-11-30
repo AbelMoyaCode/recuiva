@@ -430,6 +430,231 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   };
 
+  // ✅ CORRECCIÓN PROFESOR: Validación robusta de controles de entrada
+  // =====================================
+  // FUNCIONES DE VALIDACIÓN
+  // =====================================
+  
+  // Validar nombre: solo letras, espacios, acentos. NO puntos consecutivos ni caracteres especiales
+  function validateName(name) {
+    const errors = [];
+    
+    // No puede estar vacío
+    if (!name.trim()) {
+      errors.push('El nombre es requerido');
+      return { valid: false, errors };
+    }
+    
+    // No puede tener puntos consecutivos
+    if (/\.{2,}/.test(name)) {
+      errors.push('No se permiten puntos consecutivos (..)');
+    }
+    
+    // No puede empezar o terminar con punto
+    if (name.startsWith('.') || name.endsWith('.')) {
+      errors.push('El nombre no puede empezar ni terminar con punto');
+    }
+    
+    // Solo permitir letras, espacios, acentos y guiones
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-]+$/.test(name.replace(/\./g, ''))) {
+      errors.push('El nombre solo puede contener letras, espacios y guiones');
+    }
+    
+    // Mínimo 2 caracteres
+    if (name.trim().length < 2) {
+      errors.push('El nombre debe tener al menos 2 caracteres');
+    }
+    
+    // Máximo 100 caracteres
+    if (name.length > 100) {
+      errors.push('El nombre no puede exceder 100 caracteres');
+    }
+    
+    return { valid: errors.length === 0, errors };
+  }
+  
+  // Validar email: formato correcto, sin puntos consecutivos
+  function validateEmail(email) {
+    const errors = [];
+    
+    if (!email.trim()) {
+      errors.push('El correo electrónico es requerido');
+      return { valid: false, errors };
+    }
+    
+    // No puede tener puntos consecutivos en ninguna parte
+    if (/\.{2,}/.test(email)) {
+      errors.push('No se permiten puntos consecutivos (..) en el correo');
+    }
+    
+    // No puede empezar con punto
+    if (email.startsWith('.')) {
+      errors.push('El correo no puede empezar con punto');
+    }
+    
+    // Validar formato general de email
+    const emailRegex = /^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      errors.push('Formato de correo electrónico inválido');
+    }
+    
+    // No puede haber punto antes del @
+    if (/@/.test(email) && email.split('@')[0].endsWith('.')) {
+      errors.push('No puede haber un punto justo antes del @');
+    }
+    
+    return { valid: errors.length === 0, errors };
+  }
+  
+  // Validar username: alfanumérico, guiones bajos, puntos (pero no consecutivos)
+  function validateUsername(username) {
+    const errors = [];
+    
+    if (!username.trim()) {
+      errors.push('El nombre de usuario es requerido');
+      return { valid: false, errors };
+    }
+    
+    // No puede tener puntos consecutivos
+    if (/\.{2,}/.test(username)) {
+      errors.push('No se permiten puntos consecutivos (..)');
+    }
+    
+    // Solo alfanumérico, guiones bajos y puntos
+    if (!/^[a-zA-Z0-9._]+$/.test(username)) {
+      errors.push('Solo se permiten letras, números, puntos y guiones bajos');
+    }
+    
+    // No puede empezar ni terminar con punto o guión bajo
+    if (/^[._]|[._]$/.test(username)) {
+      errors.push('No puede empezar ni terminar con punto o guión bajo');
+    }
+    
+    // Mínimo 3 caracteres
+    if (username.length < 3) {
+      errors.push('El nombre de usuario debe tener al menos 3 caracteres');
+    }
+    
+    // Máximo 30 caracteres
+    if (username.length > 30) {
+      errors.push('El nombre de usuario no puede exceder 30 caracteres');
+    }
+    
+    return { valid: errors.length === 0, errors };
+  }
+  
+  // Validar contraseña
+  function validatePassword(password) {
+    const errors = [];
+    
+    if (!password) {
+      errors.push('La contraseña es requerida');
+      return { valid: false, errors };
+    }
+    
+    if (password.length < 6) {
+      errors.push('La contraseña debe tener al menos 6 caracteres');
+    }
+    
+    if (password.length > 128) {
+      errors.push('La contraseña no puede exceder 128 caracteres');
+    }
+    
+    return { valid: errors.length === 0, errors };
+  }
+  
+  // Mostrar error en campo
+  function showFieldError(inputId, errors) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    // Remover error anterior
+    clearFieldError(inputId);
+    
+    if (errors.length > 0) {
+      input.classList.add('border-red-500', 'bg-red-50');
+      input.classList.remove('border-green-500', 'bg-green-50');
+      
+      const errorDiv = document.createElement('div');
+      errorDiv.id = `${inputId}-error`;
+      errorDiv.className = 'text-red-500 text-xs mt-1 flex items-center gap-1';
+      errorDiv.innerHTML = `<span class="material-symbols-outlined text-sm">error</span>${errors[0]}`;
+      input.parentNode.appendChild(errorDiv);
+    } else {
+      input.classList.add('border-green-500', 'bg-green-50');
+      input.classList.remove('border-red-500', 'bg-red-50');
+    }
+  }
+  
+  // Limpiar error de campo
+  function clearFieldError(inputId) {
+    const errorDiv = document.getElementById(`${inputId}-error`);
+    if (errorDiv) errorDiv.remove();
+    
+    const input = document.getElementById(inputId);
+    if (input) {
+      input.classList.remove('border-red-500', 'bg-red-50', 'border-green-500', 'bg-green-50');
+    }
+  }
+  
+  // =====================================
+  // VALIDACIÓN EN TIEMPO REAL
+  // =====================================
+  const nameInput = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const usernameInput = document.getElementById('username');
+  const passwordInputField = document.getElementById('password');
+  const passwordConfirmField = document.getElementById('password-confirm');
+  
+  if (nameInput) {
+    nameInput.addEventListener('blur', function() {
+      const result = validateName(this.value);
+      showFieldError('name', result.errors);
+    });
+    nameInput.addEventListener('input', function() {
+      // Limpiar caracteres no permitidos mientras escribe
+      clearFieldError('name');
+    });
+  }
+  
+  if (emailInput) {
+    emailInput.addEventListener('blur', function() {
+      const result = validateEmail(this.value);
+      showFieldError('email', result.errors);
+    });
+    emailInput.addEventListener('input', function() {
+      clearFieldError('email');
+    });
+  }
+  
+  if (usernameInput) {
+    usernameInput.addEventListener('blur', function() {
+      const result = validateUsername(this.value);
+      showFieldError('username', result.errors);
+    });
+    usernameInput.addEventListener('input', function() {
+      clearFieldError('username');
+    });
+  }
+  
+  if (passwordInputField) {
+    passwordInputField.addEventListener('blur', function() {
+      const result = validatePassword(this.value);
+      showFieldError('password', result.errors);
+    });
+  }
+  
+  if (passwordConfirmField) {
+    passwordConfirmField.addEventListener('blur', function() {
+      const password = document.getElementById('password').value;
+      if (this.value && this.value !== password) {
+        showFieldError('password-confirm', ['Las contraseñas no coinciden']);
+      } else if (this.value) {
+        showFieldError('password-confirm', []);
+      }
+    });
+  }
+
   const form = document.getElementById('signup-form');
   const modal = document.getElementById('verification-modal');
   const timerSpan = document.getElementById('timer');
@@ -450,14 +675,51 @@ document.addEventListener('DOMContentLoaded', () => {
       const passwordConfirm = document.getElementById('password-confirm').value;
       const termsAccepted = document.getElementById('terms-and-conditions').checked;
       
-      // Validaciones
-      if (!termsAccepted) {
-        alert('Debes aceptar los términos y condiciones');
-        return;
+      // ✅ CORRECCIÓN PROFESOR: Validaciones robustas
+      let hasErrors = false;
+      
+      // Validar nombre
+      const nameResult = validateName(name);
+      if (!nameResult.valid) {
+        showFieldError('name', nameResult.errors);
+        hasErrors = true;
       }
       
+      // Validar email
+      const emailResult = validateEmail(email);
+      if (!emailResult.valid) {
+        showFieldError('email', emailResult.errors);
+        hasErrors = true;
+      }
+      
+      // Validar username
+      const usernameResult = validateUsername(username);
+      if (!usernameResult.valid) {
+        showFieldError('username', usernameResult.errors);
+        hasErrors = true;
+      }
+      
+      // Validar contraseña
+      const passwordResult = validatePassword(password);
+      if (!passwordResult.valid) {
+        showFieldError('password', passwordResult.errors);
+        hasErrors = true;
+      }
+      
+      // Validar confirmación de contraseña
       if (password !== passwordConfirm) {
-        alert('Las contraseñas no coinciden');
+        showFieldError('password-confirm', ['Las contraseñas no coinciden']);
+        hasErrors = true;
+      }
+      
+      // Validar términos
+      if (!termsAccepted) {
+        alert('Debes aceptar los términos y condiciones');
+        hasErrors = true;
+      }
+      
+      // Si hay errores, no continuar
+      if (hasErrors) {
         return;
       }
       

@@ -500,6 +500,149 @@ function closeErrorModal() {
 }
 
 // ===================================================================
+// ✅ CORRECCIÓN PROFESOR: Función para generar acordeón con porcentajes detallados
+// "colócalo el porcentaje... como un acordeón, para ver si quieres el análisis detallado"
+// ===================================================================
+function generateDetailsAccordion(result) {
+  // Extraer detalles del bestMatchChunk si están disponibles
+  const chunk = result.bestMatchChunk || {};
+  const fullResult = result.fullResult || {};
+  
+  // Intentar obtener los pesos de diferentes fuentes
+  const weights = {
+    bm25: 0.05,     // 5% por defecto
+    cosine: 0.80,   // 80% por defecto  
+    coverage: 0.15  // 15% por defecto
+  };
+  
+  // Calcular valores aproximados basados en el score final si no tenemos detalles
+  const finalScore = result.score * 100;
+  
+  // Extraer keywords si están disponibles
+  const keywords = chunk.keywords_found || [];
+  const keywordsHtml = keywords.length > 0 
+    ? `<div class="flex flex-wrap gap-1.5 mt-2">
+        ${keywords.slice(0, 8).map(kw => `<span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">${kw}</span>`).join('')}
+       </div>`
+    : '';
+  
+  // Obtener nivel de lectura/categoría
+  const readingLevel = chunk.reading_level || 'N/A';
+  const levelColors = {
+    'excelente': 'bg-green-100 text-green-800',
+    'bueno': 'bg-blue-100 text-blue-800',
+    'aceptable': 'bg-yellow-100 text-yellow-800',
+    'necesita_mejorar': 'bg-red-100 text-red-800'
+  };
+  const levelColor = levelColors[readingLevel] || 'bg-gray-100 text-gray-800';
+  const levelEmoji = {
+    'excelente': '🌟',
+    'bueno': '👍',
+    'aceptable': '📖',
+    'necesita_mejorar': '📚'
+  };
+  
+  return `
+    <details class="mt-4 border-t border-gray-200 pt-3">
+      <summary class="cursor-pointer text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-2 select-none">
+        <span class="material-symbols-outlined text-lg transition-transform">expand_more</span>
+        📊 Ver análisis detallado (desglose de porcentajes)
+      </summary>
+      
+      <div class="mt-4 space-y-4 animate-fadeIn">
+        <!-- Título del desglose -->
+        <div class="text-sm font-bold text-gray-700 flex items-center gap-2">
+          <span class="material-symbols-outlined text-indigo-600">analytics</span>
+          Desglose del Score Híbrido
+        </div>
+        
+        <!-- Fórmula usada -->
+        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+          <p class="text-xs text-indigo-700 font-medium mb-2">📐 Fórmula de Validación Híbrida:</p>
+          <code class="text-sm bg-white px-2 py-1 rounded border border-indigo-200 block text-center">
+            Score = (BM25 × <strong>5%</strong>) + (Cosine × <strong>80%</strong>) + (Coverage × <strong>15%</strong>)
+          </code>
+        </div>
+        
+        <!-- Barras de progreso para cada componente -->
+        <div class="space-y-3">
+          <!-- BM25 (Léxico) -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm text-amber-600">text_fields</span>
+                BM25 (Coincidencias léxicas)
+              </span>
+              <span class="text-xs font-bold text-amber-700">5% del total</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+              <div class="bg-amber-500 h-2.5 rounded-full" style="width: 5%"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Busca palabras exactas o similares en el material.</p>
+          </div>
+          
+          <!-- Cosine (Semántico) -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm text-blue-600">psychology</span>
+                Cosine Similarity (Semántico)
+              </span>
+              <span class="text-xs font-bold text-blue-700">80% del total</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+              <div class="bg-blue-600 h-2.5 rounded-full" style="width: 80%"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Mide similitud de significado usando embeddings de Sentence Transformers.</p>
+          </div>
+          
+          <!-- Coverage (Cobertura) -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm text-green-600">check_circle</span>
+                Coverage (Cobertura de keywords)
+              </span>
+              <span class="text-xs font-bold text-green-700">15% del total</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+              <div class="bg-green-500 h-2.5 rounded-full" style="width: 15%"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Verifica cuántas palabras clave del material incluiste.</p>
+          </div>
+        </div>
+        
+        <!-- Keywords encontradas -->
+        ${keywords.length > 0 ? `
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
+          <p class="text-xs font-semibold text-purple-700 mb-2">
+            <span class="material-symbols-outlined text-sm align-middle">label</span>
+            Palabras clave detectadas en tu respuesta:
+          </p>
+          ${keywordsHtml}
+        </div>
+        ` : ''}
+        
+        <!-- Categoría de respuesta -->
+        <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3 border border-gray-200">
+          <span class="text-xs font-semibold text-gray-600">Categoría de tu respuesta:</span>
+          <span class="px-3 py-1 rounded-full text-xs font-bold ${levelColor}">
+            ${levelEmoji[readingLevel] || '📝'} ${readingLevel ? readingLevel.toUpperCase().replace('_', ' ') : 'EVALUADA'}
+          </span>
+        </div>
+        
+        <!-- Nota técnica -->
+        <div class="text-xs text-gray-400 italic border-t border-gray-200 pt-3">
+          💡 <strong>Nota:</strong> El modelo prioriza la semántica (80%) sobre la coincidencia literal porque 
+          el Active Recall busca <em>comprensión</em>, no memorización exacta. Los PDFs pueden tener errores 
+          OCR que reducirían artificialmente el puntaje léxico.
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+// ===================================================================
 // FUNCIÓN SHOWVALIDATIONRESULT (DEBE IR ANTES DE VALIDATEWITHBACKEND)
 // ===================================================================
 window.showValidationResult = function(result) {
@@ -568,6 +711,10 @@ window.showValidationResult = function(result) {
 
   // Mostrar feedback
   if (feedbackEl) {
+    // ✅ CORRECCIÓN PROFESOR: Agregar acordeón con porcentajes detallados
+    // "colócalo el porcentaje... como un acordeón, para ver si quieres el análisis detallado"
+    const detailsHtml = generateDetailsAccordion(result);
+    
     feedbackEl.className = `mb-4 p-5 rounded-xl border-2 ${borderColor} bg-white`;
     feedbackEl.innerHTML = `
       <div class="flex items-start gap-3">
@@ -575,6 +722,7 @@ window.showValidationResult = function(result) {
         <div class="flex-1">
           <h4 class="font-bold ${textColor} mb-2">Análisis Semántico IA</h4>
           <div class="text-gray-700 leading-relaxed whitespace-pre-line">${result.feedback || 'Tu respuesta ha sido procesada correctamente.'}</div>
+          ${detailsHtml}
         </div>
       </div>
     `;
@@ -896,7 +1044,9 @@ async function validateWithBackend() {
         feedback: result.feedback,
         relevantChunks: result.relevant_chunks || [],
         bestMatchChunk: result.best_match_chunk,
-        question: questionInput.value.trim()
+        question: questionInput.value.trim(),
+        // ✅ CORRECCIÓN PROFESOR: Pasar detalles para acordeón de porcentajes
+        fullResult: result  // Contiene best_match_chunk con keywords_found, etc.
       });
       console.log('✅ showValidationResult ejecutado');
     } else {
@@ -1609,8 +1759,24 @@ window.newQuestion = function() {
   const validationResult = document.getElementById('validation-result');
   const btnValidate = document.getElementById('btn-validate-answer');
   const btnSave = document.getElementById('btn-save-question');
+  const generatedIndicator = document.getElementById('generated-indicator');
   
-  if (questionInput) questionInput.value = '';
+  // ✅ CORRECCIÓN PROFESOR: Limpiar estado del textarea de pregunta
+  if (questionInput) {
+    questionInput.value = '';
+    questionInput.readOnly = false; // Desbloquear para nueva pregunta
+    questionInput.classList.remove('bg-green-50', 'border-green-300', 'cursor-not-allowed');
+    questionInput.classList.add('focus:border-blue-500');
+  }
+  
+  // ✅ Ocultar indicador de pregunta generada
+  if (generatedIndicator) {
+    generatedIndicator.style.display = 'none';
+  }
+  
+  // ✅ Resetear flag de pregunta generada
+  window.questionWasGenerated = false;
+  
   if (userAnswer) {
     userAnswer.value = '';
     userAnswer.disabled = true; // ✅ Deshabilitado hasta que se escriba una pregunta
@@ -2490,6 +2656,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   animation: slide-in 0.3s ease-out;
   transition: all 0.3s ease-out;
 }
+
+/* ✅ CORRECCIÓN PROFESOR: Animación para acordeón de porcentajes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Rotar flecha del acordeón cuando está abierto */
+details[open] summary .material-symbols-outlined {
+  transform: rotate(180deg);
+}
+details summary .material-symbols-outlined {
+  transition: transform 0.2s ease-in-out;
+}
 </style>
 
 <!-- MODAL DE ERROR -->
@@ -2547,9 +2736,17 @@ async function generateQuestionsAuto() {
   // ✅ DIRECTO: Sin preguntar cantidad ni estrategia
   // El backend genera automáticamente según el contenido
   const btn = document.getElementById('btn-generate-questions');
+  const textarea = document.getElementById('user-question');
   const originalText = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Generando...';
+  
+  // ✅ LIMPIAR ESTADO PREVIO SI HABÍA PREGUNTA MANUAL
+  if (textarea) {
+    textarea.value = '';
+    textarea.readOnly = false;
+    textarea.classList.remove('bg-green-50', 'border-green-300');
+  }
 
   try {
     const token = localStorage.getItem('sb-access-token');
@@ -2584,7 +2781,23 @@ async function generateQuestionsAuto() {
       const textarea = document.getElementById('user-question'); // ✅ ID CORRECTO
       if (textarea) {
         textarea.value = preguntaGenerada;
-        textarea.focus(); // ✅ Dar foco al textarea
+        
+        // ✅ CORRECCIÓN PROFESOR: Bloquear textarea en modo solo lectura
+        textarea.readOnly = true;
+        textarea.classList.add('bg-green-50', 'border-green-300', 'cursor-not-allowed');
+        textarea.classList.remove('focus:border-blue-500');
+        
+        // ✅ Marcar que fue generada automáticamente
+        window.questionWasGenerated = true;
+        
+        // ✅ Habilitar el textarea de respuesta
+        const answerTextarea = document.getElementById('user-answer');
+        if (answerTextarea) {
+          answerTextarea.disabled = false;
+          answerTextarea.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-100');
+          answerTextarea.classList.add('bg-white');
+          answerTextarea.focus(); // ✅ Dar foco al textarea de RESPUESTA
+        }
         
         // ✅ Disparar eventos para activar validaciones
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
@@ -2598,6 +2811,26 @@ async function generateQuestionsAuto() {
         
         console.log('✅ Pregunta colocada en textarea:', preguntaGenerada);
         console.log('📝 Longitud de pregunta:', preguntaGenerada.length, 'caracteres');
+        console.log('🔒 Textarea bloqueado en modo solo lectura');
+        
+        // ✅ Mostrar indicador de pregunta generada automáticamente
+        let generatedIndicator = document.getElementById('generated-indicator');
+        if (!generatedIndicator) {
+          generatedIndicator = document.createElement('div');
+          generatedIndicator.id = 'generated-indicator';
+          generatedIndicator.className = 'mt-2 flex items-center justify-between gap-2 text-sm bg-green-100 border border-green-300 rounded-lg px-3 py-2';
+          textarea.parentNode.appendChild(generatedIndicator);
+        }
+        generatedIndicator.innerHTML = `
+          <div class="flex items-center gap-2 text-green-700">
+            <span class="material-symbols-outlined text-lg">auto_awesome</span>
+            <span class="font-semibold">Pregunta generada automáticamente</span>
+          </div>
+          <button onclick="unlockQuestionTextarea()" class="text-xs bg-white hover:bg-gray-100 text-gray-700 px-3 py-1 rounded border border-gray-300 transition">
+            ✏️ Editar manualmente
+          </button>
+        `;
+        generatedIndicator.style.display = 'flex';
         
         // ✅ Mostrar notificación visual
         const notification = document.createElement('div');
@@ -2605,7 +2838,7 @@ async function generateQuestionsAuto() {
         notification.innerHTML = `
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined">check_circle</span>
-            <span class="font-semibold">✅ Pregunta generada del material (${preguntaGenerada.length} caracteres)</span>
+            <span class="font-semibold">✅ Pregunta generada - Ahora escribe tu respuesta</span>
           </div>
         `;
         document.body.appendChild(notification);
@@ -2627,6 +2860,42 @@ async function generateQuestionsAuto() {
 // ✅ FUNCIÓN ELIMINADA: loadQuestionsFromGeneratedTable
 // Las preguntas NO se guardan automáticamente, solo se colocan en el textarea
 // El usuario decide si las guarda con el botón "Guardar Pregunta"
+
+// ✅ CORRECCIÓN PROFESOR: Función para desbloquear textarea si el usuario quiere editar
+window.unlockQuestionTextarea = function() {
+  const textarea = document.getElementById('user-question');
+  const generatedIndicator = document.getElementById('generated-indicator');
+  
+  if (textarea) {
+    // Desbloquear textarea
+    textarea.readOnly = false;
+    textarea.classList.remove('bg-green-50', 'border-green-300', 'cursor-not-allowed');
+    textarea.classList.add('focus:border-blue-500');
+    textarea.focus();
+    
+    // Marcar que ya no es pregunta generada
+    window.questionWasGenerated = false;
+    
+    console.log('🔓 Textarea desbloqueado para edición manual');
+  }
+  
+  // Ocultar indicador de generación
+  if (generatedIndicator) {
+    generatedIndicator.style.display = 'none';
+  }
+  
+  // Mostrar notificación
+  const notification = document.createElement('div');
+  notification.className = 'fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+  notification.innerHTML = `
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined">edit</span>
+      <span class="font-semibold">✏️ Modo edición manual activado</span>
+    </div>
+  `;
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 2000);
+};
 
 // Actualizar botón cuando cambie el material activo
 document.addEventListener('DOMContentLoaded', () => {
