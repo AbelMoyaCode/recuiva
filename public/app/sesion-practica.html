@@ -500,6 +500,35 @@ function closeErrorModal() {
 }
 
 // ===================================================================
+// ✅ FUNCIÓN PARA LIMPIAR TEXTO OCR (solo visualización, NO afecta validación)
+// ===================================================================
+function cleanTextForDisplay(text) {
+  if (!text || typeof text !== 'string') return text;
+  
+  return text
+    // Separar palabras pegadas (camelCase o PascalCase accidentales)
+    .replace(/([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])/g, '$1 $2')
+    // Números que parecen letras (errores OCR comunes)
+    .replace(/(\w)1(\w)/g, '$1l$2')     // 1 → l (ej: "co1lar" → "collar")
+    .replace(/(\w)0(\w)/g, '$1o$2')     // 0 → o (ej: "c0mo" → "como")
+    .replace(/(\w)5(\w)/g, '$1s$2')     // 5 → s (ej: "ca5a" → "casa")
+    // Múltiples espacios a uno solo
+    .replace(/\s+/g, ' ')
+    // Espacios antes de puntuación
+    .replace(/\s+([.,;:!?])/g, '$1')
+    // Espacio después de puntuación si falta
+    .replace(/([.,;:!?])([a-záéíóúñA-ZÁÉÍÓÚÑ])/g, '$1 $2')
+    // Limpiar guiones extraños
+    .replace(/\s*-\s*/g, '-')
+    .replace(/--+/g, '—')
+    // Comillas mal formadas
+    .replace(/[""]/g, '"')
+    .replace(/['']/g, "'")
+    // Trim final
+    .trim();
+}
+
+// ===================================================================
 // ✅ CORRECCIÓN PROFESOR: Función para generar acordeón con porcentajes detallados
 // "colócalo el porcentaje... como un acordeón, para ver si quieres el análisis detallado"
 // ===================================================================
@@ -775,7 +804,9 @@ window.showValidationResult = function(result) {
   // Mostrar chunk REAL del libro (VERSIÓN MEJORADA CON INFO COMPLETA)
   if (chunksEl && result.bestMatchChunk) {
     const chunk = result.bestMatchChunk;
-    const chunkText = chunk.text || chunk.text_full || chunk;
+    const chunkTextRaw = chunk.text || chunk.text_full || chunk;
+    // ✅ LIMPIEZA VISUAL: Mejorar legibilidad del texto OCR (NO afecta validación)
+    const chunkText = typeof chunkTextRaw === 'string' ? cleanTextForDisplay(chunkTextRaw) : chunkTextRaw;
     const similarity = chunk.similarity ? (chunk.similarity * 100).toFixed(1) : (result.score * 100).toFixed(1);
     const chunkId = chunk.chunk_id !== undefined ? chunk.chunk_id : 0;
     const totalChunks = chunk.total_chunks || 0;
@@ -846,7 +877,9 @@ window.showValidationResult = function(result) {
               Ver otros ${result.relevantChunks.length - 1} fragmentos relacionados
             </summary>
             <div class="mt-3 space-y-2">
-              ${result.relevantChunks.slice(1, 3).map((relChunk, idx) => `
+              ${result.relevantChunks.slice(1, 3).map((relChunk, idx) => {
+                const relText = cleanTextForDisplay(relChunk.text || relChunk.text_full || '');
+                return `
                 <div class="bg-white rounded-lg p-3 border border-blue-200 text-sm">
                   <div class="flex items-center justify-between mb-2">
                     <span class="font-semibold text-gray-600 flex items-center gap-1">
@@ -858,10 +891,10 @@ window.showValidationResult = function(result) {
                     </span>
                   </div>
                   <p class="text-gray-700 leading-relaxed italic">
-                    "${(relChunk.text || relChunk.text_full || '').substring(0, 300)}${((relChunk.text || relChunk.text_full || '').length > 300) ? '...' : ''}"
+                    "${relText.substring(0, 300)}${relText.length > 300 ? '...' : ''}"
                   </p>
                 </div>
-              `).join('')}
+              `}).join('')}
             </div>
           </details>
         ` : ''}
