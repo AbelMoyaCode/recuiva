@@ -151,6 +151,112 @@ class HybridValidator:
         question_lower = question.lower()
         return any(keyword in question_lower for keyword in inferential_keywords)
     
+    def detect_contradiction(self, user_answer: str, chunk_text: str, question: str = "") -> Tuple[bool, float, str]:
+        """
+        Detecta si la respuesta del usuario CONTRADICE el contenido del chunk.
+        
+        ═══════════════════════════════════════════════════════════════
+        PROBLEMA IDENTIFICADO (Testing con GPT):
+        ═══════════════════════════════════════════════════════════════
+        
+        Ejemplo de fallo sin esta función:
+        - Chunk dice: "Henriette recibía dinero cada año por correo"
+        - Usuario responde: "La condesa nunca le mandó dinero"
+        - Sin NLI: score alto (78%) porque comparte palabras como "dinero", "correo"
+        - Con NLI: debería ser RECHAZO (<50%)
+        
+        ═══════════════════════════════════════════════════════════════
+        ESTRATEGIA DE DETECCIÓN:
+        ═══════════════════════════════════════════════════════════════
+        
+        1. Identificar KEYWORDS CLAVE del chunk (sustantivos importantes)
+        2. Buscar patrones de NEGACIÓN en la respuesta del usuario
+        3. Si encuentra negación de keyword clave → CONTRADICCIÓN
+        
+        Patrones de negación:
+        - "no [keyword]", "nunca [keyword]", "sin [keyword]"
+        - "jamás", "ningún/ninguna", "nada de"
+        
+        Args:
+            user_answer: Respuesta del usuario
+            chunk_text: Texto del chunk de referencia
+            question: Pregunta original (para contexto)
+            
+        Returns:
+            Tuple[bool, float, str]: (is_contradiction, penalty_factor, reason)
+        """
+        answer_lower = user_answer.lower()
+        chunk_lower = chunk_text.lower()
+        
+        # Keywords importantes que si se niegan = contradicción grave
+        # Agrupados por categoría semántica
+        critical_keywords = {
+            # Dinero/Economía
+            'dinero': ['dinero', 'francos', 'billetes', 'moneda', 'plata', 'efectivo', 'suma', 'pago'],
+            'envio': ['envió', 'enviaba', 'enviar', 'mandó', 'mandaba', 'mandar', 'recibía', 'recibió'],
+            'correo': ['correo', 'carta', 'cartas', 'sobre', 'sobres', 'correspondencia'],
+            # Personas/Acciones
+            'ayuda': ['ayuda', 'ayudó', 'ayudaba', 'asistencia', 'apoyo'],
+            'robo': ['robó', 'robar', 'hurto', 'ladrón', 'robado'],
+            'culpa': ['culpable', 'inocente', 'sospechoso', 'acusado'],
+        }
+        
+        # Patrones de negación en español
+        negation_patterns = [
+            r'\bno\s+\w*{keyword}\w*',
+            r'\bnunca\s+\w*{keyword}\w*',
+            r'\bjamás\s+\w*{keyword}\w*',
+            r'\bsin\s+\w*{keyword}\w*',
+            r'\bningún\s+\w*{keyword}\w*',
+            r'\bninguna\s+\w*{keyword}\w*',
+            r'\bnada\s+de\s+\w*{keyword}\w*',
+            r'\bno\s+le\s+\w*{keyword}\w*',
+            r'\bnunca\s+le\s+\w*{keyword}\w*',
+            # Patrones compuestos
+            r'\bpero\s+\w*no\s+\w*{keyword}\w*',
+            r'\bpero\s+\w*nunca\s+\w*{keyword}\w*',
+        ]
+        
+        contradictions_found = []
+        
+        for category, keywords in critical_keywords.items():
+            for keyword in keywords:
+                # Verificar si el keyword está en el chunk (es relevante)
+                if keyword in chunk_lower:
+                    # Buscar si el usuario NIEGA este keyword
+                    for pattern_template in negation_patterns:
+                        pattern = pattern_template.format(keyword=keyword)
+                        if re.search(pattern, answer_lower):
+                            contradictions_found.append({
+                                'category': category,
+                                'keyword': keyword,
+                                'pattern': pattern
+                            })
+        
+        if contradictions_found:
+            # Cuantas más contradicciones, mayor penalización
+            num_contradictions = len(contradictions_found)
+            
+            if num_contradictions >= 3:
+                penalty = 0.25  # Reducir score al 25%
+                severity = "GRAVE"
+            elif num_contradictions >= 2:
+                penalty = 0.35  # Reducir score al 35%
+                severity = "MODERADA"
+            else:
+                penalty = 0.50  # Reducir score al 50%
+                severity = "LEVE"
+            
+            keywords_negated = [c['keyword'] for c in contradictions_found[:3]]
+            reason = f"Contradicción {severity}: negación de '{', '.join(keywords_negated)}'"
+            
+            print(f"   ⚠️ CONTRADICCIÓN DETECTADA: {reason}")
+            print(f"   📉 Penalización: score × {penalty}")
+            
+            return True, penalty, reason
+        
+        return False, 1.0, ""
+    
     def apply_pedagogical_boost(self, score_raw: float, cosine: float, 
                                 user_answer: str, ref_text: str, question: str = "") -> float:
         """
@@ -352,6 +458,21 @@ class HybridValidator:
             question=question  # Para detectar preguntas inferenciales
         )
         
+        # ═══════════════════════════════════════════════════════════════
+        # NUEVO: Detección de contradicción (NLI simplificado)
+        # ═══════════════════════════════════════════════════════════════
+        # Si el usuario NIEGA conceptos clave del chunk, penalizar fuertemente
+        # Ejemplo: chunk dice "recibía dinero" → usuario dice "nunca le mandó dinero"
+        is_contradiction, penalty_factor, contradiction_reason = self.detect_contradiction(
+            user_answer=answer,
+            chunk_text=chunk['text_full'],
+            question=question
+        )
+        
+        if is_contradiction:
+            score_raw = score_raw * penalty_factor
+            print(f"   📉 Score después de penalización: {score_raw:.4f}")
+        
         # Convertir a porcentaje 0-100% con min-max scaling
         score_pct = self.to_percentage(score_raw)
         
@@ -369,7 +490,11 @@ class HybridValidator:
             'keywords_found': list(
                 self.expand_keywords(answer_keywords) & 
                 self.expand_keywords(chunk_keywords)
-            )[:5]
+            )[:5],
+            # NUEVO: Info de contradicción para debugging
+            'contradiction_detected': is_contradiction,
+            'contradiction_reason': contradiction_reason if is_contradiction else None,
+            'contradiction_penalty': penalty_factor if is_contradiction else 1.0
         }
         
         return score_raw, details
