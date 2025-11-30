@@ -856,17 +856,19 @@ async def validate_answer(answer: Answer):
                     return float(val)
                 return val
             
-            # Obtener cosine similarity del top chunk (convertir a float nativo)
-            top_cosine = to_native(classification.get('top_3_scores', [{}])[0].get('details', {}).get('cosine', 0.0))
+            # ✅ CORRECCIÓN: Usar SCORE HÍBRIDO (no solo coseno) para consistencia
+            top_hybrid_score = to_native(classification.get('top_3_scores', [{}])[0].get('score', 0.0)) / 100.0
+            top_cosine_raw = to_native(classification.get('top_3_scores', [{}])[0].get('details', {}).get('cosine', 0.0))
             
             # ✅ CORRECCIÓN: Extraer scores individuales del hybrid validator
             top_details = classification.get('top_3_scores', [{}])[0].get('details', {})
             
             # Construir resultado con datos de HybridValidator
+            # ⚠️ Ahora similarity usa score híbrido (BM25+Cosine+Coverage) NO solo coseno
             result = ValidationResult(
                 score=float(classification['confidence']),  # Convertir a float nativo
                 is_correct=bool(classification['is_valid']),
-                similarity=top_cosine,
+                similarity=top_hybrid_score,  # ← Score híbrido, no solo coseno
                 feedback=str(classification['feedback']),
                 relevant_chunks=[
                     {
@@ -881,7 +883,8 @@ async def validate_answer(answer: Answer):
                 best_match_chunk={
                     "text": best_match.get("text_full", ""),
                     "text_short": best_chunk_info.get('text', ''),
-                    "similarity": top_cosine,
+                    "similarity": top_hybrid_score,  # ← Ahora usa score híbrido para consistencia
+                    "cosine_raw": top_cosine_raw,  # ← Mantener coseno crudo para referencia
                     "chunk_id": best_chunk_position,
                     "total_chunks": total_chunks,
                     "estimated_page": estimated_page,
