@@ -95,33 +95,99 @@ def extract_with_tesseract(pdf_content: bytes) -> Tuple[str, int, int]:
     """
     Extrae texto usando Tesseract OCR REAL
     
-    Convierte cada página del PDF a imagen y aplica OCR.
+    ✅ OPTIMIZADO PARA MEMORIA BAJA (2GB VPS):
+    - Procesa UNA página a la vez (no todas a memoria)
+    - DPI reducido a 150 (suficiente para texto, menos RAM)
+    - Libera memoria después de cada página
+    - Para PDFs muy grandes, usa fallback automático
+    
     MEJOR para PDFs con texto corrupto o escaneados.
     """
+    import gc
+    
     print("🔍 Usando Tesseract OCR (mejor calidad)...")
     
-    # Convertir PDF a imágenes (una por página)
-    images = convert_from_bytes(pdf_content, dpi=300)
-    total_pages = len(images)
+    # Primero, obtener el número total de páginas sin cargar imágenes
+    try:
+        # Usar PyMuPDF para contar páginas (muy eficiente en memoria)
+        if PYMUPDF_AVAILABLE:
+            import fitz
+            pdf_doc = fitz.open(stream=pdf_content, filetype="pdf")
+            total_pages = len(pdf_doc)
+            pdf_doc.close()
+        else:
+            # Fallback: convertir solo primera página para contar
+            first_page = convert_from_bytes(pdf_content, dpi=72, first_page=1, last_page=1)
+            total_pages = len(convert_from_bytes(pdf_content, dpi=72))
+            del first_page
+            gc.collect()
+    except Exception as e:
+        print(f"   ⚠️ Error contando páginas: {e}")
+        total_pages = 0
+    
+    # Si el PDF es muy grande (>100 páginas), usar DPI más bajo o fallback
+    if total_pages > 100:
+        print(f"   ⚠️ PDF muy grande ({total_pages} págs), usando DPI bajo (100) para ahorrar memoria")
+        dpi = 100
+    elif total_pages > 50:
+        print(f"   📄 PDF mediano ({total_pages} págs), usando DPI 150")
+        dpi = 150
+    else:
+        print(f"   📄 PDF pequeño ({total_pages} págs), usando DPI 200")
+        dpi = 200
     
     text = ""
     error_count = 0
+    processed_pages = 0
     
-    for i, image in enumerate(images):
-        if i % 5 == 0:
-            print(f"   OCR página {i+1}/{total_pages}...")
-        
-        # Aplicar OCR con idioma español
-        page_text = pytesseract.image_to_string(image, lang='spa+eng')
-        
-        # Contar posibles errores
-        error_count += len(re.findall(r'[a-z]{3,}[A-Z][a-z]{2,}', page_text))
-        error_count += len(re.findall(r'\b\w{1,2}\s+\w{1,2}\s+\w{1,2}\b', page_text))
-        
-        text += page_text + "\n\n"
+    # Procesar página por página para ahorrar memoria
+    try:
+        for page_num in range(1, total_pages + 1):
+            try:
+                # Convertir SOLO esta página a imagen
+                images = convert_from_bytes(
+                    pdf_content, 
+                    dpi=dpi, 
+                    first_page=page_num, 
+                    last_page=page_num,
+                    grayscale=True,  # Menos memoria
+                    thread_count=1   # Menos memoria
+                )
+                
+                if images:
+                    # Aplicar OCR con idioma español
+                    page_text = pytesseract.image_to_string(images[0], lang='spa+eng')
+                    
+                    # Contar posibles errores
+                    error_count += len(re.findall(r'[a-z]{3,}[A-Z][a-z]{2,}', page_text))
+                    error_count += len(re.findall(r'\b\w{1,2}\s+\w{1,2}\s+\w{1,2}\b', page_text))
+                    
+                    text += page_text + "\n\n"
+                    processed_pages += 1
+                    
+                    # Liberar memoria inmediatamente
+                    del images
+                    del page_text
+                
+                # Log de progreso cada 10 páginas
+                if page_num % 10 == 0:
+                    print(f"   OCR página {page_num}/{total_pages}...")
+                    gc.collect()  # Forzar limpieza de memoria
+                    
+            except Exception as page_error:
+                print(f"   ⚠️ Error en página {page_num}: {page_error}")
+                continue
+                
+    except Exception as e:
+        print(f"   ❌ Error general en Tesseract: {e}")
+        if processed_pages == 0:
+            raise e
     
-    print(f"   ✅ Tesseract completado: {len(text)} caracteres")
-    return text.strip(), total_pages, error_count
+    # Limpieza final
+    gc.collect()
+    
+    print(f"   ✅ Tesseract completado: {len(text)} caracteres de {processed_pages} páginas")
+    return text.strip(), processed_pages if processed_pages > 0 else total_pages, error_count
 
 
 def extract_with_pymupdf(pdf_content: bytes) -> Tuple[str, int, int]:
@@ -163,10 +229,10 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     """
     Extrae texto de un archivo PDF usando el mejor método disponible
     
-    ✅ ESTRATEGIA (en orden de preferencia):
-    1. Tesseract OCR (MEJOR - lee imagen visual)
-    2. PyMuPDF como fallback
-    3. PyPDF2 como último recurso
+    ✅ ESTRATEGIA OPTIMIZADA PARA VPS 2GB:
+    1. PyMuPDF primero (rápido, bajo consumo de memoria)
+    2. Si PyMuPDF tiene muchos errores (>5% del texto), usar Tesseract
+    3. Tesseract solo para PDFs pequeños (<50 páginas) o cuando es necesario
     4. Aplica normalización agresiva al final
     
     Args:
@@ -175,33 +241,75 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     Returns:
         tuple: (texto extraído, número total de páginas)
     """
+    import gc
+    
     results = []
+    total_pages = 0
     
     print(f"📖 Extrayendo texto del PDF...")
     
     # ═══════════════════════════════════════════════════════════════════════
-    # OPCIÓN 1: Tesseract OCR (MEJOR CALIDAD)
-    # ═══════════════════════════════════════════════════════════════════════
-    if TESSERACT_AVAILABLE:
-        try:
-            text_tess, pages_tess, errors_tess = extract_with_tesseract(pdf_content)
-            results.append(('Tesseract', text_tess, pages_tess, errors_tess))
-            print(f"   Tesseract: {len(text_tess)} chars, {errors_tess} errores detectados")
-        except Exception as e:
-            print(f"   ❌ Tesseract falló: {e}")
-    
-    # ═══════════════════════════════════════════════════════════════════════
-    # FALLBACKS: PyMuPDF y PyPDF2
+    # PASO 1: PyMuPDF primero (rápido, eficiente en memoria)
     # ═══════════════════════════════════════════════════════════════════════
     if PYMUPDF_AVAILABLE:
         try:
             text_mupdf, pages_mupdf, errors_mupdf = extract_with_pymupdf(pdf_content)
             results.append(('PyMuPDF', text_mupdf, pages_mupdf, errors_mupdf))
-            print(f"   PyMuPDF: {len(text_mupdf)} chars, {errors_mupdf} errores detectados")
+            total_pages = pages_mupdf
+            print(f"   PyMuPDF: {len(text_mupdf)} chars, {errors_mupdf} errores, {pages_mupdf} páginas")
+            
+            # Calcular ratio de errores
+            error_ratio = errors_mupdf / max(len(text_mupdf.split()), 1)
+            
+            # Si PyMuPDF funcionó bien (menos de 5% errores), usarlo directamente
+            if error_ratio < 0.05 and len(text_mupdf) > 100:
+                print(f"   ✅ PyMuPDF tiene baja tasa de errores ({error_ratio:.2%}), usando directamente")
+                text = aggressive_text_cleanup(text_mupdf)
+                print(f"✅ Texto extraído: {len(text)} caracteres de {pages_mupdf} páginas")
+                gc.collect()
+                return text, pages_mupdf
+                
         except Exception as e:
             print(f"   ❌ PyMuPDF falló: {e}")
     
-    if PYPDF2_AVAILABLE:
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 2: Tesseract OCR solo si es necesario Y el PDF es pequeño
+    # ═══════════════════════════════════════════════════════════════════════
+    if TESSERACT_AVAILABLE:
+        # Solo usar Tesseract si:
+        # 1. El PDF es pequeño (<50 páginas) - evitar OOM
+        # 2. PyMuPDF tuvo muchos errores
+        # 3. PyMuPDF no está disponible
+        
+        use_tesseract = False
+        reason = ""
+        
+        if not results:
+            use_tesseract = True
+            reason = "PyMuPDF no disponible"
+        elif total_pages <= 50:
+            use_tesseract = True
+            reason = f"PDF pequeño ({total_pages} páginas)"
+        elif results and results[0][3] > len(results[0][1].split()) * 0.10:  # >10% errores
+            use_tesseract = True
+            reason = "PyMuPDF tiene muchos errores"
+        
+        if use_tesseract:
+            try:
+                print(f"   🔍 Intentando Tesseract ({reason})...")
+                text_tess, pages_tess, errors_tess = extract_with_tesseract(pdf_content)
+                results.append(('Tesseract', text_tess, pages_tess, errors_tess))
+                print(f"   Tesseract: {len(text_tess)} chars, {errors_tess} errores detectados")
+                gc.collect()
+            except Exception as e:
+                print(f"   ❌ Tesseract falló: {e}")
+        else:
+            print(f"   ⏭️ Saltando Tesseract: PDF grande ({total_pages} págs) y PyMuPDF funcionó bien")
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 3: PyPDF2 como último recurso
+    # ═══════════════════════════════════════════════════════════════════════
+    if not results and PYPDF2_AVAILABLE:
         try:
             text_pypdf2, pages_pypdf2, errors_pypdf2 = extract_with_pypdf2(pdf_content)
             results.append(('PyPDF2', text_pypdf2, pages_pypdf2, errors_pypdf2))
@@ -214,18 +322,8 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     
     # ═══════════════════════════════════════════════════════════════════════
     # ELEGIR EL MEJOR RESULTADO
-    # Prioridad: Tesseract > menos errores > más texto
+    # Prioridad: menos errores > más texto
     # ═══════════════════════════════════════════════════════════════════════
-    
-    # Si Tesseract está disponible y funcionó, usarlo siempre
-    tesseract_result = next((r for r in results if r[0] == 'Tesseract'), None)
-    if tesseract_result and len(tesseract_result[1]) > 100:
-        best = tesseract_result
-        print(f"   ✅ Usando Tesseract OCR (mejor calidad)")
-    else:
-        # Fallback: elegir el método con menos errores
-        best = min(results, key=lambda x: x[3])  # x[3] = error_count
-        print(f"   ✅ Usando {best[0]} (menos errores: {best[3]})")
     best = min(results, key=lambda x: x[3])  # x[3] = error_count
     print(f"   ✅ Usando {best[0]} (menos errores: {best[3]})")
     
@@ -234,6 +332,9 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     
     # Limpiar texto extraído
     text = aggressive_text_cleanup(text)
+    
+    # Limpiar memoria
+    gc.collect()
     
     print(f"✅ Texto extraído: {len(text)} caracteres de {total_pages} páginas")
     return text, total_pages
