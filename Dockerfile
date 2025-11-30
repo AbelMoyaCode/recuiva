@@ -31,15 +31,19 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Instalar solo dependencias de runtime (sin build-essential)
+# ✅ Agregamos ocrmypdf para pre-procesar PDFs corruptos
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-spa \
+    tesseract-ocr-eng \
     poppler-utils \
+    ghostscript \
+    ocrmypdf \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Verificar instalación de Tesseract
-RUN tesseract --version && tesseract --list-langs
+# Verificar instalación de Tesseract y ocrmypdf
+RUN tesseract --version && tesseract --list-langs && ocrmypdf --version
 
 # Copiar virtualenv desde builder
 COPY --from=builder /opt/venv /opt/venv

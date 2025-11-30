@@ -5,9 +5,10 @@ Divide textos largos en fragmentos manejables para embeddings
 Autor: Abel Jesús Moya Acosta
 Fecha: 7 de octubre de 2025
 
-✅ ACTUALIZADO: Sistema con Tesseract OCR REAL
-   - PRIMERO intenta Tesseract OCR (lee imágenes, mejor calidad)
-   - Si Tesseract falla, usa PyMuPDF o PyPDF2 como fallback
+✅ ACTUALIZADO: Sistema con ocrmypdf + Tesseract OCR
+   - PRIMERO: ocrmypdf --force-ocr (repara PDFs corruptos)
+   - SEGUNDO: Tesseract OCR directo como fallback
+   - TERCERO: PyMuPDF/PyPDF2 como último recurso
    - Normalización agresiva post-extracción
 """
 
@@ -15,9 +16,25 @@ import re
 from typing import List, Tuple
 from io import BytesIO
 import os
+import subprocess
+import tempfile
+import shutil
 
 # ═══════════════════════════════════════════════════════════════════════
-# TESSERACT OCR - MEJOR CALIDAD (lee la imagen visual del PDF)
+# OCRMYPDF - MEJOR OPCIÓN PARA PDFs CORRUPTOS
+# ═══════════════════════════════════════════════════════════════════════
+OCRMYPDF_AVAILABLE = False
+
+try:
+    result = subprocess.run(['ocrmypdf', '--version'], capture_output=True, text=True)
+    if result.returncode == 0:
+        OCRMYPDF_AVAILABLE = True
+        print(f"✅ ocrmypdf disponible: {result.stdout.strip()}")
+except:
+    print("⚠️ ocrmypdf no disponible")
+
+# ═══════════════════════════════════════════════════════════════════════
+# TESSERACT OCR - FALLBACK
 # ═══════════════════════════════════════════════════════════════════════
 TESSERACT_AVAILABLE = False
 
@@ -89,6 +106,76 @@ try:
 except ImportError:
     NORMALIZER_AVAILABLE = False
     print("⚠️ text_normalizer no disponible")
+
+
+def preprocess_pdf_with_ocrmypdf(pdf_content: bytes) -> bytes:
+    """
+    Pre-procesa un PDF con ocrmypdf para reparar texto corrupto
+    
+    ocrmypdf --force-ocr:
+    1. Renderiza cada página como imagen de alta calidad
+    2. Aplica Tesseract OCR de forma optimizada
+    3. Genera un PDF nuevo con texto limpio embebido
+    
+    Args:
+        pdf_content: Contenido del PDF original en bytes
+        
+    Returns:
+        bytes: PDF procesado con texto OCR limpio
+    """
+    if not OCRMYPDF_AVAILABLE:
+        print("   ⚠️ ocrmypdf no disponible, retornando PDF original")
+        return pdf_content
+    
+    import gc
+    temp_dir = None
+    
+    try:
+        # Crear archivos temporales
+        temp_dir = tempfile.mkdtemp()
+        input_path = os.path.join(temp_dir, 'input.pdf')
+        output_path = os.path.join(temp_dir, 'output.pdf')
+        
+        # Guardar PDF original
+        with open(input_path, 'wb') as f:
+            f.write(pdf_content)
+        
+        print("   🔧 Procesando PDF con ocrmypdf --force-ocr...")
+        
+        # Ejecutar ocrmypdf con force-ocr
+        result = subprocess.run([
+            'ocrmypdf',
+            '--force-ocr',           # Forzar OCR incluso si ya tiene texto
+            '--language', 'spa+eng', # Español + Inglés
+            '--deskew',              # Corregir inclinación
+            '--clean',               # Limpiar imagen
+            '--optimize', '1',       # Optimización ligera
+            '--output-type', 'pdf',
+            '--jobs', '2',           # Usar 2 cores (VPS pequeño)
+            input_path,
+            output_path
+        ], capture_output=True, text=True, timeout=300)  # 5 min timeout
+        
+        if result.returncode == 0:
+            print("   ✅ ocrmypdf completado exitosamente")
+            with open(output_path, 'rb') as f:
+                processed_pdf = f.read()
+            return processed_pdf
+        else:
+            print(f"   ⚠️ ocrmypdf falló: {result.stderr[:200]}")
+            return pdf_content
+            
+    except subprocess.TimeoutExpired:
+        print("   ⚠️ ocrmypdf timeout (>5 min), usando PDF original")
+        return pdf_content
+    except Exception as e:
+        print(f"   ❌ Error en ocrmypdf: {e}")
+        return pdf_content
+    finally:
+        # Limpiar archivos temporales
+        if temp_dir and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir, ignore_errors=True)
+        gc.collect()
 
 
 def extract_with_tesseract(pdf_content: bytes) -> Tuple[str, int, int]:
@@ -376,13 +463,14 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     """
     Extrae texto de un archivo PDF usando el mejor método disponible
     
-    ✅ ESTRATEGIA REVISADA - TESSERACT PRIMERO:
+    ✅ ESTRATEGIA REVISADA - OCRMYPDF PRIMERO:
     
-    El problema: PDFs con fuentes propietarias producen texto corrupto con PyMuPDF
-    porque las fuentes tienen mapeo de caracteres incorrecto.
+    El problema: PDFs con fuentes propietarias producen texto corrupto.
     
-    Solución: SIEMPRE usar Tesseract OCR primero (lee la imagen visual),
-    solo usar PyMuPDF como fallback si Tesseract falla.
+    Solución:
+    1. OCRMYPDF --force-ocr (mejor calidad, repara PDFs corruptos)
+    2. Tesseract directo como fallback
+    3. PyMuPDF/PyPDF2 como último recurso
     
     Args:
         pdf_content: Contenido del PDF en bytes
@@ -398,24 +486,46 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     print(f"📖 Extrayendo texto del PDF...")
     
     # ═══════════════════════════════════════════════════════════════════════
-    # PASO 1: Contar páginas primero (rápido con PyMuPDF)
+    # PASO 0: Pre-procesar con ocrmypdf si está disponible
+    # ═══════════════════════════════════════════════════════════════════════
+    processed_pdf = pdf_content
+    if OCRMYPDF_AVAILABLE:
+        print("   🔧 Pre-procesando PDF con ocrmypdf...")
+        processed_pdf = preprocess_pdf_with_ocrmypdf(pdf_content)
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 1: Contar páginas y extraer con PyMuPDF (del PDF procesado)
     # ═══════════════════════════════════════════════════════════════════════
     if PYMUPDF_AVAILABLE:
         try:
             import fitz
-            pdf_doc = fitz.open(stream=pdf_content, filetype="pdf")
+            pdf_doc = fitz.open(stream=processed_pdf, filetype="pdf")
             total_pages = len(pdf_doc)
             pdf_doc.close()
             print(f"   📄 PDF tiene {total_pages} páginas")
+            
+            # Si usamos ocrmypdf, PyMuPDF debería extraer el texto OCR limpio
+            if OCRMYPDF_AVAILABLE and processed_pdf != pdf_content:
+                text_mupdf, pages_mupdf, errors_mupdf = extract_with_pymupdf(processed_pdf)
+                is_corrupted, reason = detect_corrupted_text(text_mupdf)
+                
+                if not is_corrupted and len(text_mupdf.strip()) > 100:
+                    print(f"   ✅ ocrmypdf + PyMuPDF: {len(text_mupdf)} chars, texto limpio")
+                    text = aggressive_text_cleanup(text_mupdf)
+                    gc.collect()
+                    return text, pages_mupdf
+                else:
+                    print(f"   ⚠️ ocrmypdf produjo texto con problemas: {reason}")
+                    
         except Exception as e:
-            print(f"   ⚠️ No se pudo contar páginas: {e}")
+            print(f"   ⚠️ No se pudo procesar con PyMuPDF: {e}")
     
     # ═══════════════════════════════════════════════════════════════════════
-    # PASO 2: TESSERACT OCR PRIMERO (mejor calidad, lee imagen visual)
+    # PASO 2: TESSERACT OCR DIRECTO (fallback si ocrmypdf falló)
     # ═══════════════════════════════════════════════════════════════════════
     if TESSERACT_AVAILABLE:
         try:
-            print(f"   🔍 Usando Tesseract OCR (lee imagen visual del PDF)...")
+            print(f"   🔍 Usando Tesseract OCR directo...")
             text_tess, pages_tess, errors_tess = extract_with_tesseract(pdf_content)
             
             # Verificar que Tesseract produjo texto válido
