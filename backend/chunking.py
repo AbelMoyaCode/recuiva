@@ -5,10 +5,11 @@ Divide textos largos en fragmentos manejables para embeddings
 Autor: Abel Jesús Moya Acosta
 Fecha: 7 de octubre de 2025
 
-✅ ACTUALIZADO: Sistema con ocrmypdf + Tesseract OCR
-   - PRIMERO: ocrmypdf --force-ocr (repara PDFs corruptos)
-   - SEGUNDO: Tesseract OCR directo como fallback
-   - TERCERO: PyMuPDF/PyPDF2 como último recurso
+✅ ACTUALIZADO: Sistema con pdftotext + ocrmypdf + Tesseract OCR
+   - PRIMERO: pdftotext (extrae texto embebido, INSTANTÁNEO)
+   - SEGUNDO: ocrmypdf --force-ocr (si pdftotext falla/corrupto)
+   - TERCERO: Tesseract OCR directo como fallback
+   - CUARTO: PyMuPDF/PyPDF2 como último recurso
    - Normalización agresiva post-extracción
 """
 
@@ -21,7 +22,20 @@ import tempfile
 import shutil
 
 # ═══════════════════════════════════════════════════════════════════════
-# OCRMYPDF - MEJOR OPCIÓN PARA PDFs CORRUPTOS
+# PDFTOTEXT - PRIMERA OPCIÓN (INSTANTÁNEO, extrae texto embebido)
+# ═══════════════════════════════════════════════════════════════════════
+PDFTOTEXT_AVAILABLE = False
+
+try:
+    result = subprocess.run(['pdftotext', '-v'], capture_output=True, text=True, stderr=subprocess.STDOUT)
+    if 'pdftotext' in result.stdout.lower() or result.returncode == 0:
+        PDFTOTEXT_AVAILABLE = True
+        print("✅ pdftotext disponible (INSTANTÁNEO - primera opción)")
+except:
+    print("⚠️ pdftotext no disponible")
+
+# ═══════════════════════════════════════════════════════════════════════
+# OCRMYPDF - SEGUNDA OPCIÓN PARA PDFs CORRUPTOS
 # ═══════════════════════════════════════════════════════════════════════
 OCRMYPDF_AVAILABLE = False
 
@@ -106,6 +120,76 @@ try:
 except ImportError:
     NORMALIZER_AVAILABLE = False
     print("⚠️ text_normalizer no disponible")
+
+
+def extract_with_pdftotext(pdf_content: bytes) -> tuple[str, int]:
+    """
+    Extrae texto de un PDF usando pdftotext (poppler-utils)
+    
+    VENTAJAS:
+    - INSTANTÁNEO (no hace OCR)
+    - Extrae texto embebido real del PDF
+    - Mantiene layout y espaciado correcto
+    
+    Args:
+        pdf_content: Contenido del PDF en bytes
+        
+    Returns:
+        tuple: (texto extraído, número de páginas)
+    """
+    if not PDFTOTEXT_AVAILABLE:
+        return "", 0
+    
+    temp_dir = None
+    try:
+        temp_dir = tempfile.mkdtemp()
+        input_path = os.path.join(temp_dir, 'input.pdf')
+        output_path = os.path.join(temp_dir, 'output.txt')
+        
+        # Guardar PDF
+        with open(input_path, 'wb') as f:
+            f.write(pdf_content)
+        
+        # Ejecutar pdftotext con layout para mantener formato
+        result = subprocess.run([
+            'pdftotext',
+            '-layout',      # Mantiene layout original
+            '-enc', 'UTF-8', # Codificación UTF-8
+            input_path,
+            output_path
+        ], capture_output=True, text=True, timeout=60)
+        
+        if result.returncode != 0:
+            print(f"   ⚠️ pdftotext error: {result.stderr}")
+            return "", 0
+        
+        # Leer texto extraído
+        with open(output_path, 'r', encoding='utf-8', errors='ignore') as f:
+            text = f.read()
+        
+        # Contar páginas con PyMuPDF o estimación
+        num_pages = 1
+        if PYMUPDF_AVAILABLE:
+            try:
+                import fitz
+                pdf_doc = fitz.open(stream=pdf_content, filetype="pdf")
+                num_pages = len(pdf_doc)
+                pdf_doc.close()
+            except:
+                # Estimar páginas por caracteres (aprox 2000 chars/página)
+                num_pages = max(1, len(text) // 2000)
+        
+        return text.strip(), num_pages
+        
+    except subprocess.TimeoutExpired:
+        print("   ⚠️ pdftotext timeout")
+        return "", 0
+    except Exception as e:
+        print(f"   ⚠️ pdftotext error: {e}")
+        return "", 0
+    finally:
+        if temp_dir and os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 def preprocess_pdf_with_ocrmypdf(pdf_content: bytes) -> bytes:
@@ -463,14 +547,13 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     """
     Extrae texto de un archivo PDF usando el mejor método disponible
     
-    ✅ ESTRATEGIA REVISADA - OCRMYPDF PRIMERO:
+    ✅ ESTRATEGIA OPTIMIZADA - PDFTOTEXT PRIMERO (INSTANTÁNEO):
     
-    El problema: PDFs con fuentes propietarias producen texto corrupto.
-    
-    Solución:
-    1. OCRMYPDF --force-ocr (mejor calidad, repara PDFs corruptos)
-    2. Tesseract directo como fallback
-    3. PyMuPDF/PyPDF2 como último recurso
+    Orden de prioridad:
+    1. PDFTOTEXT (instantáneo, extrae texto embebido real)
+    2. OCRMYPDF --force-ocr (si pdftotext falla o texto corrupto)
+    3. Tesseract directo como fallback
+    4. PyMuPDF/PyPDF2 como último recurso
     
     Args:
         pdf_content: Contenido del PDF en bytes
@@ -486,7 +569,29 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
     print(f"📖 Extrayendo texto del PDF...")
     
     # ═══════════════════════════════════════════════════════════════════════
-    # PASO 0: Pre-procesar con ocrmypdf si está disponible
+    # PASO 0: PDFTOTEXT (INSTANTÁNEO - Primera opción)
+    # ═══════════════════════════════════════════════════════════════════════
+    if PDFTOTEXT_AVAILABLE:
+        print("   ⚡ Intentando pdftotext (instantáneo)...")
+        text_pdftotext, pages_pdftotext = extract_with_pdftotext(pdf_content)
+        
+        if len(text_pdftotext.strip()) > 100:
+            is_corrupted, reason = detect_corrupted_text(text_pdftotext)
+            
+            if not is_corrupted:
+                print(f"   ✅ pdftotext exitoso: {len(text_pdftotext)} chars, texto limpio")
+                text = aggressive_text_cleanup(text_pdftotext)
+                gc.collect()
+                return text, pages_pdftotext
+            else:
+                print(f"   ⚠️ pdftotext produjo texto con problemas: {reason}")
+                print("   🔄 Cambiando a OCR...")
+        else:
+            print(f"   ⚠️ pdftotext produjo muy poco texto ({len(text_pdftotext)} chars)")
+            print("   🔄 Cambiando a OCR...")
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # PASO 1: OCRMYPDF (si pdftotext falló)
     # ═══════════════════════════════════════════════════════════════════════
     processed_pdf = pdf_content
     if OCRMYPDF_AVAILABLE:
@@ -494,7 +599,7 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
         processed_pdf = preprocess_pdf_with_ocrmypdf(pdf_content)
     
     # ═══════════════════════════════════════════════════════════════════════
-    # PASO 1: Contar páginas y extraer con PyMuPDF (del PDF procesado)
+    # PASO 2: Contar páginas y extraer con PyMuPDF (del PDF procesado)
     # ═══════════════════════════════════════════════════════════════════════
     if PYMUPDF_AVAILABLE:
         try:
@@ -521,7 +626,7 @@ def extract_text_from_pdf(pdf_content: bytes) -> tuple[str, int]:
             print(f"   ⚠️ No se pudo procesar con PyMuPDF: {e}")
     
     # ═══════════════════════════════════════════════════════════════════════
-    # PASO 2: TESSERACT OCR DIRECTO (fallback si ocrmypdf falló)
+    # PASO 3: TESSERACT OCR DIRECTO (fallback si ocrmypdf falló)
     # ═══════════════════════════════════════════════════════════════════════
     if TESSERACT_AVAILABLE:
         try:
