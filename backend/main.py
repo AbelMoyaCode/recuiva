@@ -921,21 +921,44 @@ async def validate_answer(answer: Answer):
         raise HTTPException(status_code=500, detail=f"Error validando respuesta: {str(e)}")
 
 @app.get("/api/materials")
-async def get_materials():
-    """Obtiene la lista de todos los materiales subidos desde Supabase"""
+async def get_materials(authorization: Optional[str] = Header(None)):
+    """Obtiene la lista de materiales del usuario autenticado desde Supabase"""
     try:
         if SUPABASE_ENABLED:
             supabase = get_supabase_client()
             
-            # Obtener todos los materiales de Supabase
-            result = supabase.table('materials')\
-                .select('*')\
-                .order('created_at', desc=True)\
-                .execute()
+            # ✅ CORRECCIÓN PROFESOR: Filtrar materiales por user_id
+            # Para evitar cruce de datos entre usuarios
+            user = None
+            user_id = None
+            
+            try:
+                user = await get_current_user(authorization)
+                user_id = user['id'] if user else None
+            except:
+                # Si no hay autenticación, intentar obtener del header
+                pass
+            
+            if user_id:
+                # Obtener solo materiales del usuario autenticado
+                result = supabase.table('materials')\
+                    .select('*')\
+                    .eq('user_id', user_id)\
+                    .order('created_at', desc=True)\
+                    .execute()
+                
+                print(f"📚 Materiales del usuario {user_id[:8]}...: {len(result.data) if result.data else 0}")
+            else:
+                # Sin autenticación: devolver lista vacía por seguridad
+                print("⚠️ No hay user_id - devolviendo lista vacía por seguridad")
+                return {
+                    "success": True,
+                    "total": 0,
+                    "materials": [],
+                    "warning": "Usuario no autenticado"
+                }
             
             materials = result.data if result.data else []
-            
-            print(f"📚 Materiales obtenidos de Supabase: {len(materials)}")
             
             return {
                 "success": True,
@@ -954,16 +977,27 @@ async def get_materials():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/materials/{material_id}")
-async def get_material(material_id: str):
+async def get_material(material_id: str, authorization: Optional[str] = Header(None)):
     """Obtiene los detalles de un material específico desde Supabase"""
     try:
         if SUPABASE_ENABLED:
             supabase = get_supabase_client()
-            result = supabase.table('materials')\
-                .select('*')\
-                .eq('id', material_id)\
-                .single()\
-                .execute()
+            
+            # ✅ CORRECCIÓN PROFESOR: Verificar que el material pertenece al usuario
+            user_id = None
+            try:
+                user = await get_current_user(authorization)
+                user_id = user['id'] if user else None
+            except:
+                pass
+            
+            query = supabase.table('materials').select('*').eq('id', material_id)
+            
+            # Si hay usuario autenticado, verificar propiedad
+            if user_id:
+                query = query.eq('user_id', user_id)
+            
+            result = query.single().execute()
             
             if result.data:
                 return {
@@ -971,7 +1005,7 @@ async def get_material(material_id: str):
                     "material": result.data
                 }
             else:
-                raise HTTPException(status_code=404, detail="Material no encontrado")
+                raise HTTPException(status_code=404, detail="Material no encontrado o no tienes acceso")
         else:
             # Fallback local
             material = next((m for m in materials_db if m["id"] == material_id), None)
@@ -988,28 +1022,39 @@ async def get_material(material_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/api/materials/{material_id}")
-async def delete_material(material_id: str):
+async def delete_material(material_id: str, authorization: Optional[str] = Header(None)):
     """
     Elimina un material y todos sus registros asociados de Supabase
     - Elimina embeddings (CASCADE desde material_embeddings)
     - Elimina preguntas y respuestas (CASCADE)
     - Elimina registro del material
+    
+    ✅ CORRECCIÓN PROFESOR: Solo permite eliminar materiales propios
     """
     try:
         if SUPABASE_ENABLED:
             supabase = get_supabase_client()
             
-            # Verificar que existe
-            material = supabase.table('materials')\
-                .select('id, title, file_name')\
-                .eq('id', material_id)\
-                .single()\
-                .execute()
+            # ✅ Verificar usuario autenticado
+            user_id = None
+            try:
+                user = await get_current_user(authorization)
+                user_id = user['id'] if user else None
+            except:
+                pass
+            
+            # Verificar que existe Y pertenece al usuario
+            query = supabase.table('materials').select('id, title, file_name, user_id').eq('id', material_id)
+            
+            if user_id:
+                query = query.eq('user_id', user_id)
+            
+            material = query.single().execute()
             
             if not material.data:
-                raise HTTPException(status_code=404, detail=f"Material {material_id} no encontrado")
+                raise HTTPException(status_code=404, detail=f"Material {material_id} no encontrado o no tienes permiso para eliminarlo")
             
-            print(f"🗑️ Eliminando material: {material.data.get('title') or material.data.get('file_name')}")
+            print(f"🗑️ Eliminando material: {material.data.get('title') or material.data.get('file_name')} (usuario: {user_id[:8] if user_id else 'N/A'}...)")
             
             # Eliminar material (CASCADE eliminará embeddings automáticamente)
             delete_result = supabase.table('materials')\

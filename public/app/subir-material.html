@@ -748,7 +748,17 @@ document.addEventListener('DOMContentLoaded', function() {
         </p>
       `;
       
-  const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials`);
+      // ✅ CORRECCIÓN PROFESOR: Enviar token de autenticación para filtrar por usuario
+      const user = await SupabaseOperations.getCurrentUser();
+      const session = await supabaseClient.auth.getSession();
+      const token = session?.data?.session?.access_token;
+      
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials`, { headers });
       const data = await response.json();
       
       if (!data.success || data.materials.length === 0) {
