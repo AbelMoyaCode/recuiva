@@ -859,6 +859,9 @@ async def validate_answer(answer: Answer):
             # Obtener cosine similarity del top chunk (convertir a float nativo)
             top_cosine = to_native(classification.get('top_3_scores', [{}])[0].get('details', {}).get('cosine', 0.0))
             
+            # ✅ CORRECCIÓN: Extraer scores individuales del hybrid validator
+            top_details = classification.get('top_3_scores', [{}])[0].get('details', {})
+            
             # Construir resultado con datos de HybridValidator
             result = ValidationResult(
                 score=float(classification['confidence']),  # Convertir a float nativo
@@ -886,7 +889,14 @@ async def validate_answer(answer: Answer):
                     # Información de HybridValidator
                     "justification": f"{classification['category'].upper()}: {classification['feedback']}",
                     "reading_level": classification['category'],
-                    "keywords_found": classification.get('top_3_scores', [{}])[0].get('details', {}).get('keywords_found', [])
+                    "keywords_found": top_details.get('keywords_found', []),
+                    # ✅ NUEVO: Scores individuales para mostrar en acordeón
+                    "score_details": {
+                        "bm25": to_native(top_details.get('bm25', 0)),
+                        "cosine": to_native(top_details.get('cosine_normalized', top_details.get('cosine', 0))),
+                        "coverage": to_native(top_details.get('coverage', 0)),
+                        "weights": top_details.get('weights', {'bm25': 0.05, 'cosine': 0.80, 'coverage': 0.15})
+                    }
                 }
             )
             
