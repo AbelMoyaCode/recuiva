@@ -33,6 +33,192 @@ class HybridValidator:
         self.expected_max = 0.85  # Respuesta excelente → 100% (antes: 0.90)
         
         self.stopwords = {'el', 'la', 'los', 'las', 'un', 'una', 'de', 'del', 'a', 'al', 'en', 'por', 'para', 'con', 'y', 'o', 'pero', 'si', 'no', 'que', 'como', 'cuando', 'donde', 'cual', 'quien', 'su', 'sus', 'mi', 'mis', 'tu', 'tus', 'se', 'le', 'lo', 'me', 'te', 'nos', 'os'}
+        
+        # ═══════════════════════════════════════════════════════════════
+        # VERBOS DE RAZONAMIENTO (para compute_reasoning_score)
+        # Verbos que indican pensamiento, opinión, deducción, etc.
+        # ═══════════════════════════════════════════════════════════════
+        self.reasoning_verbs = [
+            # Verbos de pensamiento
+            'pensó', 'pensaba', 'piensa', 'pensar', 'pensando',
+            'creyó', 'creía', 'cree', 'creer', 'creyendo',
+            'supuso', 'suponía', 'supone', 'suponer', 'suponiendo',
+            'imaginó', 'imaginaba', 'imagina', 'imaginar', 'imaginando',
+            
+            # Verbos de deducción/conclusión
+            'dedujo', 'deducía', 'deduce', 'deducir', 'deduciendo',
+            'concluyó', 'concluía', 'concluye', 'concluir', 'concluyendo',
+            'infirió', 'infería', 'infiere', 'inferir', 'infiriendo',
+            'razonó', 'razonaba', 'razona', 'razonar', 'razonando',
+            
+            # Verbos de sospecha/duda
+            'sospechó', 'sospechaba', 'sospecha', 'sospechar', 'sospechando',
+            'dudó', 'dudaba', 'duda', 'dudar', 'dudando',
+            'desconfió', 'desconfiaba', 'desconfía', 'desconfiar',
+            
+            # Verbos de decisión/juicio
+            'decidió', 'decidía', 'decide', 'decidir', 'decidiendo',
+            'juzgó', 'juzgaba', 'juzga', 'juzgar', 'juzgando',
+            'opinó', 'opinaba', 'opina', 'opinar', 'opinando',
+            'consideró', 'consideraba', 'considera', 'considerar',
+            
+            # Verbos de comprensión
+            'comprendió', 'comprendía', 'comprende', 'comprender',
+            'entendió', 'entendía', 'entiende', 'entender',
+            'advirtió', 'advertía', 'advierte', 'advertir',
+            'notó', 'notaba', 'nota', 'notar',
+            'percibió', 'percibía', 'percibe', 'percibir',
+            
+            # Verbos de intención
+            'pretendió', 'pretendía', 'pretende', 'pretender',
+            'intentó', 'intentaba', 'intenta', 'intentar',
+            'quiso', 'quería', 'quiere', 'querer',
+            'buscó', 'buscaba', 'busca', 'buscar',
+            
+            # Verbos de reflexión
+            'reflexionó', 'reflexionaba', 'reflexiona', 'reflexionar',
+            'meditó', 'meditaba', 'medita', 'meditar',
+            'analizó', 'analizaba', 'analiza', 'analizar',
+        ]
+        
+        # Caracteres que indican diálogo
+        self.dialogue_chars = ['"', '«', '»', '—', '-', '"', '"', ''', ''']
+    
+    def classify_question_type(self, question: str) -> str:
+        """
+        Clasifica el tipo de pregunta: 'reasoning', 'literal', u 'other'.
+        
+        ═══════════════════════════════════════════════════════════════
+        BASADO EN: Taxonomía de Bloom + Reading Comprehension Research
+        ═══════════════════════════════════════════════════════════════
+        
+        RAZONAMIENTO/INFERENCIAL:
+        - Preguntas que requieren deducir, inferir, explicar motivos
+        - "¿Por qué...?", "¿Qué proceso de pensamiento...?", "¿Qué intención...?"
+        
+        LITERAL/HECHO:
+        - Preguntas sobre información explícita en el texto
+        - "¿Qué hizo...?", "¿Dónde estaba...?", "¿Cuándo...?"
+        
+        Args:
+            question: Texto de la pregunta
+            
+        Returns:
+            str: 'reasoning', 'literal', u 'other'
+        """
+        question_lower = question.lower()
+        
+        # Patrones para preguntas de RAZONAMIENTO
+        reasoning_patterns = [
+            # Causales
+            'por qué', 'por que', 'cuál es la razón', 'cual es la razon',
+            'qué razones', 'que razones', 'qué motivo', 'que motivo',
+            'a qué se debe', 'a que se debe', 'cómo se explica', 'como se explica',
+            
+            # Procesos mentales
+            'qué proceso de pensamiento', 'que proceso de pensamiento',
+            'qué pensó', 'que penso', 'qué opinión', 'que opinion',
+            'qué postura', 'que postura', 'cómo interpreta', 'como interpreta',
+            'qué intención', 'que intencion', 'con qué propósito', 'con que proposito',
+            
+            # Inferencia
+            'qué sugiere', 'que sugiere', 'qué indica', 'que indica',
+            'qué permite deducir', 'que permite deducir', 'qué implica', 'que implica',
+            'qué se puede inferir', 'que se puede inferir',
+            'qué conclusión', 'que conclusion',
+            
+            # Significado
+            'qué representa', 'que representa', 'qué simboliza', 'que simboliza',
+            'qué significa', 'que significa', 'cuál es el significado',
+            'qué importancia tiene', 'que importancia tiene',
+        ]
+        
+        # Patrones para preguntas LITERALES
+        literal_patterns = [
+            # Hechos directos
+            'qué hizo', 'que hizo', 'qué dijo', 'que dijo',
+            'dónde estaba', 'donde estaba', 'dónde se encontraba', 'donde se encontraba',
+            'cuándo ocurrió', 'cuando ocurrio', 'cuándo sucedió', 'cuando sucedio',
+            'quién era', 'quien era', 'quiénes eran', 'quienes eran',
+            
+            # Relaciones/Datos
+            'qué relación tenía', 'que relacion tenia', 'qué recibía', 'que recibia',
+            'qué papel cumple', 'que papel cumple', 'cuántos', 'cuantos',
+            'qué tipo de', 'que tipo de', 'cuál era', 'cual era',
+            
+            # Descripciones
+            'cómo era', 'como era', 'cómo se llamaba', 'como se llamaba',
+            'qué contenía', 'que contenia', 'qué incluía', 'que incluia',
+        ]
+        
+        # Verificar patrones de razonamiento primero
+        for pattern in reasoning_patterns:
+            if pattern in question_lower:
+                return 'reasoning'
+        
+        # Verificar patrones literales
+        for pattern in literal_patterns:
+            if pattern in question_lower:
+                return 'literal'
+        
+        # Por defecto
+        return 'other'
+    
+    def compute_reasoning_score(self, chunk_text: str) -> float:
+        """
+        Calcula un score de "razonamiento" para un chunk [0, 1].
+        
+        ═══════════════════════════════════════════════════════════════
+        PROPÓSITO:
+        Para preguntas de razonamiento/inferenciales, priorizar chunks
+        que contengan más diálogo y verbos de pensamiento/opinión.
+        ═══════════════════════════════════════════════════════════════
+        
+        COMPONENTES:
+        1. dialogue_ratio: Proporción de caracteres de diálogo
+        2. reasoning_verbs_ratio: Densidad de verbos de razonamiento
+        
+        FÓRMULA:
+        score = 0.6 * dialogue_ratio + 0.4 * reasoning_verbs_normalized
+        
+        Args:
+            chunk_text: Texto del chunk
+            
+        Returns:
+            float: Score en [0, 1]
+        """
+        if not chunk_text or len(chunk_text) < 10:
+            return 0.0
+        
+        chunk_lower = chunk_text.lower()
+        
+        # ═══════════════════════════════════════════════════════════════
+        # 1. RATIO DE DIÁLOGO
+        # Proporción de caracteres que son marcadores de diálogo
+        # ═══════════════════════════════════════════════════════════════
+        dialogue_count = sum(chunk_text.count(char) for char in self.dialogue_chars)
+        dialogue_ratio = min(1.0, dialogue_count / (len(chunk_text) * 0.05))  # Normalizar
+        
+        # ═══════════════════════════════════════════════════════════════
+        # 2. RATIO DE VERBOS DE RAZONAMIENTO
+        # Contar apariciones de verbos de pensamiento/opinión
+        # ═══════════════════════════════════════════════════════════════
+        words = chunk_lower.split()
+        word_count = max(len(words), 1)
+        
+        reasoning_count = 0
+        for verb in self.reasoning_verbs:
+            reasoning_count += chunk_lower.count(verb)
+        
+        # Normalizar: esperamos ~1-3 verbos de razonamiento por cada 100 palabras
+        reasoning_ratio = min(1.0, (reasoning_count / word_count) * 50)
+        
+        # ═══════════════════════════════════════════════════════════════
+        # COMBINAR: 60% diálogo + 40% verbos de razonamiento
+        # ═══════════════════════════════════════════════════════════════
+        score = 0.6 * dialogue_ratio + 0.4 * reasoning_ratio
+        
+        return max(0.0, min(1.0, score))
     
     def normalize_cosine(self, cosine_sim: float) -> float:
         """
@@ -685,6 +871,23 @@ class HybridValidator:
         )
         
         # ═══════════════════════════════════════════════════════════════
+        # NUEVO: Re-ranking basado en tipo de pregunta (Rationale-Aware)
+        # ═══════════════════════════════════════════════════════════════
+        # Si la pregunta es de razonamiento, dar boost a chunks con más
+        # diálogo y verbos de pensamiento/opinión
+        question_type = self.classify_question_type(question)
+        reasoning_score = self.compute_reasoning_score(chunk['text_full'])
+        reasoning_boost_applied = 0.0
+        
+        if question_type == 'reasoning' and reasoning_score > 0.1:
+            # Boost suave: máximo +20% al score
+            # No rompe el score semántico, solo inclina la balanza
+            reasoning_boost_applied = 0.20 * reasoning_score
+            score_raw = score_raw * (1 + reasoning_boost_applied)
+            score_raw = min(score_raw, 0.99)  # Nunca superar 99%
+            print(f"   🧠 Boost razonamiento: +{reasoning_boost_applied*100:.1f}% (reasoning_score={reasoning_score:.2f})")
+        
+        # ═══════════════════════════════════════════════════════════════
         # NUEVO: Detección de contradicción (NLI simplificado)
         # ═══════════════════════════════════════════════════════════════
         # Si el usuario NIEGA conceptos clave del chunk, penalizar fuertemente
@@ -720,7 +923,11 @@ class HybridValidator:
             # NUEVO: Info de contradicción para debugging
             'contradiction_detected': is_contradiction,
             'contradiction_reason': contradiction_reason if is_contradiction else None,
-            'contradiction_penalty': penalty_factor if is_contradiction else 1.0
+            'contradiction_penalty': penalty_factor if is_contradiction else 1.0,
+            # NUEVO: Info de re-ranking por tipo de pregunta
+            'question_type': question_type,
+            'reasoning_score': round(reasoning_score, 4),
+            'reasoning_boost': round(reasoning_boost_applied, 4)
         }
         
         return score_raw, details
