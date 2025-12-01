@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Backend - FastAPI con embeddings semánticos
   backend:
@@ -41,21 +39,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
-      # Backend HTTP (redirect a HTTPS)
-      - traefik.http.routers.recuiva-backend-web.rule=Host(`api-recuiva.duckdns.org`)
-      - traefik.http.routers.recuiva-backend-web.entrypoints=web
-      - traefik.http.routers.recuiva-backend-web.middlewares=redirect-to-https@file
-      # Backend HTTPS
-      - traefik.http.routers.recuiva-backend-websecure.rule=Host(`api-recuiva.duckdns.org`)
-      - traefik.http.routers.recuiva-backend-websecure.entrypoints=websecure
-      - traefik.http.routers.recuiva-backend-websecure.tls.certresolver=letsencrypt
-      - traefik.http.routers.recuiva-backend-websecure.service=recuiva-backend
       - traefik.http.services.recuiva-backend.loadbalancer.server.port=8001
-      # Backend por IP (HTTP en puerto 8001)
-      - traefik.http.routers.recuiva-backend-ip.rule=PathPrefix(`/api`) || PathPrefix(`/docs`)
-      - traefik.http.routers.recuiva-backend-ip.entrypoints=web
-      - traefik.http.routers.recuiva-backend-ip.priority=100
-      - traefik.http.routers.recuiva-backend-ip.service=recuiva-backend
     networks:
       - dokploy-network
 
@@ -75,21 +59,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=dokploy-network
-      # Frontend HTTP (redirect a HTTPS)
-      - traefik.http.routers.recuiva-frontend-web.rule=Host(`recuiva.duckdns.org`)
-      - traefik.http.routers.recuiva-frontend-web.entrypoints=web
-      - traefik.http.routers.recuiva-frontend-web.middlewares=redirect-to-https@file
-      # Frontend HTTPS
-      - traefik.http.routers.recuiva-frontend-websecure.rule=Host(`recuiva.duckdns.org`)
-      - traefik.http.routers.recuiva-frontend-websecure.entrypoints=websecure
-      - traefik.http.routers.recuiva-frontend-websecure.tls.certresolver=letsencrypt
-      - traefik.http.routers.recuiva-frontend-websecure.service=recuiva-frontend
       - traefik.http.services.recuiva-frontend.loadbalancer.server.port=80
-      # Frontend por IP (HTTP en puerto 80)
-      - traefik.http.routers.recuiva-frontend-ip.rule=PathPrefix(`/`)
-      - traefik.http.routers.recuiva-frontend-ip.entrypoints=web
-      - traefik.http.routers.recuiva-frontend-ip.priority=1
-      - traefik.http.routers.recuiva-frontend-ip.service=recuiva-frontend
 
 volumes:
   embeddings-cache:
