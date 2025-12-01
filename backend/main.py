@@ -949,7 +949,8 @@ async def get_materials(authorization: Optional[str] = Header(None)):
             
             try:
                 user = await get_current_user(authorization)
-                user_id = user['id'] if user else None
+                # user es un objeto User de Supabase, acceder con .id
+                user_id = user.id if user else None
                 print(f"👤 Usuario obtenido: {user_id[:8] if user_id else 'None'}...")
             except Exception as e:
                 print(f"⚠️ Error obteniendo usuario: {e}")
