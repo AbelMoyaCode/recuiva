@@ -46,7 +46,13 @@ def classify_question_type(question: str) -> str:
         "qué sugiere", "que sugiere",
         "qué podemos inferir", "que podemos inferir",
         "qué se puede inferir", "que se puede inferir",
+        "qué puede inferirse", "que puede inferirse",  # 👈 NUEVO
+        "puede inferirse", "puede deducirse",  # 👈 NUEVO
+        "se puede inferir", "se puede deducir",  # 👈 NUEVO
         "cómo se explica", "como se explica",
+        "cómo se comportó", "como se comporto",  # 👈 NUEVO
+        "cómo reaccionó", "como reacciono",  # 👈 NUEVO
+        "cómo actuó", "como actuo",  # 👈 NUEVO
         "qué intención", "que intencion", "que intención",
         "qué consecuencias", "que consecuencias",
         "qué implicaciones", "que implicaciones",
@@ -69,7 +75,13 @@ def classify_question_type(question: str) -> str:
         "en qué sentido", "en que sentido",
         "qué nos dice esto sobre", "que nos dice esto sobre",
         "qué revela", "que revela",
-        "cómo demuestra", "como demuestra"
+        "cómo demuestra", "como demuestra",
+        "qué demuestra", "que demuestra",  # 👈 NUEVO
+        "qué indica", "que indica",  # 👈 NUEVO
+        "qué evidencia", "que evidencia",  # 👈 NUEVO
+        "qué refleja", "que refleja",  # 👈 NUEVO
+        "qué nos permite", "que nos permite",  # 👈 NUEVO
+        "sobre su comprensión", "sobre su entendimiento"  # 👈 NUEVO
     ]
     
     # Patrones para preguntas LITERALES (información explícita)
