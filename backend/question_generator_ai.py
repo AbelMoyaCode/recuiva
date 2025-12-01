@@ -60,6 +60,11 @@ def classify_question_type(question: str) -> str:
         "cómo se manifiesta", "como se manifiesta",
         "cómo se refleja", "como se refleja",
         "cómo se evidencia", "como se evidencia",
+        "cómo se caracteriza", "como se caracteriza",  # 👈 NUEVO
+        "cómo se desarrolla", "como se desarrolla",  # 👈 NUEVO
+        "cómo se transforma", "como se transforma",  # 👈 NUEVO
+        "cómo se presenta", "como se presenta",  # 👈 NUEVO
+        "cómo se describe", "como se describe",  # 👈 NUEVO
         "cómo reaccionó", "como reacciono",
         "cómo actuó", "como actuo",
         "cómo logró", "como logro",
@@ -105,7 +110,40 @@ def classify_question_type(question: str) -> str:
         "qué papel juega", "que papel juega",
         "qué rol cumple", "que rol cumple",
         "qué función tiene", "que funcion tiene",
-        "qué importancia", "que importancia"
+        "qué importancia", "que importancia",
+        # Preguntas evaluativas y comparativas
+        "qué ventaja", "que ventaja",
+        "qué desventaja", "que desventaja",
+        "qué beneficio", "que beneficio",
+        "qué diferencia", "que diferencia",
+        "qué similitud", "que similitud",
+        "qué aspecto", "que aspecto",
+        "qué característica", "que caracteristica", "que característica",
+        "qué elemento", "que elemento",
+        "qué factor", "que factor",
+        "qué rasgo", "que rasgo",
+        "qué cualidad", "que cualidad",
+        "qué tipo de", "que tipo de",
+        # Más patrones de "cómo se..."
+        "cómo se percibe", "como se percibe",
+        "cómo se representa", "como se representa",
+        "cómo se expresa", "como se expresa",
+        "cómo se construye", "como se construye",
+        "cómo se articula", "como se articula",
+        "cómo se plantea", "como se plantea",
+        "cómo se vincula", "como se vincula",
+        "cómo se conecta", "como se conecta",
+        "cómo se estructura", "como se estructura",
+        "cómo se organiza", "como se organiza",
+        "cómo se define", "como se define",
+        "cómo se ejemplifica", "como se ejemplifica",
+        "cómo se aplica", "como se aplica",
+        "cómo se usa", "como se usa",
+        "cómo se utiliza", "como se utiliza",
+        # Preguntas de valoración
+        "es importante", "son importantes",
+        "es significativo", "son significativos",
+        "es relevante", "son relevantes"
     ]
     
     # Patrones para preguntas LITERALES (información explícita)
