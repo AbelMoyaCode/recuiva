@@ -188,23 +188,123 @@ class HybridValidator:
         answer_lower = user_answer.lower()
         chunk_lower = chunk_text.lower()
         
-        # Keywords importantes que si se niegan = contradicción grave
-        # Agrupados por categoría semántica
+        # ═══════════════════════════════════════════════════════════════
+        # KEYWORDS CRÍTICOS EXPANDIDOS (GENERALIZADO PARA CUALQUIER PDF)
+        # ═══════════════════════════════════════════════════════════════
+        # Agrupados por categoría semántica - funciona para múltiples dominios
         critical_keywords = {
-            # Dinero/Economía
-            'dinero': ['dinero', 'francos', 'billetes', 'moneda', 'plata', 'efectivo', 'suma', 'pago'],
-            'envio': ['envió', 'enviaba', 'enviar', 'mandó', 'mandaba', 'mandar', 'recibía', 'recibió'],
-            'correo': ['correo', 'carta', 'cartas', 'sobre', 'sobres', 'correspondencia'],
-            # Personas/Acciones
-            'ayuda': ['ayuda', 'ayudó', 'ayudaba', 'asistencia', 'apoyo'],
-            'robo': ['robó', 'robar', 'hurto', 'ladrón', 'robado'],
-            'culpa': ['culpable', 'inocente', 'sospechoso', 'acusado'],
+            # ─────────────────────────────────────────────────────────────
+            # ECONOMÍA / DINERO (expandido)
+            # ─────────────────────────────────────────────────────────────
+            'dinero': ['dinero', 'francos', 'billetes', 'moneda', 'plata', 'efectivo', 
+                       'suma', 'pago', 'precio', 'costo', 'valor', 'fortuna', 'riqueza',
+                       'pobre', 'rico', 'deuda', 'préstamo', 'herencia', 'tesoro'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # ENVÍO / COMUNICACIÓN
+            # ─────────────────────────────────────────────────────────────
+            'envio': ['envió', 'enviaba', 'enviar', 'mandó', 'mandaba', 'mandar', 
+                      'recibía', 'recibió', 'recibir', 'entregó', 'entregaba', 'entregar',
+                      'llegó', 'llegaba', 'llegar', 'trajo', 'traía', 'traer'],
+            'correo': ['correo', 'carta', 'cartas', 'sobre', 'sobres', 'correspondencia',
+                       'mensaje', 'mensajes', 'telegrama', 'paquete', 'envío'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # AYUDA / ASISTENCIA
+            # ─────────────────────────────────────────────────────────────
+            'ayuda': ['ayuda', 'ayudó', 'ayudaba', 'ayudar', 'asistencia', 'apoyo',
+                      'auxilio', 'socorro', 'colaboración', 'contribución', 'donación'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # CRIMEN / JUSTICIA
+            # ─────────────────────────────────────────────────────────────
+            'robo': ['robó', 'robar', 'robo', 'hurto', 'ladrón', 'robado', 'robaron',
+                     'sustrajo', 'sustraer', 'apropió', 'apropiar', 'estafó', 'estafa'],
+            'culpa': ['culpable', 'inocente', 'sospechoso', 'acusado', 'condenado',
+                      'absuelto', 'criminal', 'delincuente', 'cómplice', 'víctima'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # EXISTENCIA / OCURRENCIA (NUEVO - GENERAL)
+            # ─────────────────────────────────────────────────────────────
+            'existencia': ['existió', 'existía', 'existe', 'existir', 'hubo', 'había',
+                           'ocurrió', 'ocurría', 'ocurrir', 'sucedió', 'sucedía', 'suceder',
+                           'pasó', 'pasaba', 'pasar', 'aconteció', 'tuvo', 'tenía', 'tiene'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # VERDAD / CERTEZA (NUEVO - GENERAL)
+            # ─────────────────────────────────────────────────────────────
+            'verdad': ['verdad', 'cierto', 'real', 'realidad', 'verdadero', 'auténtico',
+                       'legítimo', 'genuino', 'válido', 'confirmado', 'probado', 'demostrado'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # SALUD / ESTADO FÍSICO (NUEVO)
+            # ─────────────────────────────────────────────────────────────
+            'salud': ['enfermo', 'enferma', 'enfermedad', 'salud', 'sano', 'sana',
+                      'curó', 'curaba', 'curar', 'murió', 'moría', 'morir', 'muerte',
+                      'herido', 'herida', 'lesión', 'recuperó', 'recuperar', 'sobrevivió'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # EMOCIONES / SENTIMIENTOS (NUEVO)
+            # ─────────────────────────────────────────────────────────────
+            'emocion': ['feliz', 'triste', 'alegre', 'miedo', 'asustado', 'contento',
+                        'enojado', 'furioso', 'preocupado', 'ansioso', 'nervioso', 'tranquilo',
+                        'enamorado', 'amaba', 'odiaba', 'quería', 'deseaba', 'temía', 'esperaba'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # EVENTOS / SUCESOS (NUEVO)
+            # ─────────────────────────────────────────────────────────────
+            'evento': ['guerra', 'batalla', 'conflicto', 'revolución', 'terremoto', 'accidente',
+                       'incendio', 'inundación', 'catástrofe', 'desastre', 'celebración', 'fiesta',
+                       'boda', 'funeral', 'nacimiento', 'reunión', 'encuentro', 'viaje'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # TIEMPO / TEMPORALIDAD (NUEVO)
+            # ─────────────────────────────────────────────────────────────
+            'tiempo': ['antes', 'después', 'durante', 'siempre', 'frecuentemente',
+                       'diariamente', 'anualmente', 'mensualmente', 'primero', 'último',
+                       'antiguo', 'moderno', 'reciente', 'pasado', 'futuro', 'presente'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # UBICACIÓN / LUGAR (NUEVO)
+            # ─────────────────────────────────────────────────────────────
+            'ubicacion': ['aquí', 'allí', 'cerca', 'lejos', 'dentro', 'fuera', 'arriba', 'abajo',
+                          'norte', 'sur', 'este', 'oeste', 'ciudad', 'pueblo', 'país', 'región',
+                          'casa', 'edificio', 'palacio', 'habitación', 'lugar', 'sitio'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # PERSONAS / RELACIONES (NUEVO)
+            # ─────────────────────────────────────────────────────────────
+            'persona': ['padre', 'madre', 'hijo', 'hija', 'hermano', 'hermana', 'esposo', 'esposa',
+                        'amigo', 'enemigo', 'rey', 'reina', 'conde', 'condesa', 'señor', 'señora',
+                        'jefe', 'empleado', 'sirviente', 'criado', 'niño', 'adulto', 'anciano'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # ACCIONES / VERBOS COMUNES (NUEVO)
+            # ─────────────────────────────────────────────────────────────
+            'accion': ['hizo', 'hacía', 'hacer', 'dijo', 'decía', 'decir', 'vio', 'veía', 'ver',
+                       'oyó', 'oía', 'oír', 'sabía', 'saber', 'conocía', 'conocer', 'pensaba', 'pensar',
+                       'quiso', 'quería', 'querer', 'pudo', 'podía', 'poder', 'debía', 'deber',
+                       'logró', 'lograr', 'consiguió', 'conseguir', 'intentó', 'intentar',
+                       'decidió', 'decidir', 'descubrió', 'descubrir', 'encontró', 'encontrar'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # CANTIDAD / NÚMEROS (NUEVO)
+            # ─────────────────────────────────────────────────────────────
+            'cantidad': ['todo', 'nada', 'mucho', 'poco', 'algunos', 'ninguno', 'varios',
+                         'único', 'solo', 'solamente', 'doble', 'triple', 'mitad', 'completo',
+                         'mayoría', 'minoría', 'total', 'parcial', 'entero'],
+            
+            # ─────────────────────────────────────────────────────────────
+            # CIENCIA / ACADÉMICO (NUEVO)
+            # ─────────────────────────────────────────────────────────────
+            'ciencia': ['experimento', 'teoría', 'hipótesis', 'resultado', 'conclusión',
+                        'descubrimiento', 'invento', 'investigación', 'estudio', 'análisis',
+                        'prueba', 'evidencia', 'demostración', 'fórmula', 'ley', 'principio'],
         }
         
-        # Patrones de negación en español
-        # MEJORADO: Permite hasta 4 palabras entre la negación y el keyword
-        # Ejemplo: "nunca le mandó dinero" → detecta "nunca ... dinero"
-        # NOTA: No usar {0,4} con .format() porque causa conflicto de llaves
+        # ═══════════════════════════════════════════════════════════════
+        # PATRONES DE NEGACIÓN EXPANDIDOS
+        # ═══════════════════════════════════════════════════════════════
         negation_patterns = [
             # Patrones directos (negación + keyword)
             r'\bno\s+{keyword}\b',
@@ -213,12 +313,16 @@ class HybridValidator:
             r'\bsin\s+{keyword}\b',
             r'\bningún\s+{keyword}\b',
             r'\bninguna\s+{keyword}\b',
+            r'\bnada\s+de\s+{keyword}\b',
+            r'\bnadie\s+{keyword}\b',
             # Patrones con 1 palabra intermedia
             r'\bno\s+\w+\s+{keyword}\b',
             r'\bnunca\s+\w+\s+{keyword}\b',
             r'\bno\s+le\s+\w+\s+{keyword}\b',
             r'\bnunca\s+le\s+\w+\s+{keyword}\b',
-            # Patrones con 2 palabras intermedias (ej: "nunca le mandó dinero")
+            r'\bno\s+se\s+\w+\s+{keyword}\b',
+            r'\bnunca\s+se\s+\w+\s+{keyword}\b',
+            # Patrones con 2 palabras intermedias
             r'\bno\s+\w+\s+\w+\s+{keyword}\b',
             r'\bnunca\s+\w+\s+\w+\s+{keyword}\b',
             r'\bjamás\s+\w+\s+\w+\s+{keyword}\b',
@@ -231,6 +335,13 @@ class HybridValidator:
             r'\bpero\s+no\s+\w+\s+{keyword}\b',
             r'\bpero\s+nunca\s+\w+\s+{keyword}\b',
             r'\bpero\s+nunca\s+\w+\s+\w+\s+{keyword}\b',
+            # Patrones con "tampoco" (NUEVO)
+            r'\btampoco\s+{keyword}\b',
+            r'\btampoco\s+\w+\s+{keyword}\b',
+            # Patrones con "ni" (NUEVO)
+            r'\bni\s+{keyword}\b',
+            r'\bni\s+\w+\s+{keyword}\b',
+            r'\bni\s+siquiera\s+{keyword}\b',
         ]
         
         contradictions_found = []
@@ -254,23 +365,49 @@ class HybridValidator:
                             })
         
         # ═══════════════════════════════════════════════════════════════
-        # ESTRATEGIA 2: Contradicción con la PREGUNTA
+        # ESTRATEGIA 2: Contradicción con la PREGUNTA (EXPANDIDA)
         # ═══════════════════════════════════════════════════════════════
-        # Si la pregunta habla de "ayuda económica" y la respuesta dice
-        # "nunca le mandó dinero", es contradicción aunque el chunk no tenga "dinero"
         question_lower = question.lower() if question else ""
         
-        # Detectar tema de la pregunta
+        # Detectar tema de la pregunta - EXPANDIDO para múltiples dominios
         question_topics = {
-            'economico': ['ayuda económica', 'dinero', 'económica', 'francos', 'billetes', 'pago', 'suma'],
-            'envio': ['recibía', 'enviaba', 'mandaba', 'por correo', 'carta'],
+            # Económico
+            'economico': ['ayuda económica', 'dinero', 'económica', 'francos', 'billetes', 
+                          'pago', 'suma', 'precio', 'costo', 'fortuna', 'herencia', 'deuda'],
+            # Envío/Comunicación
+            'envio': ['recibía', 'enviaba', 'mandaba', 'por correo', 'carta', 'mensaje',
+                      'llegaba', 'entregaba', 'correspondencia'],
+            # Existencia/Ocurrencia
+            'existencia': ['ocurrió', 'sucedió', 'pasó', 'hubo', 'existió', 'había',
+                           'tuvo lugar', 'aconteció', 'se produjo'],
+            # Salud
+            'salud': ['enfermedad', 'enfermo', 'murió', 'curó', 'salud', 'herido',
+                      'recuperó', 'sobrevivió', 'falleció'],
+            # Emociones
+            'emocion': ['sentía', 'emoción', 'feliz', 'triste', 'miedo', 'amaba',
+                        'odiaba', 'quería', 'temía'],
+            # Eventos
+            'evento': ['guerra', 'batalla', 'accidente', 'celebración', 'boda',
+                       'viaje', 'reunión', 'encuentro'],
+            # Verdad
+            'verdad': ['verdad', 'cierto', 'real', 'confirmó', 'demostró', 'probó'],
+            # Acciones
+            'accion': ['hizo', 'dijo', 'decidió', 'logró', 'consiguió', 'intentó',
+                       'descubrió', 'encontró', 'vio', 'oyó'],
         }
         
         for topic, topic_keywords in question_topics.items():
             # Si la pregunta trata sobre este tema
             if any(tk in question_lower for tk in topic_keywords):
-                # Buscar si la respuesta NIEGA keywords relacionados con el tema
-                related_keywords = critical_keywords.get(topic, []) + critical_keywords.get('dinero', [])
+                # Buscar keywords relacionados de critical_keywords
+                related_keywords = critical_keywords.get(topic, [])
+                # También agregar keywords del tema 'dinero' si es económico
+                if topic == 'economico':
+                    related_keywords = related_keywords + critical_keywords.get('dinero', [])
+                # Agregar keywords de existencia para temas de eventos
+                if topic in ['evento', 'existencia']:
+                    related_keywords = related_keywords + critical_keywords.get('existencia', [])
+                
                 for keyword in related_keywords:
                     for pattern_template in negation_patterns:
                         pattern = pattern_template.format(keyword=keyword)
@@ -281,8 +418,30 @@ class HybridValidator:
                                     'category': topic,
                                     'keyword': keyword,
                                     'pattern': pattern,
-                                    'source': 'question'  # Contradicción con la pregunta = más grave
+                                    'source': 'question'
                                 })
+        
+        # ═══════════════════════════════════════════════════════════════
+        # ESTRATEGIA 3: Detección de contradicción numérica (NUEVO)
+        # ═══════════════════════════════════════════════════════════════
+        # Si el chunk menciona un número y la respuesta menciona otro diferente
+        chunk_numbers = set(re.findall(r'\b\d+\b', chunk_lower))
+        answer_numbers = set(re.findall(r'\b\d+\b', answer_lower))
+        
+        # Si hay números en ambos y no coinciden (excluyendo números muy comunes como 1, 2)
+        significant_chunk_nums = {n for n in chunk_numbers if int(n) > 10}
+        significant_answer_nums = {n for n in answer_numbers if int(n) > 10}
+        
+        if significant_chunk_nums and significant_answer_nums:
+            mismatched = significant_answer_nums - significant_chunk_nums
+            if mismatched and len(mismatched) > 0:
+                # Hay números en la respuesta que no están en el chunk
+                contradictions_found.append({
+                    'category': 'numerico',
+                    'keyword': f"números: {list(mismatched)[:2]}",
+                    'pattern': 'numeric_mismatch',
+                    'source': 'numeric'
+                })
         
         if contradictions_found:
             # Cuantas más contradicciones, mayor penalización
