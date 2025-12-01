@@ -1464,6 +1464,7 @@ async def generate_questions_for_material(
             # Clasificar el tipo de pregunta
             question_text = questions[0]
             question_type = classify_question_type(question_text)
+            print(f"❓ Pregunta generada: {question_text}")
             print(f"🏷️ Pregunta clasificada como: {question_type}")
             
             return {
