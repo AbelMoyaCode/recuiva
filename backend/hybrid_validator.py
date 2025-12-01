@@ -202,23 +202,38 @@ class HybridValidator:
         }
         
         # Patrones de negación en español
+        # MEJORADO: Permite hasta 4 palabras entre la negación y el keyword
+        # Ejemplo: "nunca le mandó dinero" → detecta "nunca ... dinero"
         negation_patterns = [
-            r'\bno\s+\w*{keyword}\w*',
-            r'\bnunca\s+\w*{keyword}\w*',
-            r'\bjamás\s+\w*{keyword}\w*',
-            r'\bsin\s+\w*{keyword}\w*',
-            r'\bningún\s+\w*{keyword}\w*',
-            r'\bninguna\s+\w*{keyword}\w*',
-            r'\bnada\s+de\s+\w*{keyword}\w*',
-            r'\bno\s+le\s+\w*{keyword}\w*',
-            r'\bnunca\s+le\s+\w*{keyword}\w*',
-            # Patrones compuestos
-            r'\bpero\s+\w*no\s+\w*{keyword}\w*',
-            r'\bpero\s+\w*nunca\s+\w*{keyword}\w*',
+            # Patrones directos (negación + keyword)
+            r'\bno\s+{keyword}\b',
+            r'\bnunca\s+{keyword}\b',
+            r'\bjamás\s+{keyword}\b',
+            r'\bsin\s+{keyword}\b',
+            r'\bningún\s+{keyword}\b',
+            r'\bninguna\s+{keyword}\b',
+            # Patrones con 1-2 palabras intermedias
+            r'\bno\s+\w+\s+{keyword}\b',
+            r'\bnunca\s+\w+\s+{keyword}\b',
+            r'\bno\s+le\s+\w+\s+{keyword}\b',
+            r'\bnunca\s+le\s+\w+\s+{keyword}\b',
+            # Patrones con 2-3 palabras intermedias (ej: "nunca le mandó dinero")
+            r'\bno\s+\w+\s+\w+\s+{keyword}\b',
+            r'\bnunca\s+\w+\s+\w+\s+{keyword}\b',
+            r'\bjamás\s+\w+\s+\w+\s+{keyword}\b',
+            # Patrones compuestos con "pero"
+            r'\bpero\s+no\s+\w*\s*{keyword}\b',
+            r'\bpero\s+nunca\s+\w*\s*{keyword}\b',
+            r'\bpero\s+nunca\s+\w+\s+\w+\s+{keyword}\b',
+            # Patrón genérico: negación seguida de hasta 4 palabras + keyword
+            r'\b(no|nunca|jamás|sin)\s+(?:\w+\s+){0,4}{keyword}\b',
         ]
         
         contradictions_found = []
         
+        # ═══════════════════════════════════════════════════════════════
+        # ESTRATEGIA 1: Contradicción con el CHUNK
+        # ═══════════════════════════════════════════════════════════════
         for category, keywords in critical_keywords.items():
             for keyword in keywords:
                 # Verificar si el keyword está en el chunk (es relevante)
@@ -230,8 +245,40 @@ class HybridValidator:
                             contradictions_found.append({
                                 'category': category,
                                 'keyword': keyword,
-                                'pattern': pattern
+                                'pattern': pattern,
+                                'source': 'chunk'
                             })
+        
+        # ═══════════════════════════════════════════════════════════════
+        # ESTRATEGIA 2: Contradicción con la PREGUNTA
+        # ═══════════════════════════════════════════════════════════════
+        # Si la pregunta habla de "ayuda económica" y la respuesta dice
+        # "nunca le mandó dinero", es contradicción aunque el chunk no tenga "dinero"
+        question_lower = question.lower() if question else ""
+        
+        # Detectar tema de la pregunta
+        question_topics = {
+            'economico': ['ayuda económica', 'dinero', 'económica', 'francos', 'billetes', 'pago', 'suma'],
+            'envio': ['recibía', 'enviaba', 'mandaba', 'por correo', 'carta'],
+        }
+        
+        for topic, topic_keywords in question_topics.items():
+            # Si la pregunta trata sobre este tema
+            if any(tk in question_lower for tk in topic_keywords):
+                # Buscar si la respuesta NIEGA keywords relacionados con el tema
+                related_keywords = critical_keywords.get(topic, []) + critical_keywords.get('dinero', [])
+                for keyword in related_keywords:
+                    for pattern_template in negation_patterns:
+                        pattern = pattern_template.format(keyword=keyword)
+                        if re.search(pattern, answer_lower):
+                            # Evitar duplicados
+                            if not any(c['keyword'] == keyword and c['source'] == 'question' for c in contradictions_found):
+                                contradictions_found.append({
+                                    'category': topic,
+                                    'keyword': keyword,
+                                    'pattern': pattern,
+                                    'source': 'question'
+                                })
         
         if contradictions_found:
             # Cuantas más contradicciones, mayor penalización
