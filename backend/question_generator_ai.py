@@ -42,46 +42,70 @@ def classify_question_type(question: str) -> str:
     
     # Patrones para preguntas INFERENCIALES (razonamiento, deducción)
     inferential_patterns = [
+        # Por qué (causa/razón)
         "por qué", "por que",
+        # Inferir/deducir
         "qué sugiere", "que sugiere",
         "qué podemos inferir", "que podemos inferir",
         "qué se puede inferir", "que se puede inferir",
-        "qué puede inferirse", "que puede inferirse",  # 👈 NUEVO
-        "puede inferirse", "puede deducirse",  # 👈 NUEVO
-        "se puede inferir", "se puede deducir",  # 👈 NUEVO
+        "qué puede inferirse", "que puede inferirse",
+        "puede inferirse", "puede deducirse",
+        "se puede inferir", "se puede deducir",
+        # Cómo se + verbo (relaciones, comportamientos, explicaciones)
+        "cómo se relaciona", "como se relaciona",
         "cómo se explica", "como se explica",
-        "cómo se comportó", "como se comporto",  # 👈 NUEVO
-        "cómo reaccionó", "como reacciono",  # 👈 NUEVO
-        "cómo actuó", "como actuo",  # 👈 NUEVO
+        "cómo se comportó", "como se comporto",
+        "cómo se conecta", "como se conecta",
+        "cómo se vincula", "como se vincula",
+        "cómo se manifiesta", "como se manifiesta",
+        "cómo se refleja", "como se refleja",
+        "cómo se evidencia", "como se evidencia",
+        "cómo reaccionó", "como reacciono",
+        "cómo actuó", "como actuo",
+        "cómo logró", "como logro",
+        "cómo influyó", "como influyo",
+        # Intenciones/consecuencias
         "qué intención", "que intencion", "que intención",
         "qué consecuencias", "que consecuencias",
         "qué implicaciones", "que implicaciones",
+        # Opinión/interpretación
         "qué crees", "que crees",
         "qué piensas", "que piensas",
         "qué opinas", "que opinas",
         "cómo interpretas", "como interpretas",
+        # Significado/relación
         "qué significa", "que significa",
         "qué relación", "que relacion", "que relación",
         "cómo influye", "como influye",
         "qué motiva", "que motiva",
+        # Causa/efecto
         "cuál es la causa", "cual es la causa",
         "cuál es el motivo", "cual es el motivo",
         "qué efecto", "que efecto",
         "cómo afecta", "como afecta",
+        # Hipotéticos
         "qué podría", "que podria", "que podría",
         "qué hubiera", "que hubiera",
         "qué habría", "que habria", "que habría",
+        # Análisis
         "de qué manera", "de que manera",
         "en qué sentido", "en que sentido",
         "qué nos dice esto sobre", "que nos dice esto sobre",
         "qué revela", "que revela",
         "cómo demuestra", "como demuestra",
-        "qué demuestra", "que demuestra",  # 👈 NUEVO
-        "qué indica", "que indica",  # 👈 NUEVO
-        "qué evidencia", "que evidencia",  # 👈 NUEVO
-        "qué refleja", "que refleja",  # 👈 NUEVO
-        "qué nos permite", "que nos permite",  # 👈 NUEVO
-        "sobre su comprensión", "sobre su entendimiento"  # 👈 NUEVO
+        "qué demuestra", "que demuestra",
+        "qué indica", "que indica",
+        "qué evidencia", "que evidencia",
+        "qué refleja", "que refleja",
+        "qué nos permite", "que nos permite",
+        "sobre su comprensión", "sobre su entendimiento",
+        # Frases con "la idea de" (análisis conceptual)
+        "con la idea de", "la idea de",
+        # Preguntas de análisis profundo
+        "qué papel juega", "que papel juega",
+        "qué rol cumple", "que rol cumple",
+        "qué función tiene", "que funcion tiene",
+        "qué importancia", "que importancia"
     ]
     
     # Patrones para preguntas LITERALES (información explícita)
