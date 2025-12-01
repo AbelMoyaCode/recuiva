@@ -937,6 +937,8 @@ async def validate_answer(answer: Answer):
 async def get_materials(authorization: Optional[str] = Header(None)):
     """Obtiene la lista de materiales del usuario autenticado desde Supabase"""
     try:
+        print(f"🔐 Authorization header recibido: {'Sí (' + authorization[:20] + '...)' if authorization else 'No'}")
+        
         if SUPABASE_ENABLED:
             supabase = get_supabase_client()
             
@@ -948,8 +950,9 @@ async def get_materials(authorization: Optional[str] = Header(None)):
             try:
                 user = await get_current_user(authorization)
                 user_id = user['id'] if user else None
-            except:
-                # Si no hay autenticación, intentar obtener del header
+                print(f"👤 Usuario obtenido: {user_id[:8] if user_id else 'None'}...")
+            except Exception as e:
+                print(f"⚠️ Error obteniendo usuario: {e}")
                 pass
             
             if user_id:
