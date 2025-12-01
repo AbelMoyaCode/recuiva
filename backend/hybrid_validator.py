@@ -281,21 +281,37 @@ class HybridValidator:
                                     'category': topic,
                                     'keyword': keyword,
                                     'pattern': pattern,
-                                    'source': 'question'
+                                    'source': 'question'  # Contradicción con la pregunta = más grave
                                 })
         
         if contradictions_found:
             # Cuantas más contradicciones, mayor penalización
             num_contradictions = len(contradictions_found)
             
-            if num_contradictions >= 3:
+            # Verificar si hay contradicciones con la PREGUNTA (más graves)
+            question_contradictions = [c for c in contradictions_found if c.get('source') == 'question']
+            has_question_contradiction = len(question_contradictions) > 0
+            
+            # ═══════════════════════════════════════════════════════════════
+            # PENALIZACIÓN MÁS SEVERA:
+            # - Contradicción con la pregunta = muy grave (el usuario niega
+            #   exactamente lo que la pregunta pregunta)
+            # - Múltiples contradicciones = grave
+            # ═══════════════════════════════════════════════════════════════
+            
+            if has_question_contradiction:
+                # Si niega algo que la pregunta pregunta directamente
+                # Ejemplo: pregunta sobre "ayuda económica" y responde "nunca le mandó dinero"
+                penalty = 0.20  # Reducir score al 20% (forzar rechazo)
+                severity = "MUY GRAVE (contradice la pregunta)"
+            elif num_contradictions >= 3:
                 penalty = 0.25  # Reducir score al 25%
                 severity = "GRAVE"
             elif num_contradictions >= 2:
-                penalty = 0.35  # Reducir score al 35%
+                penalty = 0.30  # Reducir score al 30%
                 severity = "MODERADA"
             else:
-                penalty = 0.50  # Reducir score al 50%
+                penalty = 0.40  # Reducir score al 40%
                 severity = "LEVE"
             
             keywords_negated = [c['keyword'] for c in contradictions_found[:3]]
