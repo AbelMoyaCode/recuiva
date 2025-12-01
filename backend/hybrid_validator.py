@@ -204,6 +204,7 @@ class HybridValidator:
         # Patrones de negación en español
         # MEJORADO: Permite hasta 4 palabras entre la negación y el keyword
         # Ejemplo: "nunca le mandó dinero" → detecta "nunca ... dinero"
+        # NOTA: No usar {0,4} con .format() porque causa conflicto de llaves
         negation_patterns = [
             # Patrones directos (negación + keyword)
             r'\bno\s+{keyword}\b',
@@ -212,21 +213,24 @@ class HybridValidator:
             r'\bsin\s+{keyword}\b',
             r'\bningún\s+{keyword}\b',
             r'\bninguna\s+{keyword}\b',
-            # Patrones con 1-2 palabras intermedias
+            # Patrones con 1 palabra intermedia
             r'\bno\s+\w+\s+{keyword}\b',
             r'\bnunca\s+\w+\s+{keyword}\b',
             r'\bno\s+le\s+\w+\s+{keyword}\b',
             r'\bnunca\s+le\s+\w+\s+{keyword}\b',
-            # Patrones con 2-3 palabras intermedias (ej: "nunca le mandó dinero")
+            # Patrones con 2 palabras intermedias (ej: "nunca le mandó dinero")
             r'\bno\s+\w+\s+\w+\s+{keyword}\b',
             r'\bnunca\s+\w+\s+\w+\s+{keyword}\b',
             r'\bjamás\s+\w+\s+\w+\s+{keyword}\b',
+            # Patrones con 3 palabras intermedias
+            r'\bno\s+\w+\s+\w+\s+\w+\s+{keyword}\b',
+            r'\bnunca\s+\w+\s+\w+\s+\w+\s+{keyword}\b',
             # Patrones compuestos con "pero"
-            r'\bpero\s+no\s+\w*\s*{keyword}\b',
-            r'\bpero\s+nunca\s+\w*\s*{keyword}\b',
+            r'\bpero\s+no\s+{keyword}\b',
+            r'\bpero\s+nunca\s+{keyword}\b',
+            r'\bpero\s+no\s+\w+\s+{keyword}\b',
+            r'\bpero\s+nunca\s+\w+\s+{keyword}\b',
             r'\bpero\s+nunca\s+\w+\s+\w+\s+{keyword}\b',
-            # Patrón genérico: negación seguida de hasta 4 palabras + keyword
-            r'\b(no|nunca|jamás|sin)\s+(?:\w+\s+){0,4}{keyword}\b',
         ]
         
         contradictions_found = []
