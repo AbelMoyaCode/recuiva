@@ -49,8 +49,19 @@ async def generate_questions_with_ai(
     """
     
     print(f"\n{'='*70}")
-    print(f"  GENERANDO PREGUNTAS CON GROQ AI (Llama 3.1 70B)")
+    print(f"  GENERANDO PREGUNTAS CON GROQ AI ({GROQ_MODEL})")
     print(f"{'='*70}")
+    
+    # 0. Validar que GROQ_API_KEY esté configurada
+    if not GROQ_API_KEY:
+        print("❌ GROQ_API_KEY no está configurada en .env")
+        return {
+            "success": False,
+            "error": "GROQ_API_KEY no está configurada. Configúrala en el archivo .env del servidor.",
+            "questions": [],
+            "total_questions": 0,
+            "chunks_processed": 0
+        }
     
     # 1. Obtener chunks del material desde Supabase
     print(f"📚 Obteniendo chunks del material {material_id}...")
@@ -256,18 +267,31 @@ async def generate_questions_batch(
         List[Dict]: Preguntas con metadatos
     """
     
+    # Validar GROQ_API_KEY antes de llamar
+    if not GROQ_API_KEY:
+        print("❌ GROQ_API_KEY no configurada en generate_questions_batch")
+        return []
+    
     # Construir prompt para procesar TODO el lote
-    system_prompt = """Eres un profesor universitario experto en Active Recall.
+    # MEJORA GPT: Mezcla de preguntas literales (50%) e inferenciales (50%)
+    system_prompt = """Eres un profesor universitario experto en Active Recall y pedagogía.
 
-TAREA: Generar preguntas de comprensión profunda para MÚLTIPLES fragmentos de un libro.
+TAREA: Generar preguntas variadas para MÚLTIPLES fragmentos de un texto.
 
-REGLAS:
+REGLAS IMPORTANTES:
 1. Para CADA fragmento, genera exactamente las preguntas solicitadas
-2. Las preguntas deben requerir EXPLICAR, ANALIZAR, COMPARAR conceptos
-3. Ser específicas al contenido de cada fragmento
-4. Fomentar pensamiento crítico
+2. MEZCLA de tipos de preguntas (aproximadamente 50/50):
+   - LITERALES: Datos específicos del texto (qué, quién, cuándo, dónde, cuántos)
+   - INFERENCIALES: Requieren razonar, analizar causas, consecuencias, intenciones
+3. Las preguntas deben ser específicas al contenido de cada fragmento
+4. Usar terminología del texto original
+5. Fomentar tanto comprensión factual como pensamiento crítico
 
-FORMATO JSON:
+EJEMPLOS:
+- Literal: "¿Qué objeto recibía Henriette cada año como regalo?"
+- Inferencial: "¿Por qué crees que el personaje sospechaba del mayordomo?"
+
+FORMATO JSON ESTRICTO:
 {
   "chunks": [
     {
@@ -281,7 +305,7 @@ FORMATO JSON:
   ]
 }
 
-Responde SOLO con JSON válido."""
+Responde SOLO con JSON válido, sin texto adicional ni marcadores markdown."""
 
     # Construir user_prompt con todos los chunks del lote
     chunks_text = ""
@@ -309,6 +333,16 @@ Formato JSON con array "chunks"."""
         )
         
         response_text = completion.choices[0].message.content
+        
+        # MEJORA GPT: Limpiar posibles marcadores markdown (robustez)
+        if response_text.startswith("```json"):
+            response_text = response_text[7:]
+        if response_text.startswith("```"):
+            response_text = response_text[3:]
+        if response_text.endswith("```"):
+            response_text = response_text[:-3]
+        response_text = response_text.strip()
+        
         response_json = json.loads(response_text)
         
         # Mapear preguntas con metadatos
@@ -324,15 +358,24 @@ Formato JSON con array "chunks"."""
             
             if original_chunk:
                 for question_text in questions:
-                    all_questions.append({
-                        "question": question_text,
-                        "chunk_id": original_chunk['id'],
-                        "chunk_index": original_chunk['chunk_index'],
-                        "source_preview": original_chunk['chunk_text'][:150] + "..."
-                    })
+                    if isinstance(question_text, str) and question_text.strip():
+                        all_questions.append({
+                            "question": question_text.strip(),
+                            "chunk_id": original_chunk['id'],
+                            "chunk_index": original_chunk['chunk_index'],
+                            "source_preview": original_chunk['chunk_text'][:150] + "..."
+                        })
+            else:
+                # MEJORA GPT: Loguear cuando no se encuentra el chunk
+                print(f"   ⚠️ chunk_index {chunk_idx} no encontrado en el lote original")
         
         return all_questions
         
+    except json.JSONDecodeError as e:
+        print(f"\n❌ Error parseando JSON en lote: {e}")
+        print(f"   Respuesta recibida: {response_text[:200]}...")
+        return []
+    
     except Exception as e:
         print(f"\n❌ Error en lote: {e}")
         return []
