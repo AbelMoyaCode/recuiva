@@ -1450,7 +1450,7 @@ async def generate_questions_for_material(
             print(f"🎲 Chunk aleatorio seleccionado: {random_chunk['chunk_index']}")
             
             # Generar 1 pregunta solo para ese chunk
-            from question_generator_ai import generate_questions_for_chunk
+            from question_generator_ai import generate_questions_for_chunk, classify_question_type
             
             questions = await generate_questions_for_chunk(
                 chunk_text=random_chunk['chunk_text'],
@@ -1461,12 +1461,18 @@ async def generate_questions_for_material(
             if not questions:
                 raise HTTPException(status_code=500, detail="No se pudo generar pregunta")
             
+            # Clasificar el tipo de pregunta
+            question_text = questions[0]
+            question_type = classify_question_type(question_text)
+            print(f"🏷️ Pregunta clasificada como: {question_type}")
+            
             return {
                 "success": True,
                 "material_id": material_id,
                 "questions_generated": 1,
                 "questions": [{
-                    "question": questions[0],
+                    "question": question_text,
+                    "question_type": question_type,  # 👈 AGREGADO
                     "chunk_id": random_chunk['id'],
                     "chunk_index": random_chunk['chunk_index'],
                     "source_preview": random_chunk['chunk_text'][:150] + "..."
