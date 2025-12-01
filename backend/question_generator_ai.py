@@ -24,6 +24,99 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = "llama-3.1-8b-instant"  # Llama 3.1 8B - Ultra rápido y sin límites de tokens
 
 
+def classify_question_type(question: str) -> str:
+    """
+    Clasifica una pregunta como 'literal', 'inferential' u 'other'
+    usando reglas simples basadas en palabras clave.
+    
+    - LITERAL: pide info explícita del texto (¿quién?, ¿qué hizo?, ¿dónde?, ¿cuándo?, ¿cuántos?…)
+    - INFERENCIAL: pide deducir, interpretar, explicar causas, intenciones, consecuencias
+    
+    Args:
+        question: Texto de la pregunta
+        
+    Returns:
+        'literal', 'inferential' u 'other'
+    """
+    q = question.lower().strip()
+    
+    # Patrones para preguntas INFERENCIALES (razonamiento, deducción)
+    inferential_patterns = [
+        "por qué", "por que",
+        "qué sugiere", "que sugiere",
+        "qué podemos inferir", "que podemos inferir",
+        "qué se puede inferir", "que se puede inferir",
+        "cómo se explica", "como se explica",
+        "qué intención", "que intencion", "que intención",
+        "qué consecuencias", "que consecuencias",
+        "qué implicaciones", "que implicaciones",
+        "qué crees", "que crees",
+        "qué piensas", "que piensas",
+        "qué opinas", "que opinas",
+        "cómo interpretas", "como interpretas",
+        "qué significa", "que significa",
+        "qué relación", "que relacion", "que relación",
+        "cómo influye", "como influye",
+        "qué motiva", "que motiva",
+        "cuál es la causa", "cual es la causa",
+        "cuál es el motivo", "cual es el motivo",
+        "qué efecto", "que efecto",
+        "cómo afecta", "como afecta",
+        "qué podría", "que podria", "que podría",
+        "qué hubiera", "que hubiera",
+        "qué habría", "que habria", "que habría",
+        "de qué manera", "de que manera",
+        "en qué sentido", "en que sentido",
+        "qué nos dice esto sobre", "que nos dice esto sobre",
+        "qué revela", "que revela",
+        "cómo demuestra", "como demuestra"
+    ]
+    
+    # Patrones para preguntas LITERALES (información explícita)
+    literal_patterns = [
+        "quién ", "quien ",  # espacio para evitar falsos positivos
+        "quiénes", "quienes",
+        "qué hizo", "que hizo",
+        "qué pasó", "que paso", "qué pasó",
+        "qué ocurrió", "que ocurrio", "que ocurrió",
+        "qué sucedió", "que sucedio", "que sucedió",
+        "dónde ", "donde ",
+        "cuándo", "cuando",
+        "cuántos", "cuantos",
+        "cuántas", "cuantas",
+        "en qué año", "en que año", "en que ano",
+        "en qué lugar", "en que lugar",
+        "en qué ciudad", "en que ciudad",
+        "en qué país", "en que pais", "en que país",
+        "qué recibió", "que recibio", "que recibió",
+        "qué encontró", "que encontro", "que encontró",
+        "qué dijo", "que dijo",
+        "qué respondió", "que respondio", "que respondió",
+        "cuál es el nombre", "cual es el nombre",
+        "cómo se llama", "como se llama",
+        "a quién", "a quien",
+        "de quién", "de quien",
+        "qué objeto", "que objeto",
+        "qué color", "que color",
+        "qué tipo de", "que tipo de",
+        "cuál fue", "cual fue",
+        "qué edad", "que edad",
+        "cuánto tiempo", "cuanto tiempo",
+        "cuánto dinero", "cuanto dinero",
+        "qué cantidad", "que cantidad"
+    ]
+    
+    # Verificar patrones inferenciales primero (más específicos)
+    if any(pat in q for pat in inferential_patterns):
+        return "inferential"
+    
+    # Luego verificar patrones literales
+    if any(pat in q for pat in literal_patterns):
+        return "literal"
+    
+    return "other"
+
+
 async def generate_questions_with_ai(
     material_id: str,
     supabase_client,
@@ -359,8 +452,12 @@ Formato JSON con array "chunks"."""
             if original_chunk:
                 for question_text in questions:
                     if isinstance(question_text, str) and question_text.strip():
+                        # Clasificar tipo de pregunta (literal/inferential/other)
+                        q_type = classify_question_type(question_text.strip())
+                        
                         all_questions.append({
                             "question": question_text.strip(),
+                            "question_type": q_type,  # 👈 NUEVO: tipo de pregunta
                             "chunk_id": original_chunk['id'],
                             "chunk_index": original_chunk['chunk_index'],
                             "source_preview": original_chunk['chunk_text'][:150] + "..."

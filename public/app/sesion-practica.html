@@ -3077,7 +3077,10 @@ async function generateQuestionsAuto() {
     
     // ✅ COLOCAR LA PREGUNTA EN EL TEXTAREA CORRECTO
     if (result.questions && result.questions.length > 0) {
-      const preguntaGenerada = result.questions[0].question;
+      const preguntaObj = result.questions[0];  // Objeto completo con question y question_type
+      const preguntaGenerada = preguntaObj.question;
+      const questionType = preguntaObj.question_type || 'other';  // 👈 NUEVO: tipo de pregunta
+      
       const textarea = document.getElementById('user-question'); // ✅ ID CORRECTO
       if (textarea) {
         textarea.value = preguntaGenerada;
@@ -3111,7 +3114,41 @@ async function generateQuestionsAuto() {
         
         console.log('✅ Pregunta colocada en textarea:', preguntaGenerada);
         console.log('📝 Longitud de pregunta:', preguntaGenerada.length, 'caracteres');
+        console.log('🏷️ Tipo de pregunta:', questionType);
         console.log('🔒 Textarea bloqueado en modo solo lectura');
+        
+        // ✅ NUEVO: Badge de tipo de pregunta (literal/inferential)
+        let typeBadge = document.getElementById('question-type-badge');
+        if (!typeBadge) {
+          typeBadge = document.createElement('div');
+          typeBadge.id = 'question-type-badge';
+          typeBadge.className = 'mb-2 inline-flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-full';
+          textarea.parentNode.insertBefore(typeBadge, textarea);
+        }
+        
+        // Configurar badge según tipo
+        if (questionType === 'inferential') {
+          typeBadge.className = 'mb-2 inline-flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-300';
+          typeBadge.innerHTML = `
+            <span class="material-symbols-outlined text-base">psychology</span>
+            <span>Pregunta Inferencial</span>
+            <span class="text-xs font-normal opacity-75">(razonamiento)</span>
+          `;
+        } else if (questionType === 'literal') {
+          typeBadge.className = 'mb-2 inline-flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-full bg-blue-100 text-blue-700 border border-blue-300';
+          typeBadge.innerHTML = `
+            <span class="material-symbols-outlined text-base">format_quote</span>
+            <span>Pregunta Literal</span>
+            <span class="text-xs font-normal opacity-75">(datos del texto)</span>
+          `;
+        } else {
+          typeBadge.className = 'mb-2 inline-flex items-center gap-2 text-sm font-semibold px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-300';
+          typeBadge.innerHTML = `
+            <span class="material-symbols-outlined text-base">help_outline</span>
+            <span>Pregunta Mixta</span>
+          `;
+        }
+        typeBadge.style.display = 'inline-flex';
         
         // ✅ Mostrar indicador de pregunta generada automáticamente
         let generatedIndicator = document.getElementById('generated-indicator');
@@ -3165,6 +3202,7 @@ async function generateQuestionsAuto() {
 window.unlockQuestionTextarea = function() {
   const textarea = document.getElementById('user-question');
   const generatedIndicator = document.getElementById('generated-indicator');
+  const typeBadge = document.getElementById('question-type-badge');  // 👈 NUEVO
   
   if (textarea) {
     // Desbloquear textarea
@@ -3182,6 +3220,11 @@ window.unlockQuestionTextarea = function() {
   // Ocultar indicador de generación
   if (generatedIndicator) {
     generatedIndicator.style.display = 'none';
+  }
+  
+  // Ocultar badge de tipo de pregunta
+  if (typeBadge) {
+    typeBadge.style.display = 'none';
   }
   
   // Mostrar notificación
