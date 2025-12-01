@@ -146,8 +146,9 @@ def classify_question_type(question: str) -> str:
         "es relevante", "son relevantes"
     ]
     
-    # Patrones para preguntas LITERALES (información explícita)
+    # Patrones para preguntas LITERALES (información explícita del texto)
     literal_patterns = [
+        # Preguntas de identificación directa
         "quién ", "quien ",  # espacio para evitar falsos positivos
         "quiénes", "quienes",
         "qué hizo", "que hizo",
@@ -158,26 +159,90 @@ def classify_question_type(question: str) -> str:
         "cuándo", "cuando",
         "cuántos", "cuantos",
         "cuántas", "cuantas",
+        # Ubicación temporal y espacial
         "en qué año", "en que año", "en que ano",
         "en qué lugar", "en que lugar",
         "en qué ciudad", "en que ciudad",
         "en qué país", "en que pais", "en que país",
+        "en qué fecha", "en que fecha",
+        "en qué época", "en que epoca",
+        "en qué momento", "en que momento",
+        "en qué parte", "en que parte",
+        "en qué sección", "en que seccion",
+        "en qué capítulo", "en que capitulo",
+        # Acciones y eventos explícitos
         "qué recibió", "que recibio", "que recibió",
         "qué encontró", "que encontro", "que encontró",
         "qué dijo", "que dijo",
         "qué respondió", "que respondio", "que respondió",
+        "qué escribió", "que escribio",
+        "qué creó", "que creo",
+        "qué inventó", "que invento",
+        "qué descubrió", "que descubrio",
+        "qué propuso", "que propuso",
+        "qué afirmó", "que afirmo",
+        "qué declaró", "que declaro",
+        "qué mencionó", "que menciono",
+        "qué estableció", "que establecio",
+        # Identificación de nombres y datos
         "cuál es el nombre", "cual es el nombre",
         "cómo se llama", "como se llama",
         "a quién", "a quien",
         "de quién", "de quien",
         "qué objeto", "que objeto",
         "qué color", "que color",
-        "qué tipo de", "que tipo de",
         "cuál fue", "cual fue",
+        "cuáles fueron", "cuales fueron",
+        "cuál era", "cual era",
+        "cuáles eran", "cuales eran",
+        # Datos numéricos y cantidades
         "qué edad", "que edad",
         "cuánto tiempo", "cuanto tiempo",
         "cuánto dinero", "cuanto dinero",
-        "qué cantidad", "que cantidad"
+        "qué cantidad", "que cantidad",
+        "qué número", "que numero",
+        "qué porcentaje", "que porcentaje",
+        "qué cifra", "que cifra",
+        # Definiciones explícitas del texto
+        "qué es un", "que es un",
+        "qué es una", "que es una",
+        "qué es el", "que es el",
+        "qué es la", "que es la",
+        "qué son los", "que son los",
+        "qué son las", "que son las",
+        # Preguntas con "según el texto"
+        "según el texto", "segun el texto",
+        "según el autor", "segun el autor",
+        "según el documento", "segun el documento",
+        "según la lectura", "segun la lectura",
+        "de acuerdo al texto", "de acuerdo con el texto",
+        "en el texto", "el texto menciona", "el texto indica",
+        "el texto señala", "el texto dice", "el texto afirma",
+        # Listas y enumeraciones
+        "cuáles son los", "cuales son los",
+        "cuáles son las", "cuales son las",
+        "qué elementos", "que elementos",
+        "qué partes", "que partes",
+        "qué componentes", "que componentes",
+        "qué pasos", "que pasos",
+        "qué etapas", "que etapas",
+        "qué fases", "que fases",
+        # Descripciones explícitas
+        "cómo era", "como era",
+        "cómo eran", "como eran",
+        "cómo estaba", "como estaba",
+        "cómo está descrito", "como esta descrito",
+        "cómo se describe", "como se describe",
+        # Términos y vocabulario
+        "qué término", "que termino",
+        "qué palabra", "que palabra",
+        "qué concepto", "que concepto",
+        "qué definición", "que definicion",
+        # Preguntas directas sobre contenido
+        "menciona el texto", "dice el texto",
+        "indica el texto", "señala el texto",
+        "expresa el texto", "establece el texto",
+        "presenta el texto", "describe el texto"
     ]
     
     # Verificar patrones inferenciales primero (más específicos)
