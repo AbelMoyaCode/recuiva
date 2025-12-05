@@ -3010,32 +3010,29 @@ details summary .material-symbols-outlined {
 function updateGenerateButton() {
   console.log('🔧 updateGenerateButton llamada - Sprint 2');
   
-  // ✅ OBTENER MATERIAL ID DESDE MÚLTIPLES FUENTES
-  const urlParams = new URLSearchParams(window.location.search);
-  let materialId = urlParams.get('material') || urlParams.get('material_id');
-  
-  // 🆕 También verificar localStorage si no está en URL
-  if (!materialId) {
-    materialId = localStorage.getItem('last_active_material') || localStorage.getItem('currentMaterialId');
-  }
-  
-  // 🆕 También verificar si hay un banner de material activo visible
-  const materialBanner = document.getElementById('material-active-banner');
-  const hasMaterialBanner = materialBanner && materialBanner.style.display !== 'none' && materialBanner.textContent.trim().length > 0;
-  
   const btn = document.getElementById('btn-generate-questions');
   
-  console.log('📦 Material ID:', materialId);
-  console.log('📦 Banner visible:', hasMaterialBanner);
+  // ✅ SIMPLIFICADO: Verificar si hay un material activo en el banner
+  const materialBanner = document.getElementById('current-material-banner');
+  const filenameEl = document.getElementById('material-filename');
+  
+  // El material está activo si el banner está visible Y tiene un nombre de archivo
+  const hasMaterial = materialBanner && 
+                      materialBanner.style.display !== 'none' && 
+                      filenameEl && 
+                      filenameEl.textContent.trim().length > 0;
+  
+  console.log('📦 Banner element:', !!materialBanner);
+  console.log('📦 Filename element:', filenameEl ? filenameEl.textContent : 'no encontrado');
+  console.log('📦 Material activo:', hasMaterial);
   console.log('🔘 Botón encontrado:', !!btn);
   
-  // ✅ Mostrar botón si hay material (por cualquier fuente)
-  if ((materialId || hasMaterialBanner) && btn) {
+  if (hasMaterial && btn) {
     btn.style.display = 'flex';
     console.log('✅ Botón mostrado');
   } else if (btn) {
     btn.style.display = 'none';
-    console.log('❌ Botón ocultado (sin material)');
+    console.log('❌ Botón ocultado (sin material activo)');
   }
 }
 
