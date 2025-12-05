@@ -43,24 +43,24 @@ window.checkValidateButton = function() {
   
   // =========================================================================
   // 🆕 CORRECCIÓN PROFESOR SEMANA 15: Deshabilitar botón "Generar Preguntas"
-  // cuando el usuario empieza a escribir en el campo de respuesta.
-  // Esto evita confusión: si ya está respondiendo, no debería cambiar la pregunta.
+  // cuando el usuario empieza a escribir en el campo de PREGUNTA.
+  // Lógica: Si ya escribiste tu propia pregunta, no tiene sentido generar una automática.
   // =========================================================================
   if (btnGenerate) {
     // 🔒 NO interferir si el botón está en proceso de generación (tiene "Generando..." en innerHTML)
     const isGenerating = btnGenerate.innerHTML.includes('Generando') || btnGenerate.innerHTML.includes('progress_activity');
     
     if (!isGenerating) {
-      if (hasAnswer) {
-        // Si el usuario ya escribió algo en respuesta → DESHABILITAR generar
-        console.log('🔒 Deshabilitando botón "Generar Preguntas" (usuario está respondiendo)');
+      if (hasQuestion) {
+        // Si el usuario ya escribió algo en PREGUNTA → DESHABILITAR generar
+        console.log('🔒 DESHABILITANDO botón "Generar Preguntas" (usuario ya tiene pregunta escrita)');
         btnGenerate.disabled = true;
         btnGenerate.classList.add('opacity-50', 'cursor-not-allowed');
         btnGenerate.classList.remove('hover:from-green-600', 'hover:to-emerald-700', 'hover:shadow-xl', 'hover:scale-105');
-        btnGenerate.title = 'No puedes generar nueva pregunta mientras escribes tu respuesta. Borra la respuesta primero.';
+        btnGenerate.title = 'Ya tienes una pregunta escrita. Bórrala si quieres generar una automáticamente.';
       } else {
-        // Si el campo de respuesta está vacío → HABILITAR generar
-        console.log('✅ Habilitando botón "Generar Preguntas" (respuesta vacía)');
+        // Si el campo de PREGUNTA está vacío → HABILITAR generar
+        console.log('✅ Habilitando botón "Generar Preguntas" (campo pregunta vacío)');
         btnGenerate.disabled = false;
         btnGenerate.classList.remove('opacity-50', 'cursor-not-allowed');
         btnGenerate.classList.add('hover:from-green-600', 'hover:to-emerald-700', 'hover:shadow-xl', 'hover:scale-105');
