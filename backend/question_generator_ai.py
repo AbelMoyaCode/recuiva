@@ -425,7 +425,6 @@ FORMATO DE SALIDA: JSON válido con esta estructura:
 {
   "questions": ["Pregunta 1", "Pregunta 2"]
 }
-
 Responde SOLO con el JSON, sin texto adicional."""
 
     user_prompt = f"""Fragmento del libro (Sección {chunk_index}):

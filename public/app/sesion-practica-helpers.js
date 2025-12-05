@@ -7,6 +7,7 @@ window.checkValidateButton = function() {
   const questionInput = document.getElementById('user-question');
   const userAnswer = document.getElementById('user-answer');
   const btnValidate = document.getElementById('btn-validate-answer');
+  const btnGenerate = document.getElementById('btn-generate-questions'); // 🆕 Botón de generar preguntas
   const statusDiv = document.getElementById('button-status');
   
   if (!questionInput || !userAnswer || !btnValidate) {
@@ -40,6 +41,33 @@ window.checkValidateButton = function() {
     }
   }
   
+  // =========================================================================
+  // 🆕 CORRECCIÓN PROFESOR SEMANA 15: Deshabilitar botón "Generar Preguntas"
+  // cuando el usuario empieza a escribir en el campo de respuesta.
+  // Esto evita confusión: si ya está respondiendo, no debería cambiar la pregunta.
+  // =========================================================================
+  if (btnGenerate) {
+    if (hasAnswer) {
+      // Si el usuario ya escribió algo en respuesta → DESHABILITAR generar
+      if (!btnGenerate.disabled) {
+        console.log('🔒 Deshabilitando botón "Generar Preguntas" (usuario está respondiendo)');
+        btnGenerate.disabled = true;
+        btnGenerate.classList.add('opacity-50', 'cursor-not-allowed');
+        btnGenerate.classList.remove('hover:from-green-600', 'hover:to-emerald-700', 'hover:shadow-xl', 'hover:scale-105');
+        btnGenerate.title = 'No puedes generar nueva pregunta mientras escribes tu respuesta. Borra la respuesta primero.';
+      }
+    } else {
+      // Si el campo de respuesta está vacío → HABILITAR generar
+      if (btnGenerate.disabled && !btnGenerate.classList.contains('generating')) {
+        console.log('✅ Habilitando botón "Generar Preguntas" (respuesta vacía)');
+        btnGenerate.disabled = false;
+        btnGenerate.classList.remove('opacity-50', 'cursor-not-allowed');
+        btnGenerate.classList.add('hover:from-green-600', 'hover:to-emerald-700', 'hover:shadow-xl', 'hover:scale-105');
+        btnGenerate.title = 'Genera una nueva pregunta automáticamente basada en tu material';
+      }
+    }
+  }
+  
   if (hasQuestion && hasAnswer) {
     console.log('✅ HABILITANDO BOTÓN');
     
@@ -67,7 +95,7 @@ window.checkValidateButton = function() {
   }
 };
 
-console.log('✅ window.checkValidateButton definida y lista');
+console.log('✅ window.checkValidateButton definida y lista (con control de generar preguntas)');
 
 // ⚡ FUNCIÓN: window.updateCharCount - Contador de caracteres
 window.updateCharCount = function(textarea) {

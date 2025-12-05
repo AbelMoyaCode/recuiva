@@ -966,12 +966,53 @@ class HybridValidator:
                 'category': 'error'
             }
         
-        scored_chunks = []
+        # ═══════════════════════════════════════════════════════════════════════
+        # 🆕 CORRECCIÓN PROFESOR SEMANA 15: PRE-FILTRADO SEMÁNTICO
+        # ═══════════════════════════════════════════════════════════════════════
+        # PROBLEMA: Antes se evaluaban TODOS los chunks, lo que causaba que BM25
+        # encontrara palabras clave en chunks irrelevantes (ej: "puntero" aparecía
+        # en varios lugares pero el sistema elegía el chunk incorrecto).
+        #
+        # SOLUCIÓN: Primero filtrar los TOP 15 chunks más similares semánticamente
+        # usando SOLO similitud coseno, y DESPUÉS aplicar el hybrid_score completo.
+        # Esto asegura que BM25 opere sobre un corpus relevante.
+        # ═══════════════════════════════════════════════════════════════════════
+        
+        # Paso 1: Generar embedding de la respuesta del usuario + pregunta
+        combined_query = f"{question} {user_answer}"
+        query_embedding = self.normalize_embedding(
+            self.model.encode(combined_query, convert_to_tensor=False)
+        )
+        
+        # Paso 2: Calcular similitud coseno con TODOS los chunks (rápido)
+        chunk_similarities = []
         for chunk in chunks:
-            score, details = self.hybrid_score(question, user_answer, chunk, chunks)
+            chunk_embedding = self.normalize_embedding(np.array(chunk['embedding']))
+            cosine_sim = self.cosine_similarity(query_embedding, chunk_embedding)
+            chunk_similarities.append((chunk, cosine_sim))
+        
+        # Paso 3: Ordenar por similitud coseno y tomar TOP 15
+        chunk_similarities.sort(key=lambda x: x[1], reverse=True)
+        TOP_K_PREFILTER = min(15, len(chunks))  # Máximo 15 chunks pre-filtrados
+        prefiltered_chunks = [c for c, _ in chunk_similarities[:TOP_K_PREFILTER]]
+        
+        print(f"   🔍 Pre-filtrado: {len(prefiltered_chunks)} de {len(chunks)} chunks (cosine)")
+        print(f"   📊 Top 3 cosine pre-filter: {[round(s, 3) for _, s in chunk_similarities[:3]]}")
+        
+        # Log de chunks pre-filtrados para debugging (profesor pidió poder ver esto)
+        print(f"   📋 Chunks pre-filtrados IDs: {[c.get('chunk_id', 'N/A') for c in prefiltered_chunks[:5]]}...")
+        
+        # Paso 4: Aplicar hybrid_score SOLO a los chunks pre-filtrados
+        scored_chunks = []
+        for chunk in prefiltered_chunks:
+            score, details = self.hybrid_score(question, user_answer, chunk, prefiltered_chunks)
             scored_chunks.append((chunk, score, details))
         
         ranked_chunks = sorted(scored_chunks, key=lambda x: x[1], reverse=True)
+        
+        # Log de resultado del hybrid score
+        print(f"   🎯 Top 3 hybrid scores: {[round(s, 3) for _, s, _ in ranked_chunks[:3]]}")
+        
         top_k = ranked_chunks[:3]
         
         ambiguity = self.detect_ambiguity([(c, s) for c, s, _ in ranked_chunks])
@@ -1019,8 +1060,15 @@ class HybridValidator:
             ],
             'ambiguity': ambiguity,
             'thresholds': {k: v * 100 for k, v in self.thresholds.items()},
-            'scoring_method': 'HybridValidator (BM25 + Cosine + Coverage)',
-            'weights_used': self.weights
+            'scoring_method': 'HybridValidator (BM25 + Cosine + Coverage) con Pre-filtrado Semántico',
+            'weights_used': self.weights,
+            # 🆕 NUEVO: Info de pre-filtrado para debugging/pruebas
+            'prefilter_info': {
+                'total_chunks': len(chunks),
+                'prefiltered_chunks': len(prefiltered_chunks),
+                'prefilter_method': 'cosine_similarity',
+                'top_prefiltered_ids': [c.get('chunk_id', 'N/A') for c in prefiltered_chunks[:5]]
+            }
         }
         
         return result
