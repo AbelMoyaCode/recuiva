@@ -3006,15 +3006,27 @@ details summary .material-symbols-outlined {
 function updateGenerateButton() {
   console.log('🔧 updateGenerateButton llamada - Sprint 2');
   
-  // ✅ OBTENER MATERIAL ID DESDE URL (NO LOCALSTORAGE)
+  // ✅ OBTENER MATERIAL ID DESDE MÚLTIPLES FUENTES
   const urlParams = new URLSearchParams(window.location.search);
-  const materialId = urlParams.get('material') || urlParams.get('material_id');
+  let materialId = urlParams.get('material') || urlParams.get('material_id');
+  
+  // 🆕 También verificar localStorage si no está en URL
+  if (!materialId) {
+    materialId = localStorage.getItem('last_active_material') || localStorage.getItem('currentMaterialId');
+  }
+  
+  // 🆕 También verificar si hay un banner de material activo visible
+  const materialBanner = document.getElementById('material-active-banner');
+  const hasMaterialBanner = materialBanner && materialBanner.style.display !== 'none' && materialBanner.textContent.trim().length > 0;
+  
   const btn = document.getElementById('btn-generate-questions');
   
-  console.log('📦 Material ID (desde URL):', materialId);
+  console.log('📦 Material ID:', materialId);
+  console.log('📦 Banner visible:', hasMaterialBanner);
   console.log('🔘 Botón encontrado:', !!btn);
   
-  if (materialId && btn) {
+  // ✅ Mostrar botón si hay material (por cualquier fuente)
+  if ((materialId || hasMaterialBanner) && btn) {
     btn.style.display = 'flex';
     console.log('✅ Botón mostrado');
   } else if (btn) {
@@ -3024,9 +3036,14 @@ function updateGenerateButton() {
 }
 
 async function generateQuestionsAuto() {
-  // ✅ OBTENER MATERIAL ID DESDE URL (NO LOCALSTORAGE)
+  // ✅ OBTENER MATERIAL ID DESDE MÚLTIPLES FUENTES
   const urlParams = new URLSearchParams(window.location.search);
-  const materialId = urlParams.get('material') || urlParams.get('material_id');
+  let materialId = urlParams.get('material') || urlParams.get('material_id');
+  
+  // 🆕 También verificar localStorage si no está en URL
+  if (!materialId) {
+    materialId = localStorage.getItem('last_active_material') || localStorage.getItem('currentMaterialId');
+  }
   
   if (!materialId) {
     alert('⚠️ Selecciona un material primero');
