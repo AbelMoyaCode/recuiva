@@ -47,18 +47,19 @@ window.checkValidateButton = function() {
   // Esto evita confusión: si ya está respondiendo, no debería cambiar la pregunta.
   // =========================================================================
   if (btnGenerate) {
-    if (hasAnswer) {
-      // Si el usuario ya escribió algo en respuesta → DESHABILITAR generar
-      if (!btnGenerate.disabled) {
+    // 🔒 NO interferir si el botón está en proceso de generación (tiene "Generando..." en innerHTML)
+    const isGenerating = btnGenerate.innerHTML.includes('Generando') || btnGenerate.innerHTML.includes('progress_activity');
+    
+    if (!isGenerating) {
+      if (hasAnswer) {
+        // Si el usuario ya escribió algo en respuesta → DESHABILITAR generar
         console.log('🔒 Deshabilitando botón "Generar Preguntas" (usuario está respondiendo)');
         btnGenerate.disabled = true;
         btnGenerate.classList.add('opacity-50', 'cursor-not-allowed');
         btnGenerate.classList.remove('hover:from-green-600', 'hover:to-emerald-700', 'hover:shadow-xl', 'hover:scale-105');
         btnGenerate.title = 'No puedes generar nueva pregunta mientras escribes tu respuesta. Borra la respuesta primero.';
-      }
-    } else {
-      // Si el campo de respuesta está vacío → HABILITAR generar
-      if (btnGenerate.disabled && !btnGenerate.classList.contains('generating')) {
+      } else {
+        // Si el campo de respuesta está vacío → HABILITAR generar
         console.log('✅ Habilitando botón "Generar Preguntas" (respuesta vacía)');
         btnGenerate.disabled = false;
         btnGenerate.classList.remove('opacity-50', 'cursor-not-allowed');
