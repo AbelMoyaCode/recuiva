@@ -2403,6 +2403,10 @@ async function loadMaterialInfo(materialId) {
       if (material) {
         console.log('✅ Material encontrado:', material.title);
         
+        // 🆕 GUARDAR MATERIAL ID EN LOCALSTORAGE PARA QUE EL BOTÓN GENERAR LO DETECTE
+        localStorage.setItem('last_active_material', material.id);
+        console.log('💾 Material guardado en localStorage:', material.id);
+        
         // Mostrar banner
         if (banner) banner.style.display = 'block';
         
