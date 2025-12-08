@@ -83,6 +83,16 @@
         localStorage.setItem('recuiva_isAuthenticated', 'true');
 
         console.log('✅ Datos de usuario sincronizados en localStorage:', userData);
+        console.log('🖼️ Avatar URL guardado en localStorage:', userData.avatar_url || 'NULL');
+
+        // Refrescar el header para mostrar el avatar actualizado
+        if (typeof window.initializeHeaderFooter === 'function') {
+            const currentPage = window.location.pathname.split('/').pop().replace('.html', '');
+            console.log('🔄 Refrescando header con datos actualizados...');
+            setTimeout(() => {
+                window.initializeHeaderFooter(currentPage);
+            }, 100);
+        }
 
     } catch (error) {
         console.error('❌ Error verificando autenticación:', error);

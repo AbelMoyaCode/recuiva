@@ -344,39 +344,43 @@
     </main>
 
     <script>
-            // Funciones mÃ­nimas para modales y UI (las funciones de perfil estÃ¡n en mi-perfil-functio      ns.js)
-      document.addEventListener('DOMContentLoad        ', () => {
-        console.log('ðŸ“„ Mi Perfil cargado - funciones desde mi-per        l-functions.js');
+      // Funciones mínimas para modales y UI (las funciones de perfil están en mi-perfil-functions.js)
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('📄 Mi Perfil cargado - funciones desde mi-perfil-functions.js');
 
-        // ==        MODAL GENÃ‰RICO ===
-        window. showAdvancedModal = function           n, title, description) {
-          let modal = document          ElementById('a            d-modal');
+        // === MODAL GENÉRICO ===
+        window.showAdvancedModal = function (icon, title, description) {
+          let modal = document.getElementById('advanced-modal');
           if (!modal) {
-                  modal = document.createElem            iv');
-            modal.id = 'advanced-m            
+            modal = document.createElement('div');
+            modal.id = 'advanced-modal';
             modal.className = 'notification-modal';
             modal.innerHTML = `
-        <div class="notification-modal-content">
-          <div class="notification-icon-container">
-            <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">check_circle</span>
-          </div>
-          <h3 id="modal-title"></h3>
-          <p id="modal-description"></p>
-          <button onclick="closeAdvancedModal(            ss="modal-button">Aceptar</button>                      /div>
-      `;
-            document.body.appendChild(modal                   }
-          document.getElementById('modal-icon').t          ontent = icon;
-          document.getElementById('modal-title').textCont          = title;
-          document.g        Elem        tById('modal-description').textConte nt =           ription;
+              <div class="notification-modal-content">
+                <div class="notification-icon-container">
+                  <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">check_circle</span>
+                </div>
+                <h3 id="modal-title"></h3>
+                <p id="modal-description"></p>
+                <button onclick="closeAdvancedModal()" class="modal-button">Aceptar</button>
+              </div>
+            `;
+            document.body.appendChild(modal);
+          }
+          document.getElementById('modal-icon').textContent = icon;
+          document.getElementById('modal-title').textContent = title;
+          document.getElementById('modal-description').textContent = description;
           modal.classList.add('show');
-        }                 window.closeAdvancedModal = function        ) {      
-         a      l = document.getElementById('advanced-modal');
-           if        modal) modal.classList.remove('sho      w');
         };
 
-        // Cerrar sesiÃ³n
+        window.closeAdvancedModal = function () {
+          const modal = document.getElementById('advanced-modal');
+          if (modal) modal.classList.remove('show');
+        };
+
+        // Cerrar sesión
         window.logout = function () {
-          if (confirm('Â¿EstÃ¡s seguro de que quieres cerrar sesiÃ³n?')) {
+          if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
             if (window.supabaseClient) {
               supabaseClient.auth.signOut();
             }
