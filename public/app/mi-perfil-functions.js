@@ -98,6 +98,52 @@ async function loadProfileFromSupabase() {
 }
 
 // ===================================================================
+// FUNCIÓN HELPER: Sincronizar localStorage después de cambios
+// ===================================================================
+async function syncLocalStorageUser(updates = {}) {
+  try {
+    const { data: { user } } = await _supabaseClient.auth.getUser();
+    if (!user) return;
+
+    // Cargar datos actuales de user_profiles
+    const { data: profile } = await _supabaseClient
+      .from('user_profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    // Construir objeto actualizado
+    const userData = {
+      id: user.id,
+      email: user.email,
+      name: profile?.full_name || user.user_metadata?.full_name || user.email.split('@')[0],
+      full_name: profile?.full_name || user.user_metadata?.full_name || user.email.split('@')[0],
+      avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || null,
+      study_mode: profile?.study_mode || 'intensivo',
+      study_rhythm: profile?.study_rhythm || { questions_per_day: 10, days_per_week: 5 },
+      notification_settings: profile?.notification_settings || null,
+      language: profile?.language || 'es',
+      sm2_settings: profile?.sm2_settings || null,
+      provider: user.app_metadata?.provider || 'email',
+      ...updates  // Aplicar actualizaciones pasadas
+    };
+
+    localStorage.setItem('recuiva_user', JSON.stringify(userData));
+    console.log('✅ localStorage sincronizado con Supabase');
+
+    // Refrescar el header si existe la función
+    if (typeof window.initializeHeaderFooter === 'function') {
+      const currentPage = window.location.pathname.split('/').pop().replace('.html', '');
+      window.initializeHeaderFooter(currentPage);
+    }
+
+    return userData;
+  } catch (error) {
+    console.error('❌ Error sincronizando localStorage:', error);
+  }
+}
+
+// ===================================================================
 // 1. CAMBIAR FOTO DE PERFIL (Supabase Storage)
 // ===================================================================
 window.changeProfilePicture = async function () {
@@ -175,6 +221,9 @@ window.changeProfilePicture = async function () {
       console.log('✅ Perfil actualizado con nueva foto');
       showSuccessMessage('Foto de perfil actualizada correctamente');
 
+      // Sincronizar localStorage y refrescar header
+      await syncLocalStorageUser({ avatar_url: publicUrl });
+
       // Actualizar en navbar si existe
       const navbarImg = document.querySelector('#profile-btn img');
       if (navbarImg) navbarImg.src = publicUrl;
@@ -222,6 +271,9 @@ window.editName = async function () {
         nameElement.textContent = newName;
         const navbarName = document.querySelector('#profile-btn .hidden.md\\:block');
         if (navbarName) navbarName.textContent = newName;
+
+        // Sincronizar localStorage y refrescar header
+        await syncLocalStorageUser({ name: newName, full_name: newName });
 
         console.log('✅ Nombre actualizado en Supabase');
         showSuccessMessage('Nombre actualizado correctamente');

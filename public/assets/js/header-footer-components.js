@@ -35,7 +35,7 @@ function getCurrentUser() {
   if (!userStr) return null;
   try {
     return JSON.parse(userStr);
-  } catch(e) {
+  } catch (e) {
     return null;
   }
 }
@@ -43,7 +43,7 @@ function getCurrentUser() {
 function getRelativePath(basePath) {
   const currentPath = window.location.pathname;
   const depth = (currentPath.match(/\//g) || []).length;
-  
+
   if (depth <= 2) return basePath.replace('../', '');
   if (depth === 3) return '../' + basePath.replace('../', '');
   return basePath;
@@ -120,9 +120,19 @@ function renderPublicHeader() {
 
 function renderAuthenticatedHeader(currentPage = '') {
   const user = getCurrentUser();
-  const userName = user?.name || 'Usuario';
+  const userName = user?.name || user?.full_name || 'Usuario';
   const userInitials = userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  
+  const avatarUrl = user?.avatar_url || null;
+
+  // Generar HTML del avatar: imagen si existe, iniciales si no
+  const avatarHTML = avatarUrl
+    ? `<img src="${avatarUrl}" alt="${userName}" class="w-10 h-10 rounded-full object-cover border-2 border-orange-500">`
+    : `<div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-blue-700 flex items-center justify-center text-white font-bold text-sm">${userInitials}</div>`;
+
+  const avatarHTMLMobile = avatarUrl
+    ? `<img src="${avatarUrl}" alt="${userName}" class="w-20 h-20 rounded-full object-cover border-4 border-orange-500 shadow-lg">`
+    : `<div class="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-blue-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg">${userInitials}</div>`;
+
   // Rutas absolutas (funcionan desde cualquier página)
   const routes = {
     inicio: '/app/home.html',
@@ -167,9 +177,7 @@ function renderAuthenticatedHeader(currentPage = '') {
               onclick="window.toggleProfileMenu()"
               class="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100 transition-all cursor-pointer group"
             >
-              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-blue-700 flex items-center justify-center text-white font-bold text-sm">
-                ${userInitials}
-              </div>
+              ${avatarHTML}
               <span class="text-gray-700 font-medium hidden lg:inline">${userName}</span>
               <span class="material-symbols-outlined text-gray-600 transition-transform group-hover:rotate-180">
                 expand_more
@@ -214,9 +222,7 @@ function renderAuthenticatedHeader(currentPage = '') {
         <div class="flex flex-col h-[calc(100vh-73px)] items-center justify-center gap-5 px-6 py-8 overflow-y-auto">
           <!-- Perfil en móvil -->
           <div class="flex flex-col items-center gap-3 pb-5 border-b-2 border-gray-200 w-full max-w-sm">
-            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-blue-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
-              ${userInitials}
-            </div>
+            ${avatarHTMLMobile}
             <span class="font-bold text-lg text-gray-900">${userName}</span>
             <span class="text-sm text-gray-500 text-center break-all px-2">${user?.email || ''}</span>
           </div>
@@ -247,30 +253,33 @@ function renderAuthenticatedHeader(currentPage = '') {
   `;
 }
 
+
+
+
 // ==========================================
 // FOOTER UNIVERSAL
 // ==========================================
 
 function renderFooter() {
   return `
-    <footer class="text-gray-100 py-12 px-6 mt-16" style="background-color: #004EAA;">
-      <div class="container mx-auto text-center">
-        <div class="flex justify-center items-center gap-2 mb-6">
-          <img src="/assets/img/Icon-Recuiva.png" alt="${RECUIVA_CONFIG.logoAlt}" 
-               class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;"/>
-          <span class="text-2xl font-extrabold">${RECUIVA_CONFIG.brandName}</span>
-        </div>
-        <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
-          <a class="hover:text-orange-400 transition-colors" href="/app/institucional/active-recall.html">Active Recall</a>
-          <a class="hover:text-orange-400 transition-colors" href="/app/institucional/validacion-semantica.html">Validación Semántica</a>
-          <a class="hover:text-orange-400 transition-colors" href="/app/institucional/diferencias.html">Diferencias</a>
-          <a class="hover:text-orange-400 transition-colors" href="#">Contacto</a>
-          <a class="hover:text-orange-400 transition-colors" href="#">Términos</a>
-          <a class="hover:text-orange-400 transition-colors" href="#">Privacidad</a>
-        </div>
-        <p class="text-sm opacity-75">© 2025 Recuiva. Todos los derechos reservados.</p>
+  < footer class="text-gray-100 py-12 px-6 mt-16" style = "background-color: #004EAA;" >
+    <div class="container mx-auto text-center">
+      <div class="flex justify-center items-center gap-2 mb-6">
+        <img src="/assets/img/Icon-Recuiva.png" alt="${RECUIVA_CONFIG.logoAlt}"
+          class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;" />
+        <span class="text-2xl font-extrabold">${RECUIVA_CONFIG.brandName}</span>
       </div>
-    </footer>
+      <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+        <a class="hover:text-orange-400 transition-colors" href="/app/institucional/active-recall.html">Active Recall</a>
+        <a class="hover:text-orange-400 transition-colors" href="/app/institucional/validacion-semantica.html">Validación Semántica</a>
+        <a class="hover:text-orange-400 transition-colors" href="/app/institucional/diferencias.html">Diferencias</a>
+        <a class="hover:text-orange-400 transition-colors" href="#">Contacto</a>
+        <a class="hover:text-orange-400 transition-colors" href="#">Términos</a>
+        <a class="hover:text-orange-400 transition-colors" href="#">Privacidad</a>
+      </div>
+      <p class="text-sm opacity-75">© 2025 Recuiva. Todos los derechos reservados.</p>
+    </div>
+    </footer >
   `;
 }
 
@@ -278,26 +287,26 @@ function renderFooter() {
 // FUNCIONES DE INTERACCIÓN
 // ==========================================
 
-window.toggleMobileMenu = function(event) {
+window.toggleMobileMenu = function (event) {
   // Prevenir propagación del evento para evitar que se cierre inmediatamente
   if (event) {
     event.stopPropagation();
     event.preventDefault();
   }
-  
+
   const mobileMenu = document.getElementById('mobile-menu');
   const menuBtn = document.getElementById('menu-btn');
   const menuIcon = menuBtn?.querySelector('.menu-icon');
-  
+
   if (!mobileMenu || !menuIcon) {
     console.warn('⚠️ No se encontraron elementos del menú móvil');
     return;
   }
-  
+
   const isOpen = mobileMenu.classList.contains('active');
-  
-  console.log(`🍔 Toggle menú móvil: ${isOpen ? 'CERRAR' : 'ABRIR'}`);
-  
+
+  console.log(`🍔 Toggle menú móvil: ${isOpen ? 'CERRAR' : 'ABRIR'} `);
+
   if (isOpen) {
     // Cerrar
     mobileMenu.classList.remove('active');
@@ -325,54 +334,54 @@ window.toggleMobileMenu = function(event) {
   }
 };
 
-window.toggleProfileMenu = function() {
+window.toggleProfileMenu = function () {
   const dropdown = document.getElementById('profile-dropdown');
   if (!dropdown) return;
   dropdown.classList.toggle('active');
 };
 
-window.cerrarSesion = async function() {
+window.cerrarSesion = async function () {
   if (!confirm('¿Estás seguro de que deseas cerrar sesión?')) return;
-  
+
   try {
     // Si Supabase está disponible, cerrar sesión
     if (typeof supabaseClient !== 'undefined') {
       await supabaseClient.auth.signOut();
     }
-  } catch(e) {
+  } catch (e) {
     console.log('Supabase no disponible, limpiando localStorage directamente');
   }
-  
+
   // Limpiar localStorage
   localStorage.removeItem('recuiva_user');
   localStorage.removeItem('recuiva_isAuthenticated');
   localStorage.clear();
-  
+
   // Redirigir a landing
   window.location.href = '/index.html';
 };
 
 // Cerrar dropdown al hacer clic fuera
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
   const profileBtn = document.getElementById('profile-btn');
   const profileDropdown = document.getElementById('profile-dropdown');
-  
-  if (profileDropdown && profileBtn && 
-      !profileBtn.contains(e.target) && 
-      !profileDropdown.contains(e.target)) {
+
+  if (profileDropdown && profileBtn &&
+    !profileBtn.contains(e.target) &&
+    !profileDropdown.contains(e.target)) {
     profileDropdown.classList.remove('active');
   }
-  
+
   // NO cerrar el menú móvil si el clic es en el botón del menú o dentro del menú
   const menuBtn = document.getElementById('menu-btn');
   const mobileMenu = document.getElementById('mobile-menu');
-  
+
   // Solo cerrar si se hace clic FUERA del menú y del botón
-  if (mobileMenu && 
-      mobileMenu.classList.contains('active') && 
-      menuBtn && 
-      !menuBtn.contains(e.target) && 
-      !mobileMenu.contains(e.target)) {
+  if (mobileMenu &&
+    mobileMenu.classList.contains('active') &&
+    menuBtn &&
+    !menuBtn.contains(e.target) &&
+    !mobileMenu.contains(e.target)) {
     // No hacer nada - dejar que el usuario cierre con el botón hamburguesa
     // window.toggleMobileMenu(); // COMENTADO para evitar cierre automático
   }
@@ -382,12 +391,12 @@ document.addEventListener('click', function(e) {
 // FUNCIÓN PRINCIPAL DE INICIALIZACIÓN
 // ==========================================
 
-window.initializeHeaderFooter = function(currentPage = '') {
+window.initializeHeaderFooter = function (currentPage = '') {
   // Insertar Header
   const headerContainer = document.getElementById('header-container');
   if (headerContainer) {
     const authenticated = isAuthenticated();
-    headerContainer.innerHTML = authenticated 
+    headerContainer.innerHTML = authenticated
       ? renderAuthenticatedHeader(currentPage)
       : renderPublicHeader();
   }
@@ -404,20 +413,20 @@ window.initializeHeaderFooter = function(currentPage = '') {
 // ==========================================
 
 const styles = `
-<style>
+  < style >
 /* Menú móvil - Inicialmente oculto */
-.mobile-menu {
-  max-height: 0;
+.mobile - menu {
+  max - height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease, opacity 0.3s ease;
+  transition: max - height 0.3s ease, opacity 0.3s ease;
   opacity: 0;
 }
 
 /* Menú móvil - Cuando está activo */
-.mobile-menu.active {
-  max-height: 500px !important;
-  opacity: 1 !important;
-  overflow-y: auto;
+.mobile - menu.active {
+  max - height: 500px!important;
+  opacity: 1!important;
+  overflow - y: auto;
 }
 
 @keyframes slideDown {
@@ -432,34 +441,34 @@ const styles = `
 }
 
 /* Icono del menú - Animaciones */
-.menu-icon {
-  transition: transform 0.3s ease, opacity 0.15s ease !important;
-  display: inline-block;
+.menu - icon {
+  transition: transform 0.3s ease, opacity 0.15s ease!important;
+  display: inline - block;
 }
 
 /* Dropdown de perfil - Estado inicial (oculto) */
-.profile-dropdown {
+.profile - dropdown {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
   transition: all 0.2s ease;
-  pointer-events: none;
+  pointer - events: none;
 }
 
 /* Dropdown de perfil - Cuando está activo (visible) */
-.profile-dropdown.active {
-  opacity: 1 !important;
-  visibility: visible !important;
-  transform: translateY(0) !important;
-  pointer-events: auto !important;
+.profile - dropdown.active {
+  opacity: 1!important;
+  visibility: visible!important;
+  transform: translateY(0)!important;
+  pointer - events: auto!important;
 }
 
 /* Prevenir scroll cuando el menú está abierto */
-body.overflow-hidden {
+body.overflow - hidden {
   overflow: hidden;
 }
-</style>
-`;
+</style >
+  `;
 
 // Insertar estilos en el head
 if (!document.getElementById('header-footer-styles')) {
