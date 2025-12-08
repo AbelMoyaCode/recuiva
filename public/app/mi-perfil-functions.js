@@ -120,7 +120,7 @@ async function syncLocalStorageUser(updates = {}) {
     if (!user) return;
 
     // Cargar datos actuales de user_profiles
-    const { data: profile } = await supabaseClient
+    const { data: profile } = await getSupabase()
       .from('user_profiles')
       .select('*')
       .eq('id', user.id)
@@ -221,7 +221,7 @@ window.changeProfilePicture = async function () {
 
       // Actualizar user_profiles
       await ensureUserProfile(user.id);
-      const { error: updateError } = await supabaseClient
+      const { error: updateError } = await getSupabase()
         .from('user_profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
