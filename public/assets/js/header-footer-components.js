@@ -338,11 +338,29 @@ window.toggleMobileMenu = function (event) {
   }
 };
 
-window.toggleProfileMenu = function () {
+window.toggleProfileMenu = function (event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
   const dropdown = document.getElementById('profile-dropdown');
-  if (!dropdown) return;
-  dropdown.classList.toggle('active');
+  if (dropdown) {
+    const isActive = dropdown.classList.contains('active');
+    console.log(`👤 Toggle menú perfil: ${isActive ? 'CERRAR' : 'ABRIR'}`);
+
+    // Cerrar otros menús si están abiertos
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu && mobileMenu.classList.contains('active')) {
+      window.toggleMobileMenu();
+    }
+
+    dropdown.classList.toggle('active');
+  } else {
+    console.warn('⚠️ No se encontró el elemento profile-dropdown');
+  }
 };
+
+
 
 window.cerrarSesion = async function () {
   if (!confirm('¿Estás seguro de que deseas cerrar sesión?')) return;
@@ -417,20 +435,20 @@ window.initializeHeaderFooter = function (currentPage = '') {
 // ==========================================
 
 const styles = `
-  < style >
+<style>
 /* Menú móvil - Inicialmente oculto */
-.mobile - menu {
-  max - height: 0;
+.mobile-menu {
+  max-height: 0;
   overflow: hidden;
-  transition: max - height 0.3s ease, opacity 0.3s ease;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
   opacity: 0;
 }
 
 /* Menú móvil - Cuando está activo */
-.mobile - menu.active {
-  max - height: 500px!important;
-  opacity: 1!important;
-  overflow - y: auto;
+.mobile-menu.active {
+  max-height: 500px !important;
+  opacity: 1 !important;
+  overflow-y: auto;
 }
 
 @keyframes slideDown {
@@ -445,34 +463,34 @@ const styles = `
 }
 
 /* Icono del menú - Animaciones */
-.menu - icon {
-  transition: transform 0.3s ease, opacity 0.15s ease!important;
-  display: inline - block;
+.menu-icon {
+  transition: transform 0.3s ease, opacity 0.15s ease !important;
+  display: inline-block;
 }
 
 /* Dropdown de perfil - Estado inicial (oculto) */
-.profile - dropdown {
+.profile-dropdown {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
   transition: all 0.2s ease;
-  pointer - events: none;
+  pointer-events: none;
 }
 
 /* Dropdown de perfil - Cuando está activo (visible) */
-.profile - dropdown.active {
-  opacity: 1!important;
-  visibility: visible!important;
-  transform: translateY(0)!important;
-  pointer - events: auto!important;
+.profile-dropdown.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
 }
 
 /* Prevenir scroll cuando el menú está abierto */
-body.overflow - hidden {
+body.overflow-hidden {
   overflow: hidden;
 }
-</style >
-  `;
+</style>
+`;
 
 // Insertar estilos en el head
 if (!document.getElementById('header-footer-styles')) {
