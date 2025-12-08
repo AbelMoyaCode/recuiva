@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
-    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-    <title>Repasos Espaciados - Recuiva</title>
-    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../assets/js/supabase-config.js"></script>
-    <script src="../assets/js/supabase-operations.js"></script>
-    <script src="../assets/js/header-footer-components.js"></script>
-    <!-- Sistema de Repaso Espaciado -->
-    <script src="../assets/js/spaced-repetition.js"></script>
-    <script src="../assets/js/repetition-data.js"></script>
-    <style type="text/tailwindcss">
-      :root {
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect" />
+  <link as="style"
+    href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"
+    onload="this.rel='stylesheet'" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <title>Repasos Espaciados - Recuiva</title>
+  <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-config.js"></script>
+  <script src="../assets/js/supabase-operations.js"></script>
+  <script src="../assets/js/header-footer-components.js"></script>
+  <!-- Sistema de Repaso Espaciado -->
+  <script src="../assets/js/spaced-repetition.js"></script>
+  <script src="../assets/js/repetition-data.js"></script>
+  <style type="text/tailwindcss">
+    :root {
         --primary-color: #FF6600;
         --secondary-color: #004EAA;
         --accent-color: #A5CDED;
@@ -182,207 +185,215 @@
       }
     </style>
 </head>
+
 <body class="bg-[var(--base-gray)] min-h-screen">
 
-<!-- Header Container - Managed by header-footer-components.js -->
-<div id="header-container"></div>
+  <!-- Header Container - Managed by header-footer-components.js -->
+  <div id="header-container"></div>
 
-<main class="container mx-auto px-4 py-8 max-w-6xl">
-  
-  <!-- Título -->
-  <div class="mb-8">
-    <div class="flex items-center gap-3 mb-2">
-      <span class="material-symbols-outlined text-4xl text-blue-600">replay_circle_filled</span>
-      <h1 class="text-3xl font-black text-gray-900">Repasos Espaciados</h1>
-    </div>
-    <p class="text-gray-600" id="subtitle-info">
-      Sistema inteligente basado en la curva del olvido: 1d → 3d → 7d → 14d → 30d
-    </p>
-  </div>
-  
-  <!-- Tarjetas de Resumen -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    
-    <!-- Urgentes Hoy -->
-    <div class="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-xl p-6 shadow-md urgente hover-lift">
-      <div class="flex items-center justify-between mb-4">
-        <span class="material-symbols-outlined text-red-600 text-4xl">error</span>
-        <span class="text-xs font-semibold text-red-700 bg-red-200 px-3 py-1 rounded-full">URGENTE</span>
-      </div>
-      <div class="text-4xl font-black text-red-700 mb-2" id="urgente-count">0</div>
-      <p class="text-sm text-red-600 font-semibold">Temas atrasados</p>
-      <button onclick="practiceUrgent()" class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
-        <span class="material-symbols-outlined">play_arrow</span>
-        Practicar Ahora
-      </button>
-    </div>
-    
-    <!-- Programado Hoy -->
-    <div class="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl p-6 shadow-md hover-lift">
-      <div class="flex items-center justify-between mb-4">
-        <span class="material-symbols-outlined text-orange-600 text-4xl">event_note</span>
-        <span class="text-xs font-semibold text-orange-700 bg-orange-200 px-3 py-1 rounded-full">HOY</span>
-      </div>
-      <div class="text-4xl font-black text-orange-700 mb-2" id="hoy-count">0</div>
-      <p class="text-sm text-orange-600 font-semibold">Programado para hoy</p>
-      <button onclick="practiceToday()" class="mt-4 w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
-        <span class="material-symbols-outlined">fitness_center</span>
-        Continuar Repaso
-      </button>
-    </div>
-    
-    <!-- Completado -->
-    <div class="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-6 shadow-md hover-lift">
-      <div class="flex items-center justify-between mb-4">
-        <span class="material-symbols-outlined text-green-600 text-4xl">check_circle</span>
-        <span class="text-xs font-semibold text-green-700 bg-green-200 px-3 py-1 rounded-full">LISTO</span>
-      </div>
-      <div class="text-4xl font-black text-green-700 mb-2" id="completado-count">0</div>
-      <p class="text-sm text-green-600 font-semibold">Temas en día</p>
-      <button onclick="viewProgress()" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
-        <span class="material-symbols-outlined">insights</span>
-        Ver Progreso
-      </button>
-    </div>
-    
-  </div>
+  <main class="container mx-auto px-4 py-8 max-w-6xl">
 
-  <!-- Lista de Hoy -->
-  <div class="bg-white rounded-xl shadow-md p-6 mb-8" id="today-list-container">
-    <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-      <span class="material-symbols-outlined text-blue-600">today</span>
-      Lista de Hoy (<span id="today-date"></span>)
-    </h2>
-    
-    <div id="today-questions-list">
-      <!-- Se llenará dinámicamente -->
+    <!-- Título -->
+    <div class="mb-8">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="material-symbols-outlined text-4xl text-blue-600">replay_circle_filled</span>
+        <h1 class="text-3xl font-black text-gray-900">Repasos Espaciados</h1>
+      </div>
+      <p class="text-gray-600" id="subtitle-info">
+        Sistema inteligente basado en la curva del olvido: 1d → 3d → 7d → 14d → 30d
+      </p>
     </div>
-  </div>
 
-  <!-- Calendario del Mes Actual -->
-  <div class="bg-white rounded-xl shadow-md p-6 mb-8">
-    <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-      <span class="material-symbols-outlined text-purple-600">calendar_month</span>
-      Calendario de <span id="calendar-month-name"></span> 2025
-    </h2>
-    
-    <!-- Días de la semana -->
-    <div class="grid grid-cols-7 gap-2 mb-2 text-center font-semibold text-gray-700">
-      <div>Dom</div>
-      <div>Lun</div>
-      <div>Mar</div>
-      <div>Mié</div>
-      <div>Jue</div>
-      <div>Vie</div>
-      <div>Sáb</div>
-    </div>
-    
-    <!-- Grid de días -->
-    <div id="calendar-grid" class="grid grid-cols-7 gap-2">
-      <!-- Se llenará dinámicamente -->
-    </div>
-    
-    <!-- Leyenda -->
-    <div class="mt-6 flex flex-wrap gap-4 justify-center text-sm">
-      <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded bg-red-200 border border-red-400"></div>
-        <span class="text-gray-700">Vencido</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded bg-blue-200 border border-blue-400"></div>
-        <span class="text-gray-700">Programado</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded bg-purple-200 border border-purple-400"></div>
-        <span class="text-gray-700">Opcional</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="w-4 h-4 rounded bg-green-200 border border-green-400"></div>
-        <span class="text-gray-700">Completado</span>
-      </div>
-    </div>
-  </div>
+    <!-- Tarjetas de Resumen -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
-  <!-- Configuración del Algoritmo -->
-  <div class="bg-white rounded-xl p-6">
-    <h2 class="text-xl font-bold text-[var(--secondary-color)] mb-4">
-      Configuración del Algoritmo
-    </h2>
-    
-    <div class="grid md:grid-cols-2 gap-6">
-      
-      <div>
-        <h3 class="font-semibold text-[var(--text-primary)] mb-3">Intervalos Base</h3>
-        <div class="space-y-3">
-          <div class="flex justify-between">
-            <span class="text-sm text-[var(--text-secondary)]">Primera repetición:</span>
-            <span class="font-semibold">1 día</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-sm text-[var(--text-secondary)]">Segunda repetición:</span>
-            <span class="font-semibold">3 días</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-sm text-[var(--text-secondary)]">Tercera repetición:</span>
-            <span class="font-semibold">7 días</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-sm text-[var(--text-secondary)]">Cuarta repetición:</span>
-            <span class="font-semibold">14 días</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-sm text-[var(--text-secondary)]">Quinta repetición:</span>
-            <span class="font-semibold">30 días</span>
-          </div>
+      <!-- Urgentes Hoy -->
+      <div
+        class="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-xl p-6 shadow-md urgente hover-lift">
+        <div class="flex items-center justify-between mb-4">
+          <span class="material-symbols-outlined text-red-600 text-4xl">error</span>
+          <span class="text-xs font-semibold text-red-700 bg-red-200 px-3 py-1 rounded-full">URGENTE</span>
         </div>
+        <div class="text-4xl font-black text-red-700 mb-2" id="urgente-count">0</div>
+        <p class="text-sm text-red-600 font-semibold">Temas atrasados</p>
+        <button onclick="practiceUrgent()"
+          class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined">play_arrow</span>
+          Practicar Ahora
+        </button>
       </div>
 
-      <div>
-        <h3 class="font-semibold text-[var(--text-primary)] mb-3">Ajustes Adaptativos</h3>
-        <div class="space-y-3">
-          <div class="flex justify-between">
-            <span class="text-sm text-[var(--text-secondary)]">Si resultado "Mala":</span>
-            <span class="font-semibold text-red-500">Resetear a 1 día</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-sm text-[var(--text-secondary)]">Si resultado "Regular":</span>
-            <span class="font-semibold text-yellow-500">-50% intervalo</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-sm text-[var(--text-secondary)]">Si resultado "Buena":</span>
-            <span class="font-semibold text-blue-500">Mantener intervalo</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-sm text-[var(--text-secondary)]">Si resultado "Excelente":</span>
-            <span class="font-semibold text-green-500">+20% intervalo</span>
-          </div>
+      <!-- Programado Hoy -->
+      <div
+        class="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl p-6 shadow-md hover-lift">
+        <div class="flex items-center justify-between mb-4">
+          <span class="material-symbols-outlined text-orange-600 text-4xl">event_note</span>
+          <span class="text-xs font-semibold text-orange-700 bg-orange-200 px-3 py-1 rounded-full">HOY</span>
         </div>
-        <button class="w-full mt-4 px-4 py-2 border border-[var(--accent-color)] rounded-lg hover:bg-[var(--base-gray)]">
-          Personalizar Algoritmo
+        <div class="text-4xl font-black text-orange-700 mb-2" id="hoy-count">0</div>
+        <p class="text-sm text-orange-600 font-semibold">Programado para hoy</p>
+        <button onclick="practiceToday()"
+          class="mt-4 w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined">fitness_center</span>
+          Continuar Repaso
+        </button>
+      </div>
+
+      <!-- Completado -->
+      <div
+        class="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-6 shadow-md hover-lift">
+        <div class="flex items-center justify-between mb-4">
+          <span class="material-symbols-outlined text-green-600 text-4xl">check_circle</span>
+          <span class="text-xs font-semibold text-green-700 bg-green-200 px-3 py-1 rounded-full">LISTO</span>
+        </div>
+        <div class="text-4xl font-black text-green-700 mb-2" id="completado-count">0</div>
+        <p class="text-sm text-green-600 font-semibold">Temas en día</p>
+        <button onclick="viewProgress()"
+          class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined">insights</span>
+          Ver Progreso
         </button>
       </div>
 
     </div>
-  </div>
 
-</main>
+    <!-- Lista de Hoy -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8" id="today-list-container">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-blue-600">today</span>
+        Lista de Hoy (<span id="today-date"></span>)
+      </h2>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  // === FUNCIONES MODALES BACKEND MEJORADAS ===
-  window.showBackendModal = function(icon, title, description) {
-    showAdvancedModal(icon, title, description);
-  };
-  
-  // Modal avanzado con mejor UX
-  window.showAdvancedModal = function(icon, title, description) {
-    // Crear modal si no existe
-    let modal = document.getElementById('advanced-modal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'advanced-modal';
-      modal.className = 'notification-modal';
-      modal.innerHTML = `
+      <div id="today-questions-list">
+        <!-- Se llenará dinámicamente -->
+      </div>
+    </div>
+
+    <!-- Calendario del Mes Actual -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-purple-600">calendar_month</span>
+        Calendario de <span id="calendar-month-name"></span> 2025
+      </h2>
+
+      <!-- Días de la semana -->
+      <div class="grid grid-cols-7 gap-2 mb-2 text-center font-semibold text-gray-700">
+        <div>Dom</div>
+        <div>Lun</div>
+        <div>Mar</div>
+        <div>Mié</div>
+        <div>Jue</div>
+        <div>Vie</div>
+        <div>Sáb</div>
+      </div>
+
+      <!-- Grid de días -->
+      <div id="calendar-grid" class="grid grid-cols-7 gap-2">
+        <!-- Se llenará dinámicamente -->
+      </div>
+
+      <!-- Leyenda -->
+      <div class="mt-6 flex flex-wrap gap-4 justify-center text-sm">
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded bg-red-200 border border-red-400"></div>
+          <span class="text-gray-700">Vencido</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded bg-blue-200 border border-blue-400"></div>
+          <span class="text-gray-700">Programado</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded bg-purple-200 border border-purple-400"></div>
+          <span class="text-gray-700">Opcional</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded bg-green-200 border border-green-400"></div>
+          <span class="text-gray-700">Completado</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuración del Algoritmo -->
+    <div class="bg-white rounded-xl p-6">
+      <h2 class="text-xl font-bold text-[var(--secondary-color)] mb-4">
+        Configuración del Algoritmo
+      </h2>
+
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)] mb-3">Intervalos Base</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-sm text-[var(--text-secondary)]">Primera repetición:</span>
+              <span class="font-semibold">1 día</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-[var(--text-secondary)]">Segunda repetición:</span>
+              <span class="font-semibold">3 días</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-[var(--text-secondary)]">Tercera repetición:</span>
+              <span class="font-semibold">7 días</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-[var(--text-secondary)]">Cuarta repetición:</span>
+              <span class="font-semibold">14 días</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-[var(--text-secondary)]">Quinta repetición:</span>
+              <span class="font-semibold">30 días</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)] mb-3">Ajustes Adaptativos</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-sm text-[var(--text-secondary)]">Si resultado "Mala":</span>
+              <span class="font-semibold text-red-500">Resetear a 1 día</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-[var(--text-secondary)]">Si resultado "Regular":</span>
+              <span class="font-semibold text-yellow-500">-50% intervalo</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-[var(--text-secondary)]">Si resultado "Buena":</span>
+              <span class="font-semibold text-blue-500">Mantener intervalo</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-[var(--text-secondary)]">Si resultado "Excelente":</span>
+              <span class="font-semibold text-green-500">+20% intervalo</span>
+            </div>
+          </div>
+          <button
+            class="w-full mt-4 px-4 py-2 border border-[var(--accent-color)] rounded-lg hover:bg-[var(--base-gray)]">
+            Personalizar Algoritmo
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // === FUNCIONES MODALES BACKEND MEJORADAS ===
+      window.showBackendModal = function (icon, title, description) {
+        showAdvancedModal(icon, title, description);
+      };
+
+      // Modal avanzado con mejor UX
+      window.showAdvancedModal = function (icon, title, description) {
+        // Crear modal si no existe
+        let modal = document.getElementById('advanced-modal');
+        if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'advanced-modal';
+          modal.className = 'notification-modal';
+          modal.innerHTML = `
         <div class="notification-modal-content">
           <div class="notification-icon-container">
             <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">notifications</span>
@@ -394,254 +405,274 @@ document.addEventListener('DOMContentLoaded', () => {
           </button>
         </div>
       `;
-      document.body.appendChild(modal);
-      
-      // Cerrar con escape
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal.classList.contains('show')) {
-          closeAdvancedModal();
+          document.body.appendChild(modal);
+
+          // Cerrar con escape
+          document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+              closeAdvancedModal();
+            }
+          });
+
+          // Cerrar clickeando fuera
+          modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+              closeAdvancedModal();
+            }
+          });
         }
-      });
-      
-      // Cerrar clickeando fuera
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          closeAdvancedModal();
+
+        // Actualizar contenido
+        const iconMap = {
+          'notifications': '🔔',
+          'settings': '⚙️',
+          'dashboard': '📊',
+          'analytics': '📈'
+        };
+
+        document.getElementById('modal-icon').textContent = icon;
+        document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
+        document.getElementById('modal-description').textContent = description;
+
+        // Mostrar modal con animación
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      };
+
+      window.closeAdvancedModal = function () {
+        const modal = document.getElementById('advanced-modal');
+        if (modal) {
+          modal.classList.remove('show');
+          document.body.style.overflow = '';
         }
+      };
+
+      // === FUNCIONES NAVEGACIÓN ===
+      window.logout = function () {
+        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+          localStorage.removeItem('recuiva_user');
+          window.location.href = '../auth/iniciar-sesion.html';
+        }
+      };
+
+      // Menú móvil animación igual que index.html
+      const menuBtn = document.getElementById('menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const menuIcon = menuBtn?.querySelector('.material-symbols-outlined');
+      let isMenuOpen = false;
+
+      function toggleMenu() {
+        isMenuOpen = !isMenuOpen;
+        mobileMenu.classList.toggle('active');
+        document.body.classList.toggle('overflow-hidden');
+        if (!menuIcon) return;
+        menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = isMenuOpen ? 'close' : 'menu';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
+      }
+
+      menuBtn?.addEventListener('click', toggleMenu);
+      mobileMenu?.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('click', () => { if (isMenuOpen) toggleMenu(); });
       });
-    }
-    
-    // Actualizar contenido
-    const iconMap = {
-      'notifications': '🔔',
-      'settings': '⚙️',
-      'dashboard': '📊',
-      'analytics': '📈'
-    };
-    
-    document.getElementById('modal-icon').textContent = icon;
-    document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
-    document.getElementById('modal-description').textContent = description;
-    
-    // Mostrar modal con animación
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-  };
-  
-  window.closeAdvancedModal = function() {
-    const modal = document.getElementById('advanced-modal');
-    if (modal) {
-      modal.classList.remove('show');
-      document.body.style.overflow = '';
-    }
-  };
-  
-  // === FUNCIONES NAVEGACIÓN ===
-  window.logout = function() {
-    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-      localStorage.removeItem('recuiva_user');
-      window.location.href = '../auth/iniciar-sesion.html';
-    }
-  };
+      window.addEventListener('keydown', (e) => { if (isMenuOpen && e.key === 'Escape') toggleMenu(); });
 
-  // Menú móvil animación igual que index.html
-  const menuBtn = document.getElementById('menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
-  const menuIcon = menuBtn?.querySelector('.material-symbols-outlined');
-  let isMenuOpen = false;
-
-  function toggleMenu() {
-    isMenuOpen = !isMenuOpen;
-    mobileMenu.classList.toggle('active');
-    document.body.classList.toggle('overflow-hidden');
-    if (!menuIcon) return;
-    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
-    menuIcon.style.transform = 'rotate(90deg)';
-    menuIcon.style.opacity = '0';
-    setTimeout(() => {
-      menuIcon.textContent = isMenuOpen ? 'close' : 'menu';
-      menuIcon.style.transform = 'rotate(0deg)';
-      menuIcon.style.opacity = '1';
-    }, 150);
-  }
-
-  menuBtn?.addEventListener('click', toggleMenu);
-  mobileMenu?.querySelectorAll('a, button').forEach(el => {
-    el.addEventListener('click', () => { if (isMenuOpen) toggleMenu(); });
-  });
-  window.addEventListener('keydown', (e) => { if (isMenuOpen && e.key === 'Escape') toggleMenu(); });
-
-  // Menú de perfil
-  const profileBtn = document.getElementById('profile-btn');
-  const profileDropdown = document.getElementById('profile-dropdown');
-  function toggleProfileMenu(e) {
-    e.stopPropagation();
-    profileDropdown.classList.toggle('active');
-  }
-  if (profileBtn && profileDropdown) {
-    profileBtn.addEventListener('click', toggleProfileMenu);
-    document.addEventListener('click', (e) => {
-      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
-        profileDropdown.classList.remove('active');
+      // Menú de perfil
+      const profileBtn = document.getElementById('profile-btn');
+      const profileDropdown = document.getElementById('profile-dropdown');
+      function toggleProfileMenu(e) {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
       }
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        profileDropdown.classList.remove('active');
+      if (profileBtn && profileDropdown) {
+        profileBtn.addEventListener('click', toggleProfileMenu);
+        document.addEventListener('click', (e) => {
+          if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+            profileDropdown.classList.remove('active');
+          }
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            profileDropdown.classList.remove('active');
+          }
+        });
       }
-    });
-  }
 
-  // === CARGAR REPASOS REALES DEL DÍA ===
-  
-  // Cargar repasos desde RepetitionData (sistema real)
-  setTimeout(() => {
-    if (window.RepetitionData && window.SRS) {
-      loadTodayReviews();
-    } else {
-      console.error('❌ Sistema de repaso no inicializado');
-    }
-  }, 500);
+      // === CARGAR REPASOS REALES DEL DÍA (DESDE SUPABASE) ===
 
-  function loadTodayReviews() {
-    console.log('📅 Cargando repasos del día...');
-    
-    // Obtener preguntas pendientes
-    const dueQuestions = window.RepetitionData.getDueQuestions();
-    const stats = window.RepetitionData.getGlobalStats();
-    
-    console.log('📊 Estadísticas:', stats);
-    console.log('📋 Preguntas pendientes:', dueQuestions);
-    
-    // Actualizar fecha de hoy
-    const todayDateEl = document.getElementById('today-date');
-    if (todayDateEl) {
-      const today = new Date();
-      todayDateEl.textContent = today.toLocaleDateString('es-ES', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
-    }
-    
-    // Actualizar contadores
-    updateCounters(stats, dueQuestions);
-    
-    // Renderizar lista de hoy
-    renderTodayList(dueQuestions);
-    
-    // Renderizar calendario
-    renderCalendar();
-  }
-
-  function updateCounters(stats, dueQuestions) {
-    // Calcular categorías
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    let urgenteCount = 0;
-    let hoyCount = 0;
-    let completadoCount = 0;
-    
-    dueQuestions.forEach(q => {
-      const nextDate = new Date(q.nextReviewDate);
-      nextDate.setHours(0, 0, 0, 0);
-      const daysOverdue = Math.floor((today - nextDate) / (1000 * 60 * 60 * 24));
-      
-      if (daysOverdue > 1) {
-        urgenteCount++; // Más de 1 día atrasado
-      } else if (daysOverdue >= 0) {
-        hoyCount++; // Hoy o ayer
-      }
-    });
-    
-    completadoCount = stats.total - stats.dueToday;
-    
-    // Actualizar en el DOM
-    const urgenteEl = document.getElementById('urgente-count');
-    const hoyEl = document.getElementById('hoy-count');
-    const completadoEl = document.getElementById('completado-count');
-    
-    if (urgenteEl) urgenteEl.textContent = urgenteCount;
-    if (hoyEl) hoyEl.textContent = hoyCount;
-    if (completadoEl) completadoEl.textContent = completadoCount;
-    
-    console.log(`📊 Contadores actualizados - Urgente: ${urgenteCount}, Hoy: ${hoyCount}, Completado: ${completadoCount}`);
-    
-    // ✅ DESHABILITAR botones si no hay preguntas pendientes
-    updateButtonStates(urgenteCount, hoyCount);
-  }
-  
-  function updateButtonStates(urgenteCount, hoyCount) {
-    // Obtener todos los botones
-    const buttons = document.querySelectorAll('button');
-    
-    buttons.forEach(btn => {
-      const text = btn.textContent.toLowerCase();
-      
-      if (text.includes('practicar ahora')) {
-        if (urgenteCount === 0) {
-          btn.disabled = true;
-          btn.classList.add('opacity-50', 'cursor-not-allowed');
-          btn.title = 'No hay preguntas urgentes';
+      // Cargar repasos desde Supabase (sistema real)
+      setTimeout(async () => {
+        if (window.SupabaseOperations) {
+          await loadTodayReviewsFromSupabase();
         } else {
-          btn.disabled = false;
-          btn.classList.remove('opacity-50', 'cursor-not-allowed');
-          btn.title = `${urgenteCount} pregunta${urgenteCount > 1 ? 's' : ''} urgente${urgenteCount > 1 ? 's' : ''}`;
+          console.error('❌ SupabaseOperations no inicializado');
         }
-      } else if (text.includes('continuar repaso')) {
-        if (hoyCount === 0) {
-          btn.disabled = true;
-          btn.classList.add('opacity-50', 'cursor-not-allowed');
-          btn.title = 'No hay repasos para hoy';
-        } else {
-          btn.disabled = false;
-          btn.classList.remove('opacity-50', 'cursor-not-allowed');
-          btn.title = `${hoyCount} repaso${hoyCount > 1 ? 's' : ''} para hoy`;
+      }, 500);
+
+      async function loadTodayReviewsFromSupabase() {
+        console.log('📅 Cargando repasos del día desde Supabase...');
+
+        try {
+          // Obtener preguntas pendientes desde Supabase
+          const rawData = await SupabaseOperations.getReviewsForToday();
+
+          // Transformar datos de Supabase al formato esperado
+          const dueQuestions = rawData.map(item => ({
+            id: item.id,
+            pregunta: item.questions?.question_text || 'Sin pregunta',
+            nextReviewDate: item.next_review,
+            repetition: item.repetitions || 0,
+            score: item.last_score || 0,
+            materialTitle: item.questions?.materials?.title || 'Sin material',
+            questionId: item.question_id
+          }));
+
+          console.log('📋 Preguntas pendientes:', dueQuestions);
+
+          // Calcular estadísticas localmente
+          const stats = {
+            total: dueQuestions.length,
+            dueToday: dueQuestions.length
+          };
+
+          // Actualizar fecha de hoy
+          const todayDateEl = document.getElementById('today-date');
+          if (todayDateEl) {
+            const today = new Date();
+            todayDateEl.textContent = today.toLocaleDateString('es-ES', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+          }
+
+          // Actualizar contadores
+          updateCounters(stats, dueQuestions);
+
+          // Renderizar lista de hoy
+          renderTodayList(dueQuestions);
+
+          // Renderizar calendario (simplificado sin RepetitionData)
+          renderCalendarSimple();
+
+        } catch (error) {
+          console.error('❌ Error cargando repasos:', error);
         }
       }
-    });
-  }
 
-  function renderTodayList(dueQuestions) {
-    const listContainer = document.getElementById('today-questions-list');
-    if (!listContainer) return;
-    
-    if (dueQuestions.length === 0) {
-      listContainer.innerHTML = `
+      function updateCounters(stats, dueQuestions) {
+        // Calcular categorías
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let urgenteCount = 0;
+        let hoyCount = 0;
+        let completadoCount = 0;
+
+        dueQuestions.forEach(q => {
+          const nextDate = new Date(q.nextReviewDate);
+          nextDate.setHours(0, 0, 0, 0);
+          const daysOverdue = Math.floor((today - nextDate) / (1000 * 60 * 60 * 24));
+
+          if (daysOverdue > 1) {
+            urgenteCount++; // Más de 1 día atrasado
+          } else if (daysOverdue >= 0) {
+            hoyCount++; // Hoy o ayer
+          }
+        });
+
+        completadoCount = Math.max(0, stats.total - stats.dueToday);
+
+        // Actualizar en el DOM
+        const urgenteEl = document.getElementById('urgente-count');
+        const hoyEl = document.getElementById('hoy-count');
+        const completadoEl = document.getElementById('completado-count');
+
+        if (urgenteEl) urgenteEl.textContent = urgenteCount;
+        if (hoyEl) hoyEl.textContent = hoyCount;
+        if (completadoEl) completadoEl.textContent = completadoCount;
+
+        console.log(`📊 Contadores actualizados - Urgente: ${urgenteCount}, Hoy: ${hoyCount}, Completado: ${completadoCount}`);
+
+        // ✅ DESHABILITAR botones si no hay preguntas pendientes
+        updateButtonStates(urgenteCount, hoyCount);
+      }
+
+      function updateButtonStates(urgenteCount, hoyCount) {
+        // Obtener todos los botones
+        const buttons = document.querySelectorAll('button');
+
+        buttons.forEach(btn => {
+          const text = btn.textContent.toLowerCase();
+
+          if (text.includes('practicar ahora')) {
+            if (urgenteCount === 0) {
+              btn.disabled = true;
+              btn.classList.add('opacity-50', 'cursor-not-allowed');
+              btn.title = 'No hay preguntas urgentes';
+            } else {
+              btn.disabled = false;
+              btn.classList.remove('opacity-50', 'cursor-not-allowed');
+              btn.title = `${urgenteCount} pregunta${urgenteCount > 1 ? 's' : ''} urgente${urgenteCount > 1 ? 's' : ''}`;
+            }
+          } else if (text.includes('continuar repaso')) {
+            if (hoyCount === 0) {
+              btn.disabled = true;
+              btn.classList.add('opacity-50', 'cursor-not-allowed');
+              btn.title = 'No hay repasos para hoy';
+            } else {
+              btn.disabled = false;
+              btn.classList.remove('opacity-50', 'cursor-not-allowed');
+              btn.title = `${hoyCount} repaso${hoyCount > 1 ? 's' : ''} para hoy`;
+            }
+          }
+        });
+      }
+
+      function renderTodayList(dueQuestions) {
+        const listContainer = document.getElementById('today-questions-list');
+        if (!listContainer) return;
+
+        if (dueQuestions.length === 0) {
+          listContainer.innerHTML = `
         <div class="text-center py-8 text-gray-400">
           <span class="material-symbols-outlined text-5xl mb-2">check_circle</span>
           <p class="font-medium">¡Todo al día!</p>
           <p class="text-sm mt-1">No hay repasos pendientes para hoy</p>
         </div>
       `;
-      return;
-    }
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const listHTML = dueQuestions.slice(0, 10).map(q => {
-      const nextDate = new Date(q.nextReviewDate);
-      nextDate.setHours(0, 0, 0, 0);
-      const daysOverdue = Math.floor((today - nextDate) / (1000 * 60 * 60 * 24));
-      
-      let statusClass = '';
-      let statusText = '';
-      
-      if (daysOverdue > 1) {
-        statusClass = 'bg-red-50 border-red-200';
-        statusText = `<span class="text-red-600 text-xs font-semibold">Atrasado ${daysOverdue} días</span>`;
-      } else if (daysOverdue === 1) {
-        statusClass = 'bg-orange-50 border-orange-200';
-        statusText = `<span class="text-orange-600 text-xs font-semibold">Ayer</span>`;
-      } else {
-        statusClass = 'bg-blue-50 border-blue-200';
-        statusText = `<span class="text-blue-600 text-xs font-semibold">Hoy</span>`;
-      }
-      
-      return `
+          return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const listHTML = dueQuestions.slice(0, 10).map(q => {
+          const nextDate = new Date(q.nextReviewDate);
+          nextDate.setHours(0, 0, 0, 0);
+          const daysOverdue = Math.floor((today - nextDate) / (1000 * 60 * 60 * 24));
+
+          let statusClass = '';
+          let statusText = '';
+
+          if (daysOverdue > 1) {
+            statusClass = 'bg-red-50 border-red-200';
+            statusText = `<span class="text-red-600 text-xs font-semibold">Atrasado ${daysOverdue} días</span>`;
+          } else if (daysOverdue === 1) {
+            statusClass = 'bg-orange-50 border-orange-200';
+            statusText = `<span class="text-orange-600 text-xs font-semibold">Ayer</span>`;
+          } else {
+            statusClass = 'bg-blue-50 border-blue-200';
+            statusText = `<span class="text-blue-600 text-xs font-semibold">Hoy</span>`;
+          }
+
+          return `
         <div class="p-3 rounded-lg border-2 ${statusClass} hover:shadow-md transition-all">
           <div class="flex justify-between items-start mb-2">
             <p class="font-semibold text-sm text-gray-800 flex-1">${q.pregunta.substring(0, 80)}${q.pregunta.length > 80 ? '...' : ''}</p>
@@ -653,309 +684,310 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    }).join('');
-    
-    listContainer.innerHTML = listHTML;
-    
-    if (dueQuestions.length > 10) {
-      listContainer.innerHTML += `
+        }).join('');
+
+        listContainer.innerHTML = listHTML;
+
+        if (dueQuestions.length > 10) {
+          listContainer.innerHTML += `
         <p class="text-center text-sm text-gray-500 mt-4">
           ... y ${dueQuestions.length - 10} preguntas más
         </p>
       `;
-    }
-  }
+        }
+      }
 
-  function renderCalendar() {
-    const calendarGrid = document.getElementById('calendar-grid');
-    const monthNameEl = document.getElementById('calendar-month-name');
-    
-    if (!calendarGrid) return;
-    
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    
-    // Actualizar nombre del mes
-    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    if (monthNameEl) {
-      monthNameEl.textContent = `${monthNames[month]} ${year}`;
-    }
-    
-    // Obtener calendario del sistema de repaso
-    const calendarData = window.RepetitionData.getCalendar(year, month);
-    
-    // Obtener información del mes
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    let calendarHTML = '';
-    
-    // Días de la semana
-    const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    weekDays.forEach(day => {
-      calendarHTML += `<div class="text-center text-xs font-semibold text-gray-600 py-1">${day}</div>`;
-    });
-    
-    // Días vacíos antes del primer día
-    for (let i = 0; i < firstDay; i++) {
-      calendarHTML += `<div class="aspect-square"></div>`;
-    }
-    
-    // Días del mes
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const dayData = calendarData[dateStr];
-      const count = dayData ? dayData.count : 0;
-      
-      const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-      
-      let dayClass = 'aspect-square flex flex-col items-center justify-center rounded-lg border transition-all';
-      let badgeHTML = '';
-      
-      if (isToday) {
-        dayClass += ' bg-blue-100 border-blue-400 font-bold';
-      } else if (count > 0) {
-        dayClass += ' bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer';
-      } else {
-        dayClass += ' border-gray-200 hover:bg-gray-50';
-      }
-      
-      if (count > 0) {
-        badgeHTML = `<span class="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-full">${count}</span>`;
-      }
-      
-      calendarHTML += `
+      function renderCalendarSimple() {
+        const calendarGrid = document.getElementById('calendar-grid');
+        const monthNameEl = document.getElementById('calendar-month-name');
+
+        if (!calendarGrid) return;
+
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth();
+
+        // Actualizar nombre del mes
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        if (monthNameEl) {
+          monthNameEl.textContent = `${monthNames[month]} ${year}`;
+        }
+
+        // Sin datos de calendario por ahora (simplificado)
+        const calendarData = {};
+
+        // Obtener información del mes
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        let calendarHTML = '';
+
+        // Días de la semana
+        const weekDays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        weekDays.forEach(day => {
+          calendarHTML += `<div class="text-center text-xs font-semibold text-gray-600 py-1">${day}</div>`;
+        });
+
+        // Días vacíos antes del primer día
+        for (let i = 0; i < firstDay; i++) {
+          calendarHTML += `<div class="aspect-square"></div>`;
+        }
+
+        // Días del mes
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const dayData = calendarData[dateStr];
+          const count = dayData ? dayData.count : 0;
+
+          const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+
+          let dayClass = 'aspect-square flex flex-col items-center justify-center rounded-lg border transition-all';
+          let badgeHTML = '';
+
+          if (isToday) {
+            dayClass += ' bg-blue-100 border-blue-400 font-bold';
+          } else if (count > 0) {
+            dayClass += ' bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer';
+          } else {
+            dayClass += ' border-gray-200 hover:bg-gray-50';
+          }
+
+          if (count > 0) {
+            badgeHTML = `<span class="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-full">${count}</span>`;
+          }
+
+          calendarHTML += `
         <div class="${dayClass}">
           <span class="text-sm ${isToday ? 'text-blue-700' : 'text-gray-700'}">${day}</span>
           ${badgeHTML}
         </div>
       `;
-    }
-    
-    calendarGrid.innerHTML = calendarHTML;
-  }
+        }
 
-  // === FUNCIONES MODALES BACKEND MEJORADAS ===
-  window.showBackendModal = function(icon, title, description) {
-    if (title.includes('Configurar') || title.includes('configuración')) {
-      alert(`⚙️ ${title}\n\n${description}\n\nEn Sprint 1: Algoritmo de intervalos funcional con datos mock`);
-    } else {
-      showAdvancedModal(icon, title, description);
-    }
-  };
+        calendarGrid.innerHTML = calendarHTML;
+      }
 
-  // Override función de logout
-  window.logout = function() {
-    if (confirm('¿Cerrar sesión?')) {
-      mockAPI.logout();
-      window.location.href = '../auth/iniciar-sesion.html';
-    }
-  };
-});
+      // === FUNCIONES MODALES BACKEND MEJORADAS ===
+      window.showBackendModal = function (icon, title, description) {
+        if (title.includes('Configurar') || title.includes('configuración')) {
+          alert(`⚙️ ${title}\n\n${description}\n\nEn Sprint 1: Algoritmo de intervalos funcional con datos mock`);
+        } else {
+          showAdvancedModal(icon, title, description);
+        }
+      };
 
-// === FUNCIONES GLOBALES ADICIONALES ===
+      // Override función de logout
+      window.logout = function () {
+        if (confirm('¿Cerrar sesión?')) {
+          mockAPI.logout();
+          window.location.href = '../auth/iniciar-sesion.html';
+        }
+      };
+    });
 
-// 🔍 FUNCIÓN DE DIAGNÓSTICO DEL SISTEMA
-window.diagnosticarSistema = function() {
-  console.log('🔍 DIAGNÓSTICO DEL SISTEMA DE REPASOS');
-  console.log('=====================================');
-  
-  // 1. Verificar que los scripts estén cargados
-  console.log('✓ window.SRS:', typeof window.SRS);
-  console.log('✓ window.RepetitionData:', typeof window.RepetitionData);
-  
-  // 2. Contar preguntas
-  const allQuestions = window.RepetitionData.getAllQuestions();
-  console.log(`📚 Total preguntas: ${allQuestions.length}`);
-  
-  // 3. Verificar estructura de repasos
-  const withReview = allQuestions.filter(q => q.nextReviewDate);
-  const withoutReview = allQuestions.filter(q => !q.nextReviewDate);
-  console.log(`✅ Con datos de repaso: ${withReview.length}`);
-  console.log(`❌ Sin datos de repaso: ${withoutReview.length}`);
-  
-  // 4. Mostrar próximos repasos
-  if (withReview.length > 0) {
-    console.log('\n📅 Próximos repasos:');
-    withReview
-      .sort((a, b) => new Date(a.nextReviewDate) - new Date(b.nextReviewDate))
-      .slice(0, 5)
-      .forEach(q => {
-        const date = new Date(q.nextReviewDate);
-        console.log(`  - ${q.pregunta.substring(0, 50)}... → ${date.toLocaleDateString('es-ES')}`);
+    // === FUNCIONES GLOBALES ADICIONALES ===
+
+    // 🔍 FUNCIÓN DE DIAGNÓSTICO DEL SISTEMA
+    window.diagnosticarSistema = function () {
+      console.log('🔍 DIAGNÓSTICO DEL SISTEMA DE REPASOS');
+      console.log('=====================================');
+
+      // 1. Verificar que los scripts estén cargados
+      console.log('✓ window.SRS:', typeof window.SRS);
+      console.log('✓ window.RepetitionData:', typeof window.RepetitionData);
+
+      // 2. Contar preguntas
+      const allQuestions = window.RepetitionData.getAllQuestions();
+      console.log(`📚 Total preguntas: ${allQuestions.length}`);
+
+      // 3. Verificar estructura de repasos
+      const withReview = allQuestions.filter(q => q.nextReviewDate);
+      const withoutReview = allQuestions.filter(q => !q.nextReviewDate);
+      console.log(`✅ Con datos de repaso: ${withReview.length}`);
+      console.log(`❌ Sin datos de repaso: ${withoutReview.length}`);
+
+      // 4. Mostrar próximos repasos
+      if (withReview.length > 0) {
+        console.log('\n📅 Próximos repasos:');
+        withReview
+          .sort((a, b) => new Date(a.nextReviewDate) - new Date(b.nextReviewDate))
+          .slice(0, 5)
+          .forEach(q => {
+            const date = new Date(q.nextReviewDate);
+            console.log(`  - ${q.pregunta.substring(0, 50)}... → ${date.toLocaleDateString('es-ES')}`);
+          });
+      }
+
+      // 5. Estadísticas
+      const stats = window.RepetitionData.getGlobalStats();
+      console.log('\n📊 Estadísticas:');
+      console.log(`  Total: ${stats.total}`);
+      console.log(`  Pendientes hoy: ${stats.dueToday}`);
+      console.log(`  Nuevas: ${stats.new}`);
+
+      // 6. Verificar scores
+      console.log('\n📈 Análisis de Scores:');
+      const scoresDecimales = allQuestions.filter(q => q.score > 0 && q.score <= 1);
+      const scoresPorcentaje = allQuestions.filter(q => q.score > 1 && q.score <= 100);
+      console.log(`  Scores en decimal (0-1): ${scoresDecimales.length}`);
+      console.log(`  Scores en porcentaje (0-100): ${scoresPorcentaje.length}`);
+
+      if (scoresDecimales.length > 0) {
+        console.log('  ⚠️ ALERTA: Hay scores en formato decimal que deben normalizarse');
+        console.log('  Ejecuta: window.RepetitionData.normalizeAllScores()');
+      }
+
+      // 7. Sugerencias
+      console.log('\n💡 Sugerencias:');
+      if (withoutReview.length > 0) {
+        console.log(`⚠️  Hay ${withoutReview.length} preguntas sin datos de repaso`);
+        console.log('  Ejecuta: window.RepetitionData.migrateOldQuestions()');
+      }
+      if (stats.dueToday === 0) {
+        console.log('✅ No hay repasos pendientes para hoy');
+      }
+
+      console.log('\n=====================================');
+      return {
+        total: allQuestions.length,
+        withReview: withReview.length,
+        withoutReview: withoutReview.length,
+        stats: stats
+      };
+    };
+
+    // Función para posponer repasos
+    window.postponeReview = function (reviewId, days = 1) {
+      console.log(`Posponiendo review ${reviewId} por ${days} día(s)`);
+      alert(`📅 Repaso pospuesto por ${days} día${days > 1 ? 's' : ''}`);
+    };
+
+    // Función para marcar como completado
+    window.markAsCompleted = function (reviewId) {
+      console.log(`Marcando review ${reviewId} como completado`);
+      alert('✅ Repaso marcado como completado');
+    };
+
+    // === AUTO-EJECUTAR DIAGNÓSTICO AL CARGAR ===
+    setTimeout(() => {
+      if (window.RepetitionData && window.diagnosticarSistema) {
+        console.log('🚀 Ejecutando diagnóstico automático...');
+        window.diagnosticarSistema();
+      }
+    }, 1000);
+
+    // === FUNCIONES DE LOS BOTONES DE PRÁCTICA ===
+
+    /**
+     * Botón "Practicar Ahora" - Solo si hay preguntas URGENTES (atrasadas)
+     */
+    window.practiceUrgent = function () {
+      const dueQuestions = window.RepetitionData.getDueQuestions();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Filtrar solo preguntas con más de 1 día de retraso
+      const urgentQuestions = dueQuestions.filter(q => {
+        const nextDate = new Date(q.nextReviewDate);
+        nextDate.setHours(0, 0, 0, 0);
+        const daysOverdue = Math.floor((today - nextDate) / (1000 * 60 * 60 * 24));
+        return daysOverdue > 1;
       });
-  }
-  
-  // 5. Estadísticas
-  const stats = window.RepetitionData.getGlobalStats();
-  console.log('\n📊 Estadísticas:');
-  console.log(`  Total: ${stats.total}`);
-  console.log(`  Pendientes hoy: ${stats.dueToday}`);
-  console.log(`  Nuevas: ${stats.new}`);
-  
-  // 6. Verificar scores
-  console.log('\n📈 Análisis de Scores:');
-  const scoresDecimales = allQuestions.filter(q => q.score > 0 && q.score <= 1);
-  const scoresPorcentaje = allQuestions.filter(q => q.score > 1 && q.score <= 100);
-  console.log(`  Scores en decimal (0-1): ${scoresDecimales.length}`);
-  console.log(`  Scores en porcentaje (0-100): ${scoresPorcentaje.length}`);
-  
-  if (scoresDecimales.length > 0) {
-    console.log('  ⚠️ ALERTA: Hay scores en formato decimal que deben normalizarse');
-    console.log('  Ejecuta: window.RepetitionData.normalizeAllScores()');
-  }
-  
-  // 7. Sugerencias
-  console.log('\n💡 Sugerencias:');
-  if (withoutReview.length > 0) {
-    console.log(`⚠️  Hay ${withoutReview.length} preguntas sin datos de repaso`);
-    console.log('  Ejecuta: window.RepetitionData.migrateOldQuestions()');
-  }
-  if (stats.dueToday === 0) {
-    console.log('✅ No hay repasos pendientes para hoy');
-  }
-  
-  console.log('\n=====================================');
-  return {
-    total: allQuestions.length,
-    withReview: withReview.length,
-    withoutReview: withoutReview.length,
-    stats: stats
-  };
-};
 
-// Función para posponer repasos
-window.postponeReview = function(reviewId, days = 1) {
-  console.log(`Posponiendo review ${reviewId} por ${days} día(s)`);
-  alert(`📅 Repaso pospuesto por ${days} día${days > 1 ? 's' : ''}`);
-};
+      if (urgentQuestions.length === 0) {
+        showAdvancedModal(
+          'info',
+          '¡Sin Repasos Urgentes!',
+          `No tienes preguntas atrasadas por más de 1 día. ¡Vas muy bien! 🎉`
+        );
+        return;
+      }
 
-// Función para marcar como completado
-window.markAsCompleted = function(reviewId) {
-  console.log(`Marcando review ${reviewId} como completado`);
-  alert('✅ Repaso marcado como completado');
-};
+      console.log(`🚀 Iniciando sesión de práctica URGENTE con ${urgentQuestions.length} preguntas`);
 
-// === AUTO-EJECUTAR DIAGNÓSTICO AL CARGAR ===
-setTimeout(() => {
-  if (window.RepetitionData && window.diagnosticarSistema) {
-    console.log('🚀 Ejecutando diagnóstico automático...');
-    window.diagnosticarSistema();
-  }
-}, 1000);
+      // Guardar sesión de práctica con las preguntas urgentes
+      localStorage.setItem('recuiva_practice_session', JSON.stringify({
+        type: 'urgent',
+        questions: urgentQuestions,
+        currentIndex: 0,
+        startedAt: new Date().toISOString()
+      }));
 
-// === FUNCIONES DE LOS BOTONES DE PRÁCTICA ===
+      // Redirigir a la primera pregunta urgente
+      const firstQuestion = urgentQuestions[0];
+      window.location.href = `sesion-practica.html?material=${firstQuestion.carpeta_id || firstQuestion.materialId || '1'}&mode=review`;
+    };
 
-/**
- * Botón "Practicar Ahora" - Solo si hay preguntas URGENTES (atrasadas)
- */
-window.practiceUrgent = function() {
-  const dueQuestions = window.RepetitionData.getDueQuestions();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  // Filtrar solo preguntas con más de 1 día de retraso
-  const urgentQuestions = dueQuestions.filter(q => {
-    const nextDate = new Date(q.nextReviewDate);
-    nextDate.setHours(0, 0, 0, 0);
-    const daysOverdue = Math.floor((today - nextDate) / (1000 * 60 * 60 * 24));
-    return daysOverdue > 1;
-  });
-  
-  if (urgentQuestions.length === 0) {
-    showAdvancedModal(
-      'info',
-      '¡Sin Repasos Urgentes!',
-      `No tienes preguntas atrasadas por más de 1 día. ¡Vas muy bien! 🎉`
-    );
-    return;
-  }
-  
-  console.log(`🚀 Iniciando sesión de práctica URGENTE con ${urgentQuestions.length} preguntas`);
-  
-  // Guardar sesión de práctica con las preguntas urgentes
-  localStorage.setItem('recuiva_practice_session', JSON.stringify({
-    type: 'urgent',
-    questions: urgentQuestions,
-    currentIndex: 0,
-    startedAt: new Date().toISOString()
-  }));
-  
-  // Redirigir a la primera pregunta urgente
-  const firstQuestion = urgentQuestions[0];
-  window.location.href = `sesion-practica.html?material=${firstQuestion.carpeta_id || firstQuestion.materialId || '1'}&mode=review`;
-};
+    /**
+     * Botón "Continuar Repaso" - Solo si hay preguntas para HOY
+     */
+    window.practiceToday = function () {
+      const dueQuestions = window.RepetitionData.getDueQuestions();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-/**
- * Botón "Continuar Repaso" - Solo si hay preguntas para HOY
- */
-window.practiceToday = function() {
-  const dueQuestions = window.RepetitionData.getDueQuestions();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  // Filtrar preguntas de hoy o ayer (no más de 1 día)
-  const todayQuestions = dueQuestions.filter(q => {
-    const nextDate = new Date(q.nextReviewDate);
-    nextDate.setHours(0, 0, 0, 0);
-    const daysOverdue = Math.floor((today - nextDate) / (1000 * 60 * 60 * 24));
-    return daysOverdue >= 0 && daysOverdue <= 1;
-  });
-  
-  if (todayQuestions.length === 0) {
-    showAdvancedModal(
-      'info',
-      '¡Todo al Día!',
-      `No tienes repasos programados para hoy. ¡Excelente trabajo! 🎯\n\nPuedes adelantar repasos futuros o crear nuevas preguntas.`
-    );
-    return;
-  }
-  
-  console.log(`🚀 Iniciando sesión de práctica HOY con ${todayQuestions.length} preguntas`);
-  
-  // Guardar sesión de práctica
-  localStorage.setItem('recuiva_practice_session', JSON.stringify({
-    type: 'today',
-    questions: todayQuestions,
-    currentIndex: 0,
-    startedAt: new Date().toISOString()
-  }));
-  
-  // Redirigir a la primera pregunta
-  const firstQuestion = todayQuestions[0];
-  window.location.href = `sesion-practica.html?material=${firstQuestion.carpeta_id || firstQuestion.materialId || '1'}&mode=review`;
-};
+      // Filtrar preguntas de hoy o ayer (no más de 1 día)
+      const todayQuestions = dueQuestions.filter(q => {
+        const nextDate = new Date(q.nextReviewDate);
+        nextDate.setHours(0, 0, 0, 0);
+        const daysOverdue = Math.floor((today - nextDate) / (1000 * 60 * 60 * 24));
+        return daysOverdue >= 0 && daysOverdue <= 1;
+      });
 
-/**
- * Botón "Ver Progreso" - Lleva al Dashboard
- */
-window.viewProgress = function() {
-  console.log('📊 Redirigiendo al dashboard...');
-  window.location.href = 'home.html';
-};
+      if (todayQuestions.length === 0) {
+        showAdvancedModal(
+          'info',
+          '¡Todo al Día!',
+          `No tienes repasos programados para hoy. ¡Excelente trabajo! 🎯\n\nPuedes adelantar repasos futuros o crear nuevas preguntas.`
+        );
+        return;
+      }
 
-/**
- * Función auxiliar para mostrar modal informativo
- */
-function showInfoModal(title, message) {
-  if (typeof showAdvancedModal === 'function') {
-    showAdvancedModal('info', title, message);
-  } else {
-    alert(`${title}\n\n${message}`);
-  }
-}
+      console.log(`🚀 Iniciando sesión de práctica HOY con ${todayQuestions.length} preguntas`);
 
-</script>
+      // Guardar sesión de práctica
+      localStorage.setItem('recuiva_practice_session', JSON.stringify({
+        type: 'today',
+        questions: todayQuestions,
+        currentIndex: 0,
+        startedAt: new Date().toISOString()
+      }));
 
-<!-- Footer Container - Managed by header-footer-components.js -->
-<div id="footer-container"></div>
+      // Redirigir a la primera pregunta
+      const firstQuestion = todayQuestions[0];
+      window.location.href = `sesion-practica.html?material=${firstQuestion.carpeta_id || firstQuestion.materialId || '1'}&mode=review`;
+    };
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  initializeHeaderFooter('repasos');
-});
-</script>
+    /**
+     * Botón "Ver Progreso" - Lleva al Dashboard
+     */
+    window.viewProgress = function () {
+      console.log('📊 Redirigiendo al dashboard...');
+      window.location.href = 'home.html';
+    };
+
+    /**
+     * Función auxiliar para mostrar modal informativo
+     */
+    function showInfoModal(title, message) {
+      if (typeof showAdvancedModal === 'function') {
+        showAdvancedModal('info', title, message);
+      } else {
+        alert(`${title}\n\n${message}`);
+      }
+    }
+
+  </script>
+
+  <!-- Footer Container - Managed by header-footer-components.js -->
+  <div id="footer-container"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      initializeHeaderFooter('repasos');
+    });
+  </script>
 
 </body>
+
 </html>
