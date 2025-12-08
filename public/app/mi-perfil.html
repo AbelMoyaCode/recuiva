@@ -1,23 +1,26 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
-    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-    <title>Recuiva - Dashboard</title>
-    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../assets/js/supabase-config.js"></script>
-    <script src="../assets/js/supabase-operations.js"></script>
-    <script src="../assets/js/header-footer-components.js"></script>
-    <!-- Mi Perfil Functions -->
-    <script src="mi-perfil-functions.js"></script>
-    <style type="text/tailwindcss">
-      :root {
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect" />
+  <link as="style"
+    href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"
+    onload="this.rel='stylesheet'" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <title>Recuiva - Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-config.js"></script>
+  <script src="../assets/js/supabase-operations.js"></script>
+  <script src="../assets/js/header-footer-components.js"></script>
+  <!-- Mi Perfil Functions -->
+  <script src="mi-perfil-functions.js"></script>
+  <style type="text/tailwindcss">
+    :root {
         --primary-color: #FF6600;
         --secondary-color: #004EAA;
         --accent-color: #A5CDED;
@@ -182,972 +185,222 @@
       }
     </style>
 </head>
+
 <body class="bg-[var(--base-gray)]" style='font-family: Manrope, "Noto Sans", sans-serif;'>
-<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
-<!-- Header Container - Managed by header-footer-components.js -->
-<div id="header-container"></div>
+  <div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+    <!-- Header Container - Managed by header-footer-components.js -->
+    <div id="header-container"></div>
 
 
 
 
 
-<main class="flex flex-1 justify-center py-10 bg-[var(--base-gray)]">
-  <div class="w-full max-w-3xl mx-auto px-2 sm:px-4">
-    <div class="pb-8">
-      <h1 class="text-[var(--text-primary)] tracking-tight text-3xl font-bold text-center mb-2">Perfil y Configuración</h1>
-    </div>
-    <div class="flex flex-col gap-8">
-      <!-- Sección de Información Personal -->
-      <section class="bg-white rounded-xl shadow-md">
-        <div class="p-6 border-b border-gray-200">
-          <h3 class="text-xl font-bold text-[var(--text-primary)]">Información Personal</h3>
+    <main class="flex flex-1 justify-center py-10 bg-[var(--base-gray)]">
+      <div class="w-full max-w-3xl mx-auto px-2 sm:px-4">
+        <div class="pb-8">
+          <h1 class="text-[var(--text-primary)] tracking-tight text-3xl font-bold text-center mb-2">Perfil y
+            ConfiguraciÃ³n</h1>
         </div>
-        <div class="flex flex-col sm:flex-row items-center gap-6 p-6">
-          <div class="relative">
-            <img id="profile-image" alt="Avatar de usuario" class="w-24 h-24 rounded-full object-cover border-4 border-[var(--accent-color)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOmeBwmbErJRD7-cByPRK2iiLOkHroqFzhwTpj7-F8UqSf1hDYuHjPutSA733VjZv5OZ1Rb_mhlEbvjb5MGLfDFweeIKqWIf1XH4Cgz8K1f63D7lFhKWIj59Dxr5sINNpeFll2GMoEKnGm8ka301UDecXDgXz7BOCVOXtamf-u2QYZ7KYUHCBTcJlRTHXYJfJqUh9TQIEx85HhXftSeZRCtuNpyL901hmOPZk_RVHon5764GPVcAmQStjzMpg5fcp7FPn2VTFrTZn4"/>
-            <button onclick="changeProfilePicture()" class="absolute -bottom-1 -right-1 bg-[var(--primary-color)] text-white rounded-full p-2 hover:bg-opacity-90 transition-all shadow-lg">
-              <span class="material-symbols-outlined text-sm">photo_camera</span>
+        <div class="flex flex-col gap-8">
+          <!-- SecciÃ³n de InformaciÃ³n Personal -->
+          <section class="bg-white rounded-xl shadow-md">
+            <div class="p-6 border-b border-gray-200">
+              <h3 class="text-xl font-bold text-[var(--text-primary)]">InformaciÃ³n Personal</h3>
+            </div>
+            <div class="flex flex-col sm:flex-row items-center gap-6 p-6">
+              <div class="relative">
+                <img id="profile-image" alt="Avatar de usuario"
+                  class="w-24 h-24 rounded-full object-cover border-4 border-[var(--accent-color)]"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOmeBwmbErJRD7-cByPRK2iiLOkHroqFzhwTpj7-F8UqSf1hDYuHjPutSA733VjZv5OZ1Rb_mhlEbvjb5MGLfDFweeIKqWIf1XH4Cgz8K1f63D7lFhKWIj59Dxr5sINNpeFll2GMoEKnGm8ka301UDecXDgXz7BOCVOXtamf-u2QYZ7KYUHCBTcJlRTHXYJfJqUh9TQIEx85HhXftSeZRCtuNpyL901hmOPZk_RVHon5764GPVcAmQStjzMpg5fcp7FPn2VTFrTZn4" />
+                <button onclick="changeProfilePicture()"
+                  class="absolute -bottom-1 -right-1 bg-[var(--primary-color)] text-white rounded-full p-2 hover:bg-opacity-90 transition-all shadow-lg">
+                  <span class="material-symbols-outlined text-sm">photo_camera</span>
+                </button>
+              </div>
+              <div class="flex-1 min-w-0 text-center sm:text-left">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                  <h2 id="profile-name" class="text-2xl font-bold text-[var(--text-primary)]">Carlos Rodriguez</h2>
+                  <button id="edit-name-btn" onclick="editName()"
+                    class="text-[var(--primary-color)] hover:text-opacity-80 transition-colors">
+                    <span class="material-symbols-outlined text-lg">edit</span>
+                  </button>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div class="flex items-center gap-2">
+                    <p id="profile-email" class="text-base text-gray-500">carlos.rodriguez@email.com</p>
+                    <span id="account-type-badge" class="hidden px-2 py-1 text-xs font-medium rounded-full"></span>
+                  </div>
+                  <button id="edit-email-btn" onclick="editEmail()"
+                    class="text-[var(--primary-color)] hover:text-opacity-80 transition-colors">
+                    <span class="material-symbols-outlined text-lg">edit</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="divide-y divide-gray-200">
+              <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer"
+                onclick="changePassword()">
+                <div>
+                  <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Cambiar contraseÃ±a</p>
+                  <p class="text-gray-500 text-sm font-normal leading-normal">Actualiza la seguridad de tu cuenta.</p>
+                </div>
+                <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- SecciÃ³n de ConfiguraciÃ³n de Estudio -->
+          <section class="bg-white rounded-xl shadow-md">
+            <div class="p-6 border-b border-gray-200">
+              <h3 class="text-xl font-bold text-[var(--text-primary)]">ConfiguraciÃ³n de Estudio</h3>
+              <p class="text-gray-500 text-sm mt-1">Personaliza tu experiencia de aprendizaje</p>
+            </div>
+            <div class="divide-y divide-gray-200">
+              <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer"
+                onclick="showStudyModeModal()">
+                <div>
+                  <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Modalidad de estudio</p>
+                  <p class="text-gray-500 text-sm font-normal leading-normal">Elige tu mÃ©todo de aprendizaje preferido.
+                  </p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span id="current-mode" class="text-[var(--primary-color)] font-medium">Intensivo</span>
+                  <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+                </div>
+              </div>
+              <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer"
+                onclick="showStudyRhythmModal()">
+                <div>
+                  <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Ritmo de estudio</p>
+                  <p class="text-gray-500 text-sm font-normal leading-normal">Ajusta la frecuencia de tus sesiones.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span id="current-rhythm" class="text-[var(--primary-color)] font-medium">Diario</span>
+                  <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+                </div>
+              </div>
+              <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer"
+                onclick="configureReminders()">
+                <div>
+                  <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Recordatorios</p>
+                  <p class="text-gray-500 text-sm font-normal leading-normal">Configura cuÃ¡ndo recibir notificaciones.
+                  </p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span id="reminder-status" class="text-green-600 font-medium">Activos</span>
+                  <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SecciÃ³n de Preferencias Generales -->
+          <section class="bg-white rounded-xl shadow-md">
+            <div class="p-6 border-b border-gray-200">
+              <h3 class="text-xl font-bold text-[var(--text-primary)]">Preferencias Generales</h3>
+            </div>
+            <div class="divide-y divide-gray-200">
+              <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer"
+                onclick="changeLanguage()">
+                <div>
+                  <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Idioma</p>
+                  <p class="text-gray-500 text-sm font-normal leading-normal">Selecciona tu idioma preferido.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <p class="text-gray-500">EspaÃ±ol</p>
+                  <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+                </div>
+              </div>
+              <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer"
+                onclick="manageNotifications()">
+                <div>
+                  <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Gestionar notificaciones
+                  </p>
+                  <p class="text-gray-500 text-sm font-normal leading-normal">Elige quÃ© notificaciones quieres recibir.
+                  </p>
+                </div>
+                <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+              </div>
+              <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer"
+                onclick="exportData()">
+                <div>
+                  <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Exportar datos</p>
+                  <p class="text-gray-500 text-sm font-normal leading-normal">Descarga tu progreso y configuraciones.
+                  </p>
+                </div>
+                <span class="material-symbols-outlined text-gray-400">chevron_right</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="flex justify-end px-2 py-4">
+            <button
+              class="flex min-w-[120px] items-center justify-center rounded-md h-11 px-6 bg-[var(--primary-color)] text-white text-base font-bold transition-colors hover:bg-opacity-90">
+              <span class="truncate"><a href="/index.html">Cerrar sesiÃ³n</a></span>
             </button>
           </div>
-          <div class="flex-1 min-w-0 text-center sm:text-left">
-            <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-              <h2 id="profile-name" class="text-2xl font-bold text-[var(--text-primary)]">Carlos Rodriguez</h2>
-              <button id="edit-name-btn" onclick="editName()" class="text-[var(--primary-color)] hover:text-opacity-80 transition-colors">
-                <span class="material-symbols-outlined text-lg">edit</span>
-              </button>
-            </div>
-            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-              <div class="flex items-center gap-2">
-                <p id="profile-email" class="text-base text-gray-500">carlos.rodriguez@email.com</p>
-                <span id="account-type-badge" class="hidden px-2 py-1 text-xs font-medium rounded-full"></span>
-              </div>
-              <button id="edit-email-btn" onclick="editEmail()" class="text-[var(--primary-color)] hover:text-opacity-80 transition-colors">
-                <span class="material-symbols-outlined text-lg">edit</span>
-              </button>
-            </div>
-          </div>
         </div>
-        <div class="divide-y divide-gray-200">
-          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="changePassword()">
-            <div>
-              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Cambiar contraseña</p>
-              <p class="text-gray-500 text-sm font-normal leading-normal">Actualiza la seguridad de tu cuenta.</p>
-            </div>
-            <span class="material-symbols-outlined text-gray-400">chevron_right</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sección de Configuración de Estudio -->
-      <section class="bg-white rounded-xl shadow-md">
-        <div class="p-6 border-b border-gray-200">
-          <h3 class="text-xl font-bold text-[var(--text-primary)]">Configuración de Estudio</h3>
-          <p class="text-gray-500 text-sm mt-1">Personaliza tu experiencia de aprendizaje</p>
-        </div>
-        <div class="divide-y divide-gray-200">
-          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="showStudyModeModal()">
-            <div>
-              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Modalidad de estudio</p>
-              <p class="text-gray-500 text-sm font-normal leading-normal">Elige tu método de aprendizaje preferido.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <span id="current-mode" class="text-[var(--primary-color)] font-medium">Intensivo</span>
-              <span class="material-symbols-outlined text-gray-400">chevron_right</span>
-            </div>
-          </div>
-          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="showStudyRhythmModal()">
-            <div>
-              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Ritmo de estudio</p>
-              <p class="text-gray-500 text-sm font-normal leading-normal">Ajusta la frecuencia de tus sesiones.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <span id="current-rhythm" class="text-[var(--primary-color)] font-medium">Diario</span>
-              <span class="material-symbols-outlined text-gray-400">chevron_right</span>
-            </div>
-          </div>
-          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="configureReminders()">
-            <div>
-              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Recordatorios</p>
-              <p class="text-gray-500 text-sm font-normal leading-normal">Configura cuándo recibir notificaciones.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <span id="reminder-status" class="text-green-600 font-medium">Activos</span>
-              <span class="material-symbols-outlined text-gray-400">chevron_right</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Sección de Preferencias Generales -->
-      <section class="bg-white rounded-xl shadow-md">
-        <div class="p-6 border-b border-gray-200">
-          <h3 class="text-xl font-bold text-[var(--text-primary)]">Preferencias Generales</h3>
-        </div>
-        <div class="divide-y divide-gray-200">
-          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="changeLanguage()">
-            <div>
-              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Idioma</p>
-              <p class="text-gray-500 text-sm font-normal leading-normal">Selecciona tu idioma preferido.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <p class="text-gray-500">Español</p>
-              <span class="material-symbols-outlined text-gray-400">chevron_right</span>
-            </div>
-          </div>
-          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="manageNotifications()">
-            <div>
-              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Gestionar notificaciones</p>
-              <p class="text-gray-500 text-sm font-normal leading-normal">Elige qué notificaciones quieres recibir.</p>
-            </div>
-            <span class="material-symbols-outlined text-gray-400">chevron_right</span>
-          </div>
-          <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer" onclick="exportData()">
-            <div>
-              <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Exportar datos</p>
-              <p class="text-gray-500 text-sm font-normal leading-normal">Descarga tu progreso y configuraciones.</p>
-            </div>
-            <span class="material-symbols-outlined text-gray-400">chevron_right</span>
-          </div>
-        </div>
-      </section>
-
-      <div class="flex justify-end px-2 py-4">
-        <button class="flex min-w-[120px] items-center justify-center rounded-md h-11 px-6 bg-[var(--primary-color)] text-white text-base font-bold transition-colors hover:bg-opacity-90">
-          <span class="truncate"><a href="/index.html">Cerrar sesión</a></span>
-        </button>
       </div>
-    </div>
-  </div>
-</main>
+    </main>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  // === FUNCIONES MODALES BACKEND MEJORADAS ===
-  window.showBackendModal = function(icon, title, description) {
-    showAdvancedModal(icon, title, description);
-  };
-  
-  // Modal avanzado con mejor UX
-  window.showAdvancedModal = function(icon, title, description) {
-    // Crear modal si no existe
-    let modal = document.getElementById('advanced-modal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'advanced-modal';
-      modal.className = 'notification-modal';
-      modal.innerHTML = `
+    <script>
+      // Funciones mÃ­nimas para modales y UI (las funciones de perfil estÃ¡n en mi-perfil-functions.js)
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('ðŸ“„ Mi Perfil cargado - funciones desde mi-perfil-functions.js');
+
+        // === MODAL GENÃ‰RICO ===
+        window.showAdvancedModal = function (icon, title, description) {
+          let modal = document.getElementById('advanced-modal');
+          if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'advanced-modal';
+            modal.className = 'notification-modal';
+            modal.innerHTML = `
         <div class="notification-modal-content">
           <div class="notification-icon-container">
-            <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">notifications</span>
+            <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">check_circle</span>
           </div>
-          <h3 id="modal-title">🔔 Notificaciones</h3>
-          <p id="modal-description">Sistema de notificaciones en tiempo real para repasos, recordatorios y actualizaciones de progreso. Requiere conexión con servidor. Por ahora puedes explorar la funcionalidad simulada. En la versión completa con backend, esto funcionará en tiempo real.</p>
-          <button onclick="closeAdvancedModal()" class="modal-button">
-            Aceptar
-          </button>
+          <h3 id="modal-title"></h3>
+          <p id="modal-description"></p>
+          <button onclick="closeAdvancedModal()" class="modal-button">Aceptar</button>
         </div>
       `;
-      document.body.appendChild(modal);
-      
-      // Cerrar con escape
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal.classList.contains('show')) {
-          closeAdvancedModal();
-        }
-      });
-      
-      // Cerrar clickeando fuera
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          closeAdvancedModal();
-        }
-      });
-    }
-    
-    // Actualizar contenido
-    const iconMap = {
-      'notifications': '🔔',
-      'settings': '⚙️',
-      'dashboard': '📊',
-      'analytics': '📈'
-    };
-    
-    document.getElementById('modal-icon').textContent = icon;
-    document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
-    document.getElementById('modal-description').textContent = description;
-    
-    // Mostrar modal con animación
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-  };
-  
-  window.closeAdvancedModal = function() {
-    const modal = document.getElementById('advanced-modal');
-    if (modal) {
-      modal.classList.remove('show');
-      document.body.style.overflow = '';
-    }
-  };
-  
-  // === FUNCIONES NAVEGACIÓN ===
-  window.logout = function() {
-    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-      localStorage.removeItem('recuiva_user');
-      window.location.href = '../auth/iniciar-sesion.html';
-    }
-  };
-
-  // === FUNCIONES PERFIL ===
-  window.changeProfilePicture = function() {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.onchange = function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const profileImg = document.getElementById('profile-image');
-          const navbarImg = document.querySelector('.w-8.h-8 img');
-          if (profileImg) profileImg.src = e.target.result;
-          if (navbarImg) navbarImg.src = e.target.result;
-          
-          // Guardar en localStorage para persistencia
-          localStorage.setItem('recuiva_profile_picture', e.target.result);
-          showSuccessMessage('Foto de perfil actualizada correctamente');
+            document.body.appendChild(modal);
+          }
+          document.getElementById('modal-icon').textContent = icon;
+          document.getElementById('modal-title').textContent = title;
+          document.getElementById('modal-description').textContent = description;
+          modal.classList.add('show');
         };
-        reader.readAsDataURL(file);
-      }
-    };
-    fileInput.click();
-  };
 
-  window.editName = function() {
-    const nameElement = document.getElementById('profile-name');
-    const currentName = nameElement.textContent;
-    showEditModal('Editar Nombre', 'Ingresa tu nuevo nombre:', currentName, (newName) => {
-      if (newName && newName.trim() !== '' && newName !== currentName) {
-        nameElement.textContent = newName;
-        // Actualizar también en el navbar si existe
-        const navbarName = document.querySelector('#profile-btn .hidden.md\\:block');
-        if (navbarName) navbarName.textContent = newName;
-        
-        // Guardar en localStorage
-        localStorage.setItem('recuiva_profile_name', newName);
-        showSuccessMessage('Nombre actualizado correctamente');
-      }
+        window.closeAdvancedModal = function () {
+          const modal = document.getElementById('advanced-modal');
+          if (modal) modal.classList.remove('show');
+        };
+
+        // Cerrar sesiÃ³n
+        window.logout = function () {
+          if (confirm('Â¿EstÃ¡s seguro de que quieres cerrar sesiÃ³n?')) {
+            if (window.supabaseClient) {
+              supabaseClient.auth.signOut();
+            }
+            localStorage.removeItem('recuiva_user');
+            localStorage.removeItem('recuiva_isAuthenticated');
+            window.location.href = '../auth/iniciar-sesion.html';
+          }
+        };
+      });
+    </script>
+
+    <!-- Footer Container - Managed by header-footer-components.js -->
+    <div id="footer-container"></div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      initializeHeaderFooter('perfil');
     });
-  };
+  </script>
+</body>
 
-  window.editEmail = function() {
-    const registrationType = localStorage.getItem('recuiva_registration_type');
-    const emailEditable = localStorage.getItem('recuiva_email_editable');
-    
-    if (registrationType === 'gmail' || emailEditable === 'false') {
-      // Mostrar mensaje de que no se puede editar
-      showErrorMessage('No puedes modificar el email de una cuenta enlazada con Gmail');
-      return;
-    }
-    
-    const emailElement = document.getElementById('profile-email');
-    const currentEmail = emailElement.textContent;
-    showEditModal('Editar Email', 'Ingresa tu nuevo email:', currentEmail, (newEmail) => {
-      if (newEmail && newEmail.trim() !== '' && newEmail !== currentEmail) {
-        // Validación básica de email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (emailRegex.test(newEmail)) {
-          emailElement.textContent = newEmail;
-          // Guardar en localStorage
-          localStorage.setItem('recuiva_profile_email', newEmail);
-          showSuccessMessage('Email actualizado correctamente');
-        } else {
-          showErrorMessage('Por favor ingresa un email válido');
-        }
-      }
-    });
-  };
-
-  window.changePassword = function() {
-    const registrationType = localStorage.getItem('recuiva_registration_type');
-    
-    if (registrationType === 'gmail') {
-      // Mostrar mensaje especial para cuentas de Gmail
-      showGmailPasswordModal();
-    } else {
-      // Mostrar modal normal para cuentas manuales
-      showPasswordModal();
-    }
-  };
-
-  function showGmailPasswordModal() {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    modal.innerHTML = `
-      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
-        <div class="text-center">
-          <span class="material-symbols-outlined text-4xl text-blue-600 mb-4">info</span>
-          <h3 class="text-lg font-semibold mb-4 text-gray-800">Cuenta enlazada con Gmail</h3>
-          <p class="text-gray-600 mb-6">Tu cuenta está enlazada con Gmail. Para cambiar la contraseña, debes hacerlo desde tu cuenta de Google.</p>
-          <div class="flex gap-3">
-            <button onclick="closeGmailPasswordModal()" class="flex-1 px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
-              Cerrar
-            </button>
-            <button onclick="openGoogleAccount()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-              Ir a Google
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    window.closeGmailPasswordModal = function() {
-      document.body.removeChild(modal);
-    };
-    
-    window.openGoogleAccount = function() {
-      window.open('https://myaccount.google.com/security', '_blank');
-      document.body.removeChild(modal);
-    };
-    
-    // Cerrar con Escape
-    modal.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeGmailPasswordModal();
-      }
-    });
-    
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        closeGmailPasswordModal();
-      }
-    });
-  }
-
-  window.changeStudyMode = function(mode) {
-    // Actualizar la visualización
-    document.getElementById('current-mode').textContent = mode;
-    
-    // Guardar en localStorage
-    localStorage.setItem('recuiva_study_mode', mode);
-    showSuccessMessage(`Modalidad de estudio cambiada a: ${mode}`);
-  };
-
-  window.changeStudyRhythm = function(rhythm) {
-    // Actualizar la visualización
-    document.getElementById('current-rhythm').textContent = rhythm;
-    
-    // Guardar en localStorage
-    localStorage.setItem('recuiva_study_rhythm', rhythm);
-    showSuccessMessage(`Ritmo de estudio cambiado a: ${rhythm}`);
-  };
-
-  // Nuevas funciones para mostrar modales de selección
-  window.showStudyModeModal = function() {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    modal.innerHTML = `
-      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800">Selecciona tu Modalidad de Estudio</h3>
-        <div class="space-y-3">
-          <button onclick="selectStudyMode('Intensivo')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-            <div class="font-medium text-gray-800">Intensivo</div>
-            <div class="text-sm text-gray-600">Sesiones largas y enfocadas</div>
-          </button>
-          <button onclick="selectStudyMode('Moderado')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-            <div class="font-medium text-gray-800">Moderado</div>
-            <div class="text-sm text-gray-600">Balance entre estudio y descanso</div>
-          </button>
-          <button onclick="selectStudyMode('Relajado')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-            <div class="font-medium text-gray-800">Relajado</div>
-            <div class="text-sm text-gray-600">Sesiones cortas y frecuentes</div>
-          </button>
-        </div>
-        <div class="flex justify-end gap-3 mt-6">
-          <button onclick="closeStudyModeModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
-            Cancelar
-          </button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    window.closeStudyModeModal = function() {
-      document.body.removeChild(modal);
-    };
-    
-    window.selectStudyMode = function(mode) {
-      changeStudyMode(mode);
-      document.body.removeChild(modal);
-    };
-    
-    // Cerrar con Escape
-    modal.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeStudyModeModal();
-      }
-    });
-    
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        closeStudyModeModal();
-      }
-    });
-  };
-
-  window.showStudyRhythmModal = function() {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    modal.innerHTML = `
-      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800">Selecciona tu Ritmo de Estudio</h3>
-        <div class="space-y-3">
-          <button onclick="selectStudyRhythm('Diario')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-            <div class="font-medium text-gray-800">Diario</div>
-            <div class="text-sm text-gray-600">Estudia todos los días</div>
-          </button>
-          <button onclick="selectStudyRhythm('Semanal')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-            <div class="font-medium text-gray-800">Semanal</div>
-            <div class="text-sm text-gray-600">Varias sesiones por semana</div>
-          </button>
-          <button onclick="selectStudyRhythm('Personalizado')" class="w-full text-left p-3 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-            <div class="font-medium text-gray-800">Personalizado</div>
-            <div class="text-sm text-gray-600">Define tu propio horario</div>
-          </button>
-        </div>
-        <div class="flex justify-end gap-3 mt-6">
-          <button onclick="closeStudyRhythmModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
-            Cancelar
-          </button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    window.closeStudyRhythmModal = function() {
-      document.body.removeChild(modal);
-    };
-    
-    window.selectStudyRhythm = function(rhythm) {
-      changeStudyRhythm(rhythm);
-      document.body.removeChild(modal);
-    };
-    
-    // Cerrar con Escape
-    modal.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeStudyRhythmModal();
-      }
-    });
-    
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        closeStudyRhythmModal();
-      }
-    });
-  };
-
-  window.toggleNotifications = function() {
-    const toggle = event.target;
-    const isEnabled = toggle.checked;
-    // Guardar en localStorage
-    localStorage.setItem('recuiva_notifications', isEnabled);
-    showSuccessMessage(`Notificaciones ${isEnabled ? 'activadas' : 'desactivadas'}`);
-  };
-
-  window.toggleDarkMode = function() {
-    const toggle = event.target;
-    const isEnabled = toggle.checked;
-    if (isEnabled) {
-      document.body.classList.add('dark');
-    } else {
-      document.body.classList.remove('dark');
-    }
-    // Guardar en localStorage
-    localStorage.setItem('recuiva_dark_mode', isEnabled);
-    showSuccessMessage(`Modo oscuro ${isEnabled ? 'activado' : 'desactivado'}`);
-  };
-
-  window.changeLanguage = function() {
-    const select = event.target;
-    const language = select.value;
-    // Guardar en localStorage
-    localStorage.setItem('recuiva_language', language);
-    showSuccessMessage(`Idioma cambiado a: ${language === 'es' ? 'Español' : 'English'}`);
-  };
-
-  // Función para configurar recordatorios
-  window.configureReminders = function() {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    modal.innerHTML = `
-      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800">Configurar Recordatorios</h3>
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <span class="text-gray-700">Recordatorios de estudio</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="study-reminders" class="sr-only peer" checked>
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-gray-700">Recordatorios de repasos</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="review-reminders" class="sr-only peer" checked>
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-gray-700">Recordatorios de progreso</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="progress-reminders" class="sr-only peer">
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
-        </div>
-        <div class="flex justify-end gap-3 mt-6">
-          <button onclick="closeRemindersModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
-            Cancelar
-          </button>
-          <button onclick="saveRemindersConfig()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-            Guardar
-          </button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    window.closeRemindersModal = function() {
-      document.body.removeChild(modal);
-    };
-    
-    window.saveRemindersConfig = function() {
-      const studyReminders = document.getElementById('study-reminders').checked;
-      const reviewReminders = document.getElementById('review-reminders').checked;
-      const progressReminders = document.getElementById('progress-reminders').checked;
-      
-      // Guardar configuración
-      localStorage.setItem('recuiva_study_reminders', studyReminders);
-      localStorage.setItem('recuiva_review_reminders', reviewReminders);
-      localStorage.setItem('recuiva_progress_reminders', progressReminders);
-      
-      // Actualizar estado visual
-      const activeCount = [studyReminders, reviewReminders, progressReminders].filter(Boolean).length;
-      const statusElement = document.getElementById('reminder-status');
-      if (statusElement) {
-        if (activeCount === 0) {
-          statusElement.textContent = 'Inactivos';
-          statusElement.className = 'text-red-600 font-medium';
-        } else if (activeCount === 3) {
-          statusElement.textContent = 'Todos activos';
-          statusElement.className = 'text-green-600 font-medium';
-        } else {
-          statusElement.textContent = `${activeCount} activos`;
-          statusElement.className = 'text-yellow-600 font-medium';
-        }
-      }
-      
-      showSuccessMessage('Configuración de recordatorios guardada');
-      document.body.removeChild(modal);
-    };
-    
-    // Cargar configuración actual
-    setTimeout(() => {
-      const studyReminders = localStorage.getItem('recuiva_study_reminders');
-      const reviewReminders = localStorage.getItem('recuiva_review_reminders');
-      const progressReminders = localStorage.getItem('recuiva_progress_reminders');
-      
-      if (studyReminders !== null) document.getElementById('study-reminders').checked = studyReminders === 'true';
-      if (reviewReminders !== null) document.getElementById('review-reminders').checked = reviewReminders === 'true';
-      if (progressReminders !== null) document.getElementById('progress-reminders').checked = progressReminders === 'true';
-    }, 100);
-    
-    // Cerrar con Escape
-    modal.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeRemindersModal();
-      }
-    });
-    
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        closeRemindersModal();
-      }
-    });
-  };
-
-  // === FUNCIONES UTILIDADES ===
-  function showSuccessMessage(message) {
-    // Crear un toast de éxito
-    const toast = document.createElement('div');
-    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 300);
-    }, 3000);
-  }
-
-  function showErrorMessage(message) {
-    // Crear un toast de error
-    const toast = document.createElement('div');
-    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 300);
-    }, 3000);
-  }
-
-  // Modal elegante para edición
-  function showEditModal(title, placeholder, currentValue, callback) {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    modal.innerHTML = `
-      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800">${title}</h3>
-        <input type="text" id="edit-input" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-               placeholder="${placeholder}" value="${currentValue}">
-        <div class="flex justify-end gap-3 mt-6">
-          <button onclick="closeEditModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
-            Cancelar
-          </button>
-          <button onclick="confirmEdit()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-            Guardar
-          </button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Función para cerrar el modal
-    window.closeEditModal = function() {
-      document.body.removeChild(modal);
-    };
-    
-    // Función para confirmar la edición
-    window.confirmEdit = function() {
-      const newValue = document.getElementById('edit-input').value;
-      callback(newValue);
-      document.body.removeChild(modal);
-    };
-    
-    // Cerrar con Escape
-    modal.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closeEditModal();
-      }
-    });
-    
-    // Cerrar al hacer clic fuera
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        closeEditModal();
-      }
-    });
-    
-    // Focus en el input
-    setTimeout(() => {
-      document.getElementById('edit-input').focus();
-      document.getElementById('edit-input').select();
-    }, 100);
-  }
-
-  // Modal para cambio de contraseña
-  function showPasswordModal() {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    modal.innerHTML = `
-      <div class="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
-        <h3 class="text-lg font-semibold mb-4 text-gray-800">Cambiar Contraseña</h3>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña actual</label>
-            <input type="password" id="current-password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
-            <input type="password" id="new-password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Confirmar nueva contraseña</label>
-            <input type="password" id="confirm-password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          </div>
-        </div>
-        <div class="flex justify-end gap-3 mt-6">
-          <button onclick="closePasswordModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
-            Cancelar
-          </button>
-          <button onclick="confirmPasswordChange()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-            Cambiar Contraseña
-          </button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Función para cerrar el modal
-    window.closePasswordModal = function() {
-      document.body.removeChild(modal);
-    };
-    
-    // Función para confirmar el cambio de contraseña
-    window.confirmPasswordChange = function() {
-      const currentPassword = document.getElementById('current-password').value;
-      const newPassword = document.getElementById('new-password').value;
-      const confirmPassword = document.getElementById('confirm-password').value;
-      
-      if (!currentPassword) {
-        showErrorMessage('Ingresa tu contraseña actual');
-        return;
-      }
-      
-      if (newPassword.length < 6) {
-        showErrorMessage('La nueva contraseña debe tener al menos 6 caracteres');
-        return;
-      }
-      
-      if (newPassword !== confirmPassword) {
-        showErrorMessage('Las contraseñas no coinciden');
-        return;
-      }
-      
-      // Guardar en localStorage (simulando backend)
-      localStorage.setItem('recuiva_password_changed', new Date().toISOString());
-      showSuccessMessage('Contraseña actualizada correctamente');
-      document.body.removeChild(modal);
-    };
-    
-    // Cerrar con Escape
-    modal.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        closePasswordModal();
-      }
-    });
-    
-    // Cerrar al hacer clic fuera
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        closePasswordModal();
-      }
-    });
-    
-    // Focus en el primer input
-    setTimeout(() => {
-      document.getElementById('current-password').focus();
-    }, 100);
-  }
-
-  // Cargar datos guardados al iniciar
-  function loadSavedData() {
-    // Detectar tipo de registro y configurar interfaz
-    const registrationType = localStorage.getItem('recuiva_registration_type');
-    const emailEditable = localStorage.getItem('recuiva_email_editable');
-    
-    // Configurar badge del tipo de cuenta
-    const badge = document.getElementById('account-type-badge');
-    const editEmailBtn = document.getElementById('edit-email-btn');
-    
-    if (registrationType === 'gmail' || emailEditable === 'false') {
-      if (badge) {
-        badge.textContent = 'Gmail';
-        badge.className = 'px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800';
-        badge.classList.remove('hidden');
-      }
-      // Deshabilitar visualmente el botón de editar email
-      if (editEmailBtn) {
-        editEmailBtn.style.opacity = '0.4';
-        editEmailBtn.style.cursor = 'not-allowed';
-        editEmailBtn.title = 'No puedes modificar el email de una cuenta Gmail';
-      }
-    } else if (registrationType === 'manual') {
-      if (badge) {
-        badge.textContent = 'Manual';
-        badge.className = 'px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800';
-        badge.classList.remove('hidden');
-      }
-    }
-    
-    // Cargar foto de perfil
-    const savedPicture = localStorage.getItem('recuiva_profile_picture');
-    if (savedPicture) {
-      const profileImg = document.getElementById('profile-image');
-      const navbarImg = document.querySelector('.w-8.h-8 img');
-      if (profileImg) profileImg.src = savedPicture;
-      if (navbarImg) navbarImg.src = savedPicture;
-    }
-    
-    // Cargar nombre
-    const savedName = localStorage.getItem('recuiva_profile_name');
-    if (savedName) {
-      const nameElement = document.getElementById('profile-name');
-      const navbarName = document.querySelector('#profile-btn .hidden.md\\:block');
-      if (nameElement) nameElement.textContent = savedName;
-      if (navbarName) navbarName.textContent = savedName;
-    }
-    
-    // Cargar email
-    const savedEmail = localStorage.getItem('recuiva_profile_email');
-    if (savedEmail) {
-      const emailElement = document.getElementById('profile-email');
-      if (emailElement) emailElement.textContent = savedEmail;
-    }
-    
-    // Cargar modo de estudio
-    const savedStudyMode = localStorage.getItem('recuiva_study_mode');
-    if (savedStudyMode) {
-      const currentModeElement = document.getElementById('current-mode');
-      if (currentModeElement) currentModeElement.textContent = savedStudyMode;
-    }
-    
-    // Cargar ritmo de estudio
-    const savedStudyRhythm = localStorage.getItem('recuiva_study_rhythm');
-    if (savedStudyRhythm) {
-      const currentRhythmElement = document.getElementById('current-rhythm');
-      if (currentRhythmElement) currentRhythmElement.textContent = savedStudyRhythm;
-    }
-    
-    // Cargar configuraciones de toggles
-    const savedNotifications = localStorage.getItem('recuiva_notifications');
-    if (savedNotifications !== null) {
-      const notificationsToggle = document.querySelector('input[onchange*="toggleNotifications"]');
-      if (notificationsToggle) notificationsToggle.checked = savedNotifications === 'true';
-    }
-    
-    const savedDarkMode = localStorage.getItem('recuiva_dark_mode');
-    if (savedDarkMode !== null) {
-      const darkModeToggle = document.querySelector('input[onchange*="toggleDarkMode"]');
-      if (darkModeToggle) {
-        darkModeToggle.checked = savedDarkMode === 'true';
-        if (savedDarkMode === 'true') {
-          document.body.classList.add('dark');
-        }
-      }
-    }
-    
-    const savedLanguage = localStorage.getItem('recuiva_language');
-    if (savedLanguage) {
-      const languageSelect = document.querySelector('select[onchange*="changeLanguage"]');
-      if (languageSelect) languageSelect.value = savedLanguage;
-    }
-
-    // Cargar configuración de recordatorios
-    const studyReminders = localStorage.getItem('recuiva_study_reminders');
-    const reviewReminders = localStorage.getItem('recuiva_review_reminders');
-    const progressReminders = localStorage.getItem('recuiva_progress_reminders');
-    
-    if (studyReminders !== null || reviewReminders !== null || progressReminders !== null) {
-      const activeCount = [
-        studyReminders === 'true',
-        reviewReminders === 'true',
-        progressReminders === 'true'
-      ].filter(Boolean).length;
-      
-      const statusElement = document.getElementById('reminder-status');
-      if (statusElement) {
-        if (activeCount === 0) {
-          statusElement.textContent = 'Inactivos';
-          statusElement.className = 'text-red-600 font-medium';
-        } else if (activeCount === 3) {
-          statusElement.textContent = 'Todos activos';
-          statusElement.className = 'text-green-600 font-medium';
-        } else {
-          statusElement.textContent = `${activeCount} activos`;
-          statusElement.className = 'text-yellow-600 font-medium';
-        }
-      }
-    }
-  }
-
-  // Menú móvil animación landing-page
-  const menuBtn = document.getElementById('menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
-  const menuIcon = menuBtn.querySelector('.material-symbols-outlined');
-  let isMenuOpen = false;
-
-  function toggleMenu() {
-    isMenuOpen = !isMenuOpen;
-    mobileMenu.classList.toggle('active');
-    document.body.classList.toggle('overflow-hidden');
-    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
-    if (isMenuOpen) {
-      menuIcon.style.transform = 'rotate(90deg)';
-      menuIcon.style.opacity = '0';
-      setTimeout(() => {
-        menuIcon.textContent = 'close';
-        menuIcon.style.transform = 'rotate(0deg)';
-        menuIcon.style.opacity = '1';
-      }, 150);
-    } else {
-      menuIcon.style.transform = 'rotate(90deg)';
-      menuIcon.style.opacity = '0';
-      setTimeout(() => {
-        menuIcon.textContent = 'menu';
-        menuIcon.style.transform = 'rotate(0deg)';
-        menuIcon.style.opacity = '1';
-      }, 150);
-    }
-  }
-
-  menuBtn.addEventListener('click', toggleMenu);
-  // Cerrar menú cuando se hace clic en un enlace
-  const menuLinks = mobileMenu.querySelectorAll('a');
-  menuLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      if (isMenuOpen) {
-        toggleMenu();
-      }
-    });
-  });
-
-  // Menú de perfil
-  const profileBtn = document.getElementById('profile-btn');
-  const profileDropdown = document.getElementById('profile-dropdown');
-  function toggleProfileMenu(e) {
-    e.stopPropagation();
-    profileDropdown.classList.toggle('active');
-  }
-  if (profileBtn && profileDropdown) {
-    profileBtn.addEventListener('click', toggleProfileMenu);
-    document.addEventListener('click', (e) => {
-      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
-        profileDropdown.classList.remove('active');
-      }
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        profileDropdown.classList.remove('active');
-      }
-    });
-  }
-
-  // Cargar datos guardados al inicializar la página
-  loadSavedData();
-});
-</script>
-
-<!-- Footer Container - Managed by header-footer-components.js -->
-<div id="footer-container"></div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  initializeHeaderFooter('perfil');
-});
-</script>
-</body></html>
+</html>
