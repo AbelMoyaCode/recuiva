@@ -1,0 +1,950 @@
+﻿**Anexo 9: Documento de Pruebas de Caja Negra Descripción del Caso de Prueba:** 
+
+**Tipo de prueba a realizar:** 
+
+**Pruebas de Caja Negra** 
+
+**Descripción:** 
+
+Se  debe  anotar  lo  que  se  probará  (funcionalidad),  se  deben  describir  lo 
+
+siguiente: 
+
+- Todo lo que está fuera de los módulos. 
+- Interfaces 
+- Respuesta a las entradas 
+- Integridad de archivos 
+- Evaluar diferentes escenarios  
+- Respuestas de la aplicación 
+- Secuencia de mensajes 
+
+**Escenario 1:**  
+
+**Datos de Entrada:** 
+
+Registro de nuevo usuario en la aplicación inHealth **Entorno:** 
+
+Para el registro de un nuevo usuario, se tiene un módulo de registro, en este módulo, se contempló los labels que almacenarán el ingreso para el nombre, apellido, email, y contraseña del paciente. 
+
+**Parámetros:** 
+
+- Label Nombre 
+- Label Apellido 
+- Label Email 
+- Label Contraseña 
+
+**Respuesta de otros módulos:** 
+
+Se llama al módulo de registro del usuario **Condiciones iniciales:** 
+
+1. Se puso nulo en los labels de nombre y apellido 
+1. Se puso caracteres numéricos labels de nombre y apellido 
+1. Se puso nulo el label de email 
+1. Se puso nulo el label de contraseña 
+1. Se  puso  con 2  caracteres  alfanuméricos  en  el  label  de  contraseña, ningún carácter especial 
+1. Se puso 5 caracteres alfanuméricos en el label de contraseña, ningún carácter especial, sin letras mayúsculas 
+1. Se puso 5 caracteres alfanuméricos en el label de contraseña, 1 carácter especial, sin letra mayúscula 
+1. Se puso 5 caracteres alfanuméricos en el label de contraseña, 1 carácter especial, con letra mayúscula  
+1. Se puso caracteres alfanuméricos numérico en el label de email 
+1. Se puso 5 caracteres alfanuméricos en el label de email con @ y. dominio 
+
+**Datos de Salida: Resultados entregados:** 
+
+` `Para los **2 primeros casos**, la aplicación **permite** el ingreso del dato y **no muestra** un mensaje de error. 
+
+Siguiendo, con la entrada número 3,4 y 5, la aplicación **no permite** el ingreso del dato y **muestra** un mensaje de error. 
+
+Para finalizar, con la entrada 6, 8 y 10 la aplicación **permite** el ingreso de datos y para la opción 7 y 9 la aplicación **no permite** el ingreso del dato y **muestra** un mensaje de error.  
+
+**Estado final de las variables:** 
+
+` `Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de Registro del Paciente (datos erróneos) 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.001.png)
+
+Fuente: inHealth 
+
+**Requisitos de configuración para hacer la prueba: Método de Prueba:** 
+
+` `Se usó la partición de equivalencia para la realización de esta primera prueba, donde se insertó diferentes tipos de caracteres en diferentes situaciones,  se  contempló  las  diferentes  respuestas  de  la  aplicación móvil. 
+
+**Módulos:** 
+
+Para esta prueba se usó el módulo Útil, donde se guarda las validaciones respectivas, la  clase servicio Firebase, para las autenticaciones y el controlador de la vista de registro, respectivamente. 
+
+**Hardware y Software:** 
+
+` `Para la realización de la prueba, se usó un celular iPhone con conexión a internet. 
+
+iOS mínimo requerido por la aplicación: iOS 12. 
+
+iPhone  mínimo  requerido  por  la  aplicación:  desde  el  iPhone  5s  en adelante. 
+
+**Procedimientos o herramientas necesarios:** 
+
+Para la ejecución de esta prueba, se requirió ir al módulo de registro de nuevo usuario  en  la  aplicación,  donde  se  insertó  caracteres  alfanuméricos  y/o caracteres especiales, dependiendo de la situación, se vio la respuesta de la aplicación, viendo si la aplicación responde en determinados casos o si hay contingencia de errores. 
+
+**Dependencias o relación con otros casos de prueba:** 
+
+Se debe situar en la sección de registro de nuevo usuario 
+
+Se debe presionar el botón de registro cumplido el llenado respectivo de los 
+
+labels 
+
+Dependiendo de la correcta llena de datos, se registrará un nuevo usuario o 
+
+no. 
+
+**Escenario 2:**  
+
+**Datos de Entrada:** 
+
+Inicio de sesión de un usuario en la aplicación inHealth **Entorno:** 
+
+Para el inicio de sesión de un usuario, se tiene un módulo de inicio de sesión, en este módulo, se contempló los labels que recibirán como parámetro el email, y contraseña del paciente. 
+
+**Parámetros:** 
+
+- Label Email 
+- Label Contraseña 
+
+**Respuesta de otros módulos:** 
+
+Se llama al módulo de inicio de sesión del usuario 
+
+**Condiciones iniciales:** 
+
+1. Se puso nulo en los labels de email y contraseña 
+1. Se puso caracteres numéricos labels de mail y contraseña 
+1. Se puso con 2 caracteres alfanuméricos en el label de contraseña, ningún carácter especial 
+1. Se puso 5 caracteres alfanuméricos en el label de contraseña, ningún carácter especial, sin letras mayúsculas 
+1. Se puso 5 caracteres alfanuméricos en el label de contraseña, 1 carácter especial, sin letra mayúscula 
+1. Se puso 5 caracteres alfanuméricos en el label de contraseña, 1 carácter especial, con letra mayúscula  
+1. Se puso caracteres alfanuméricos numérico en el label de email 
+1. Se puso 5 caracteres alfanuméricos en el label de email con @ y. dominio 
+
+**Datos de Salida: Resultados entregados:** 
+
+Para los **2 primeros casos**, la aplicación **no permite** el ingreso del dato y **muestra** un mensaje de error. 
+
+Siguiendo, con la entrada número 3, 4, 5 y 7, la aplicación **no permite** el ingreso del dato y **muestra** un mensaje de error. 
+
+Para finalizar, con la entrada 6 y 8 la aplicación **permite** el ingreso de datos. 
+
+**Estado final de las variables:** 
+
+` `Se adjunta screens de las pruebas: 
+
+Ilustración: Mensaje de error en Inicio de Sesión del paciente 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.002.jpeg)
+
+Fuente: inHealth **Requisitos de configuración para hacer la prueba: Método de Prueba:** 
+
+` `Se usó la partición de equivalencia para la realización de esta prueba, donde se insertó diferentes tipos de caracteres en diferentes situaciones, se contempló las diferentes respuestas de la aplicación móvil, en  la sección de inicio de sesión. 
+
+**Módulos:** 
+
+Para esta prueba se usó el módulo Útil, donde se guarda las validaciones respectivas, la  clase servicio Firebase, para las autenticaciones y el controlador de la vista de inicio de sesión, respectivamente. 
+
+**Hardware y Software:** 
+
+` `Para la realización de la prueba, se usó un celular iPhone con conexión a internet. 
+
+iOS mínimo requerido por la aplicación: iOS 12. 
+
+iPhone  mínimo  requerido  por  la  aplicación:  desde  el  iPhone  5s  en adelante. 
+
+**Procedimientos o herramientas necesarios:** 
+
+Para la ejecución de esta prueba, se requirió ir al módulo de inicio de sesión del usuario en la aplicación, donde se insertó caracteres alfanuméricos y/o caracteres especiales, dependiendo de la situación, se vio la respuesta de la aplicación, viendo si la aplicación responde en determinados casos o si hay contingencia de errores. 
+
+**Dependencias o relación con otros casos de prueba:** 
+
+Se debe situar en la vista inicial, la de inicio de sesión del usuario 
+
+Se debe presionar el botón de iniciar sesión cumplido el llenado respectivo de 
+
+los labels 
+
+Dependiendo de la correcta llena de datos, iniciará sesión el usuario o no. 
+
+**Escenario 3:**  
+
+**Datos de Entrada:** 
+
+Aceptación o no de permisos requeridos para acceder a los datos de salud en la aplicación inHealth. 
+
+**Entorno:** 
+
+Para la aceptación de permisos de lectura de los datos de salud del usuario, se tiene un módulo que permita realizar la acción de lectura, accediendo así al HKStore (Base de datos de apple, donde se guardan los datos de salud recolectados por iOS). 
+
+**Parámetros:** 
+
+- Switch de aceptación de permisos de lectura y escritura de datos de salud 
+
+**Respuesta de otros módulos:** 
+
+Se llama al módulo encargado de presentar el modal que permitirá que el usuario pueda decidir si comparte sus datos de salud con la aplicación o no. 
+
+**Condiciones iniciales:** 
+
+1. Se desactivo el switch de permisos de lectura y escritura, para los datos de salud del usuario 
+1. Se activó el switch de permisos de lectura y escritura, para los datos de salud del usuario 
+
+**Datos de Salida: Resultados entregados:** 
+
+Para el **primer caso**, se **activó** el switch de permisos, por lo que se fue directo a la vista de perfil, con los **datos llenados** y solicitados 
+
+Para el **segundo caso**, se **desactiva** el switch de permisos de lectura y escritura de datos de salud, por lo que, al momento de ir a la vista principal de perfil, **no se mostraron** datos. 
+
+**Estado final de las variables:** 
+
+Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de permiso a datos para la aplicación inHealth 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.003.jpeg)
+
+Fuente: inHealth **Requisitos de configuración para hacer la prueba: Método de Prueba:** 
+
+` `Se usó la técnica de decisiones, donde se partió de dos opciones, una verdadera y otra falsa, donde se aceptó y no se aceptó los permisos de datos de la aplicación, si se aceptó, entonces se prosigue con la ventana principal  del  perfil  con  los  datos  solicitados,  pero  si  no  se  acepta, entonces se prosigue a la misma ventana, del perfil, pero sin datos. 
+
+**Módulos:** 
+
+Para esta prueba se usó la clase servicio de healthKit, con los métodos expuestos en la documentación de Apple, y a este método de esa clase lo llamamos ni bien iniciemos sesión en la aplicación, en el controlador del perfil del usuario 
+
+**Hardware y Software:** 
+
+` `Para la realización de la prueba, se usó un celular iPhone con conexión a internet. 
+
+iOS mínimo requerido por la aplicación: iOS 12. 
+
+iPhone  mínimo  requerido  por  la  aplicación:  desde  el  iPhone  5s  en adelante. 
+
+**Procedimientos o herramientas necesarios:** 
+
+Para la ejecución de esta prueba, se requirió que el usuario inicie sesión, para eso se lleva directamente al módulo de permisos de lectura y escritura de la aplicación, para el correcto y normal uso, se requiere que se acepte esos permisos. 
+
+**Dependencias o relación con otros casos de prueba:** 
+
+Se debe de iniciar sesión antes de seguir a la siguiente vista. 
+
+Se debe aceptar o no los permisos y presionar el botón Aceptar o Confirmar en la parte superior derecha. 
+
+Dependiendo de la respuesta, seguirá el flujo, con los datos o sin datos, dependiendo de lo aceptado o no anteriormente. 
+
+**Escenario 4:**  
+
+**Datos de Entrada:** 
+
+Vista detalle de un dato médico **Entorno:** 
+
+Para visualizar el detalle de un dato médico, se requiere que el paciente previamente haya aceptado los permisos de lectura del healthKit, para poder así tener las interpretaciones necesarias y generar los gráficos requeridos. 
+
+**Parámetros:** 
+
+- Datos  recogidos  dependiendo  de  la  vista  solicitada  (Calorías, Peso, Ritmo Cardiaco, Horas de Sueño o Comidas Consumidas) 
+
+**Respuesta de otros módulos:** 
+
+Se llama al módulo de Detalle de dato médico, dependiendo del dato, se observa una gráfica, con una interpretación de datos, últimas noticias, información general, riesgos y consecuencias. 
+
+**Condiciones iniciales:** 
+
+1. Se optó por no aceptar los permisos 
+1. Se optó por aceptar permisos y no tener datos 
+1. Se optó por aceptar los permisos y tener datos 
+
+**Datos de Salida: Resultados entregados:** 
+
+Dependiendo  del  escenario,  para  el  **primer  escenario**,  cuando  se ingresó al detalle del dato, en este caso Peso, se observó q**ue no hay datos ni gráfica**, pero **no manda** ningún mensaje de error o alerta diciendo que no hay datos. 
+
+Para el **segundo escenario**, se observó que al ingresar al módulo del detalle de Comidas Consumidas **no se muestran** datos y la aplicación **no  manda  un  mensaje**  o  alerta  notificando  que  no  aceptamos  los permisos. 
+
+Para el **tercer escenario**, se observó, al ingresar al módulo Calorías Quemadas, **se pudo ver** la correcta llena de datos, con la **generación** del gráfico y la **interpretación** necesaria. 
+
+**Estado final de las variables:** 
+
+` `Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de detalle de cada dato médico 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.004.png)![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.005.png)
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.006.png)
+
+Fuente: inHealth 
+
+**Requisitos de configuración para hacer la prueba: Método de Prueba:** 
+
+Se usó la técnica de decisiones, para determinar por dos caminos, si es que la aplicación encuentra los datos recolectados previamente o no, dependiendo  de  eso se  determinó  cuando  no  hay  datos, no  manda alertas simplemente muestra campos nulos o vacíos, sin ninguna alerta, en cambio cuando se cuenta con los permisos necesarios, se ve los gráficos y datos generados. 
+
+**Módulos:** 
+
+Para  esta  prueba  se  usó  el  módulo  healthKitService,  de  healthKit generado  por  la  clase  servicio  en  el  proyecto,  además  se  usó  los controladores de las vistas necesarias y además de la base de datos firebase para poder hacer el volcado de datos. 
+
+**Hardware y Software:** 
+
+` `Para la realización de la prueba, se usó un celular iPhone con conexión a internet. 
+
+iOS mínimo requerido por la aplicación: iOS 12. 
+
+iPhone  mínimo  requerido  por  la  aplicación:  desde  el  iPhone  5s  en adelante. 
+
+**Procedimientos o herramientas necesarios:** 
+
+Para  la  ejecución  de  esta  prueba,  se  requirió  ir  al  módulo  de detalle de cualquier dato médico (Calorías, Peso, Ritmo Cardiaco, Horas de Sueño o Comidas Consumidas), expuesto en el perfil del paciente, luego se pudo observar las consecuencias, dependiendo de los casos expuestos. 
+
+**Dependencias o relación con otros casos de prueba:** 
+
+Se necesita dar permisos de lectura y escritura a la aplicación inHealth. 
+
+Se debe presionar en el módulo de algún dato dependiendo cual sea el caso. Dependiendo  de  la  aceptación  de  los  permisos,  se  podrá  ver  la  gráfica generada y la interpretación de datos médicos requeridos. 
+
+**Escenario 5:**  
+
+**Datos de Entrada:** 
+
+Vista de escaneo de un código QR para agregar un médico **Entorno:** 
+
+Para que el paciente pueda escanear el código QR de un médico, se requiere que tenga el código QR del médico para poder escanearlo y así el médico seleccionado pueda vincularse con el paciente, ser relacionado con el paciente en concreto dentro de la base de datos en Firebase y mostrarse en la vista de médicos. 
+
+**Parámetros:** 
+
+- Código QR que contiene información del médico a agregar. 
+
+**Respuesta de otros módulos:** 
+
+Se  llama  al  módulo  de  escaneo  QR  desde  el  módulo  del  perfil  de paciente,  en  donde  haciendo  clic  al  ícono  de  código  QR,  se  abre automáticamente la cámara del celular y podrá escanear el código del médico. 
+
+**Condiciones iniciales:** 
+
+1. La aplicación inHealth no tiene permisos para acceder a la cámara del celular. 
+1. No se cuenta con el código QR del médico. 
+1. No se agrega el médico habiendo escaneado el código. 
+1. La cámara del celular no abre o no funciona. 
+
+**Datos de Salida: Resultados entregados:** 
+
+- En el caso de la condición 1, la aplicación pide los permisos necesarios acceder a la cámara, si es que no se concede entonces se cierra el módulo. 
+- Dentro  de  la  segunda  condición  de  prueba,  la  cámara  se  inicia, mostrando el código QR erróneo sin desaparecer o mandar algún tipo de alerta diciendo que ese código QR es un código incorrecto. 
+- Siguiendo con el tercer escenario, al momento de aceptar el código QR y supuestamente agregar al nuevo médico, no se mostró en la vista mis médicos, ese error se explicará mejor en el Escenario X 
+- Por último, la posible condición, simplemente no se muestra la vista de cámara  para  capturar  el  código  QR,  no  muestra  alertas  o  alguna notificación diciendo que ocurre un problema con la cámara. 
+
+**Estado final de las variables:** 
+
+Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de cámara y código QR para la aplicación inHealth 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.007.png)
+
+Fuente: inHealth **Requisitos de configuración para hacer la prueba: Método de Prueba:** 
+
+Se usó la técnica de decisiones, para determinar si él se puede leer el código QR o no, además si se tiene permiso a la cámara o no, en casos que sí se puede leer, automáticamente se desaparece el modal de la cámara, pero no muestra algún mensaje de confirmación que se agregó a un médico nuevo, por el contrario si el código es un código no válido, simplemente se muestra en el modal de la cámara, no muestra alguna alerta diciendo que el código no es un código válido, además, si no se tiene acceso a la cámara, simplemente no se accede al módulo de la cámara, finalizando si se tiene acceso a la cámara entonces se puede seguir con el flujo de agregar a un nuevo médico. 
+
+**Módulos:** 
+
+Para  esta  prueba  se  usó  los  métodos  de  AVFoundation  para  la inicialización de la cámara, luego con el controlador de la clase QR, se puede determinar el contenido del QR que es el id del médico, por último, se usa los servicios de Firebase para poder obtener el id del médico y contrastar con el del QR dependiendo de eso se puede asociar el médico con el paciente. 
+
+**Hardware y Software:** 
+
+` `Para la realización de la prueba, se usó un celular iPhone con conexión a internet. 
+
+iOS mínimo requerido por la aplicación: iOS 12. 
+
+iPhone  mínimo  requerido  por  la  aplicación:  desde  el  iPhone  5s  en adelante. 
+
+**Procedimientos o herramientas necesarios:** 
+
+Para la ejecución de esta prueba, se requirió ir al módulo perfil del paciente, donde pulsando el botón superior izquierdo, mostramos un modal donde nos permite ver nuestro código QR o poder escanear un Código QR de un médico que deseamos agregar, para ello pulsamos en escanear QR y así poder ver hacer las pruebas respectivas 
+
+**Dependencias o relación con otros casos de prueba:** 
+
+Se necesita tener el Código QR de un médico registrado en la aplicación inHealth Médico 
+
+Se debe presionar el botón de escaneo de código QR en el módulo de perfil del paciente o bien desde el módulo Mis médicos 
+
+Dependiendo si es que se agregó un médico mediante un QR validado por la aplicación,  podemos  ver  al  nuevo  médico  dentro  de  nuestra  vista  Mis Médicos. 
+
+**Escenario 6:**  
+
+**Datos de Entrada:** 
+
+Vista Editar Perfil del paciente **Entorno:** 
+
+Para  que  el  paciente  pueda  actualizar  sus  datos  como  su  nombre, apellido y/o foto de perfil, requiere que en los labels respectivos se pueda poner los datos que el paciente necesite, estos datos se pasan a la base de  datos  local  y a  firebase  mediante  los  servicios  solicitados por la aplicación. 
+
+**Parámetros:** 
+
+- Label del nombre del usuario 
+- Label del apellido del usuario 
+- UIImage View con la foto de perfil del usuario 
+
+**Respuesta de otros módulos:** 
+
+Se llama al módulo de editar perfil del usuario **Condiciones iniciales:** 
+
+1. Se puso nulo en los labels de nombre y apellido 
+1. Se puso caracteres numéricos labels de nombre y apellidos 
+1. Se puso con 2 caracteres alfanuméricos en el label de nombre y apellido, ningún carácter especial 
+1. No se seleccionó alguna imagen para la foto de perfil 
+1. Se seleccionó la opción de ir a galería, en la foto de perfil 
+1. Se seleccionó la cámara, para agregar una nueva foto de perfil 
+
+**Datos de Salida: Resultados entregados:** 
+
+- Para las opciones 1 y 2, la aplicación no permite el ingreso del dato y muestra un mensaje de error. 
+- Para la opción 3, la aplicación permite el ingreso del nuevo dato, lo actualiza y muestra la información actualizada. 
+- Para la opción 4, la aplicación muestra una imagen predeterminada. 
+- Para las opciones 5 y 6, la aplicación nos manda a la galería para seleccionar la imagen que queramos, la guarda, pero no manda mensaje de confirmación. 
+
+**Estado final de las variables:** 
+
+Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana para editar perfil del paciente 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.008.png)
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.009.png)
+
+Fuente: inHealth **Requisitos de configuración para hacer la prueba: Método de Prueba:** 
+
+Se usó la partición de equivalencia para la realización de esta primera prueba,  donde  se  insertó  diferentes  tipos de  caracteres  en  diferentes situaciones, se contempló las diferentes respuestas de la aplicación móvil. 
+
+**Módulos:** 
+
+Para esta prueba se usaron los View Controllers de editar perfil y el servicio de  Firebase  para  poder  guardar  y/o  actualizar  los  datos  que  sean necesarios. 
+
+**Hardware y Software:** 
+
+` `Para la realización de la prueba, se usó un celular iPhone con conexión a internet. 
+
+iOS mínimo requerido por la aplicación: iOS 12. 
+
+iPhone  mínimo  requerido  por  la  aplicación:  desde  el  iPhone  5s  en adelante. 
+
+**Procedimientos o herramientas necesarios:** 
+
+Para la ejecución de esta prueba, se requirió ir al módulo perfil del paciente, donde pulsando el botón superior derecho, mostramos una nueva interfaz donde se puede observar nuestros datos como el nombre, apellido y foto de perfil.  Tenemos  la  opción  de  cambiar  esos  datos  y  la  foto,  después  de modificarlas, se hace clic en el botón superior derecho Guardar Datos para que se actualice y se muestran en el perfil. 
+
+**Dependencias o relación con otros casos de prueba:** 
+
+El paciente se debe situar en la pestaña de editar perfil haciendo clic en el botón superior derecho de su perfil 
+
+Se deben cambiar los datos que quiera y hacer clic en el botón Guardar Datos para actualizarlos 
+
+Dependiendo del cambio de datos que el paciente realice, se refleja en el perfil con sus nuevos datos. 
+
+**Escenario 7:**  
+
+**Datos de Entrada:** 
+
+Creación de una nueva cita médica **Entorno:** 
+
+Para poder generar una nueva cita médica, se debe ir al módulo de creación de cita médica, accediendo desde el módulo de citas médicas, donde se selecciona una fecha y se prosigue la guía que la aplicación le da al paciente para poder seguir con la creación de la cita, seleccionando al médico, la hora y añadiendo notas, para finalizar con un mensaje de creación de la cita y viendo el detalle de la misma. 
+
+**Parámetros:** 
+
+- Selección de la fecha 
+- Selección del médico 
+- Selección de la hora 
+- Label de la nota que acompaña la cita 
+
+**Respuesta de otros módulos:** 
+
+Se  llama  al  módulo  Citas  médicas,  donde  se  abre  el  calendario respectivo, para acceder al módulo de generación de citas, se selecciona en la parte superior derecha el signo (+), que genera un llamado al módulo de creación de la cita. 
+
+**Condiciones iniciales:** 
+
+1. Se seleccionó una fecha anterior a la actual 
+1. No se seleccionó un médico 
+1. Se seleccionó una fecha actual y un médico, no se agregó una nota 
+1. Se agregó una nota y una hora 
+
+**Datos de Salida: Resultados entregados:** 
+
+Para el primer caso, se siguió el flujo de creación de citas, pero no se guardó la cita en la fecha anterior seleccionada y no se mandó ninguna alerta o modal que refiera a ese error. 
+
+Dentro del segundo caso, simplemente al querer llegar a la vista donde se guarda un texto con las notas y la selección de la hora, la aplicación sufre un crash y se cierra inesperadamente. 
+
+Para el tercer caso, se crea la cita y se puede visualizar, en el detalle de la cita, se ve en la sección de agregar nota, un texto predeterminado, para contener el error de no escribir una nota. 
+
+Para el último caso, se crea la nota correctamente y se ve un mensaje de creación de la nota. 
+
+**Estado final de las variables:** 
+
+Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de Citas Médicas para la aplicación inHealth 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.010.png) ![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.011.png)
+
+Fuente: inHealth **Requisitos de configuración para hacer la prueba: Método de Prueba:** 
+
+Se usó la técnica de decisiones, donde se partió de la situación donde vemos si seleccionamos o no un médico, si seleccionamos o no una fecha correcta o futura, donde agregamos una nota o no, dependiendo de la situación se ve que la aplicación responde, pero muestra fallo de crash y se cierra inesperadamente la aplicación cuando no se selecciona un médico, a la vez no se ve los modales respectivos de errores, pero si se ve el modal de creación de la aplicación. 
+
+**Módulos:** 
+
+Para esta prueba se usó el módulo del controlador de creación de una cita médica, a la vez se requiere del servicio de firebase para la creación de la cita médica. 
+
+**Hardware y Software:** 
+
+` `Para la realización de la prueba, se usó un celular iPhone con conexión a internet. 
+
+iOS mínimo requerido por la aplicación: iOS 12. 
+
+iPhone  mínimo  requerido  por  la  aplicación:  desde  el  iPhone  5s  en adelante. 
+
+**Procedimientos o herramientas necesarios:** 
+
+Para la ejecución de esta prueba, se requirió que ya se cuente con un médico asociado, para poder crear la cita agendando con el médico seleccionado, además  se  requiere  seguir  el  flujo  de  creación  de  citas  explicado  en  la aplicación. 
+
+**Dependencias o relación con otros casos de prueba:** 
+
+Se debe de tener asociado a su cuenta, un médico para poder crear la cita 
+
+médica. 
+
+Se  debe  seguir  con  la  secuencia  de  creación  de  la  cita,  explicada anteriormente. 
+
+Dependiendo  de  la  creación  de  la  cita,  se  podrá  ver  la  cita  en  el  día seleccionado y ver el detalle de la misma. 
+
+**Escenario 8:**  
+
+**Datos de Entrada:** 
+
+Tener habilitado el Game Center en el móvil **Entorno:** 
+
+Para poder acceder a los módulos de gamificación (Logros y Tabla de puntuaciones), dentro de la aplicación, se necesita previamente haber accedido y configurado el Game Center en el iPhone. 
+
+**Parámetros:** 
+
+- Acceder al módulo de logros en el apartado desafíos. 
+- Acceder al módulo tabla de puntuación en el apartado desafíos. 
+
+**Respuesta de otros módulos:** 
+
+Se llama al módulo GameKit Service, donde se contempla los métodos de acceso al Game Center del usuario, para poder inicializar las demás clases en los controladores de los desafíos. 
+
+**Condiciones iniciales:** 
+
+1. Se habilitó el acceso de Game Center a la aplicación y se seleccionó el módulo de logros 
+1. Se inhabilitó el acceso de Game Center a la aplicación y se seleccionó el módulo tabla de puntuación 
+1. Se habilitó el acceso de Game Center a la aplicación y se seleccionó el módulo tabla de puntuación. 
+1. Se inhabilitó el acceso de Game Center a la aplicación y se seleccionó el módulo Logros 
+
+**Datos de Salida: Resultados entregados:** 
+
+Luego de establecidos los casos - condiciones iniciales, se declara que, en  los  casos  1  y  3  logran  pasar  satisfactoriamente  al  módulo especificado, mostrando al principio, cuando se inicia la aplicación un banner alerta dando un mensaje de bienvenida, que se inició el Game Center en la aplicación, por el contrario para los casos 2 y 4 al restringir el acceso al Game Center en la aplicación y querer acceder a un módulo establecidos en esos casos, nos aparece un modal de alerta diciendo que el usuario no sé auténtico con Game Center, por lo que no puede ver los módulos respectivos. 
+
+**Estado final de las variables:** 
+
+Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de Desafíos para la aplicación inHealth 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.012.jpeg)
+
+Fuente: inHealth **Requisitos de configuración para hacer la prueba: Método de Prueba:** 
+
+Se usó la técnica de decisiones, donde se partió de dos opciones, una sabiendo que la aplicación tiene acceso al Game Center, pues este está habilitado por el usuario y el otro escenario donde no se tiene acceso, dado en los primeros escenarios, se logra ver el acceso al Game Center mediante los logros o la tabla de puntuación, pero al no tener acceso se muestra un modal diciendo que el usuario no está logueado en Game Center por lo que no puede acceder al módulo específico. 
+
+**Módulos:** 
+
+Para esta prueba se usó la clase servicio de Game Center, para poder ver si el usuario se autenticó con el servicio, además de los controladores necesarios para las vistas de Desafíos dentro de la aplicación. 
+
+**Hardware y Software:** 
+
+` `Para la realización de la prueba, se usó un celular iPhone con conexión a internet. 
+
+iOS mínimo requerido por la aplicación: iOS 12. 
+
+iPhone  mínimo  requerido  por  la  aplicación:  desde  el  iPhone  5s  en adelante. 
+
+**Procedimientos o herramientas necesarios:** 
+
+Para la ejecución de esta prueba, se requirió que el usuario habilite el Game Center dentro de su iPhone para poder así acceder a los módulos y seguir con las pruebas especificadas anteriormente. 
+
+**Dependencias o relación con otros casos de prueba:** 
+
+Se debe de iniciar sesión y habilitar el Game Center previamente. 
+
+Se debe dirigir al apartado de desafíos y así seleccionar logros o tabla de puntuación según parezca. 
+
+Dependiendo de la opción, seguirá el flujo, ya sea en la vista de logros o en la vista de tabla de puntuación. 
+
+**Listado técnico:** 
+
+**Archivos Involucrados:** 
+
+Se usaron los servicios establecidos en el proyecto tales como servicios de autenticación de firebase, servicios de generación de la base de datos en firebase, servicio de permisos de healthkit, servicios de GameKit, servicios de selección de datos de healthkit, las clases modelos, los controladores de las vistas involucradas, la clase útil para las validaciones y/o métodos que ayudaron  al  formateo  de  diferentes  elementos  en  la  aplicación,  los controladores de las tablas creadas, el storyboard y el launch board. 
+
+**Sistemas y Bibliotecas:** 
+
+Entre las librerías externas podemos listas las siguientes: 
+
+- Firebase (Auth, Database, Storage, Analytic, Messaging) 
+- JTAppleCalendar  
+- Keyboard 
+- Charts 
+- RealSwift 
+- Floating Panel 
+- HealthKit 
+- GameKit 
+- Push Notifications 
+
+**Errores:** 
+
+- Al momento de que el paciente se registra en la aplicación ingresando su nombre,  apellido,  correo  y  contraseña;  en  caso  que  en  el  label  del nombre  y  apellido  se  ingrese  valores  numéricos  u  otros  valores  no aceptados. No hay mensajes de error que le indiquen al paciente que los datos ingresados son incorrectos. 
+- Los labels de nombre y apellido no están validados para que acepten sólo valores de texto. 
+- Al momento que el paciente quiere agregar a su médico, ya sea en el mismo módulo de doctores o por medio del escaneo de su código QR, no hay un mensaje de confirmación que le diga al paciente que lo registró correctamente, por lo que se tiene que ir hasta el módulo de médicos para poder verificarlo. 
+- Cuando el paciente entra a su perfil puede observar todos sus datos médicos donde cada uno tiene un detalle, información general y un gráfico estadístico. En caso que uno de esos datos no tenga su gráfico o le falta algún parámetro, no hay algún mensaje de error o alerta que avisen al desarrollador que existe ese problema. 
+- Al momento que el paciente ingresa al módulo de citas e intenta agendar una  con  un  médico  en  específico,  la  aplicación  sufre  crasheos momentáneos y se cierra abruptamente. 
+
+**Notas:** 
+
+- Al momento del registro y/o inicio de sesión, se podría agregar un botón que permita ver que la contraseña ingresada oculta sea la correcta. 
+- En el módulo de citas, al momento de observar la lista de mis citas registradas se consideraría visualizar un calendario mensual general, con  el  que  no  se  tenga  que  hacer  swipe  por  cada  semana individualmente. 
+- En el módulo de desafíos, se consideraría agregar planes de dietas y ejercicios que ayude a los pacientes a mejorar su estilo de vida. 
+
+**Anexo 10: Documentos de Heurísticas de Nielsen 1.  Metodología** 
+
+1. **Comparación entre Usabilidad y Experiencia del usuario** 
+
+   Cuando hablamos de Usabilidad, podemos referenciar al grado en que un producto puede ser usado para conseguir metas específicas con efectividad y eficiencia, es por eso que, como un objetivo, la Usabilidad es conseguir que la aplicación o herramienta web sea fácil de utilizar. 
+
+   Por otro lado, nos referimos a experiencia de usuario nos enfocamos en la satisfacción conseguida en el usuario durante su interacción con la aplicación móvil o herramienta web. 
+
+2. **Métodos de evaluación de usabilidad** 
+
+   El método para la evaluación de usabilidad es un procedimiento sistemático para grabar datos relacionados con la interacción del usuario final con un producto  software  o  sistema.  Los  datos  recolectados  son  analizados  y evaluados para determinar la usabilidad del producto. 
+
+1. **Pruebas de usabilidad** 
+
+   Según IDF (Interaction Design Foundation), afirma que las pruebas de usabilidad se definen como la práctica de probar lo fácil que un diseño es usar en un grupo de usuarios representativos. Por lo general, implica observar a los usuarios cuando intentan completar las tareas y pueden realizarse para diferentes tipos de diseños, desde interfaces de usuario hasta productos físicos. Por lo general se realizan de manera constante, desde el desarrollo inicial hasta la liberación de un producto. 
+
+   Podemos mencionar los diferentes métodos, tales como: 
+
+- **Ordenamiento de Tarjetas:** Cuando hablamos de Ordenamiento de Tarjetas, nos centramos en el agrupamiento y ordenamiento de tarjetas las cuales poseen conceptos generales y específicos del sistema, con el objetivo de encontrar los patrones necesarios para  determinar  la  forma  de  las acciones o  contenido  que  el usuario espera ver en la interfaz. 
+- **Pensamiento en voz alta:** En este tipo de prueba se le solicita al usuario que exprese en voz alta sus pensamientos, emociones, sensaciones y opiniones de cada acción que realiza. 
+- **Co-descubrimiento:** Participan  dos  usuarios  en  la  prueba  de usabilidad, los cuales deben realizar ciertas acciones diseñadas por  los  expertos,  con  el  objetivo  de  encontrar  y  comentar problemas en voz alta de un sistema dado. 
+- **Pruebas en Papel:** Consiste en evaluar una interfaz de usuario mediante modelos mostrados en papel para que este determine si cumple  o  no  las  necesidades  reales  de  él  como  usuario  del sistema. 
+2. **Evaluación Heurística** 
+
+   La evaluación Heurística es la ciencia del descubrimiento y el conjunto de  principios  que  sigue  un  experto  para  realizar  una  investigación. Referentemente,  en  el  ámbito  de  Ciencias  de  la  Computación,  las evaluaciones heurísticas  consisten en  un  análisis  técnico  que busca identificar  los  errores  de  usabilidad  y  mostrar  oportunidades  de optimización.   
+
+   Estas  pruebas  son  una  forma  eficiente  y  accesible  de  asegurar  la usabilidad de una interfaz, permitiendo encontrar hasta un 80% de los errores  más  frecuentes  por  medio  de  una  serie  de  verificaciones  y consecuciones de objetivos. 
+
+   Gracias a estas pruebas podemos medir: 
+
+- El éxito de las tareas 
+- Tiempo de las tareas 
+- Errores 
+- Satisfacción subjetiva 
+
+A continuación, se presenta la escala de frecuencia y severidad: 
+
+Frecuencia  Severidad ![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.013.png)
+
+215 
+
+(4) >90% 
+
+(3) 51-90% 
+
+(2) 11-50% 
+
+(1) 1-10% 
+
+(0) 0% 
+
+(4) Catastrófico 
+
+(3) Mayor 
+
+(2) Menor 
+
+(1) Cosmético 
+
+(0)  No  es  un problema 
+
+
+
+1. **Interpretación de las escalas de Frecuencia y Severidad**  De esta tabla, podemos sacar lo siguiente:  
+
+   **Severidad**:  Siendo  esta,  el  nivel  de  gravedad  del  problema identificado. Gracias a la severidad podemos identificar problemas más peligrosos, que comprometen la usabilidad del sistema.  **Frecuencia**:  Se  refiere  al  grado  de  ocurrencia  del  problema identificado. Con esto, es posible saber qué tan habitual o repetido es el problema dentro del sistema.  
+
+   **Criticidad**: Es la suma de la severidad más la frecuencia. Con esto, es posible determinar qué problemas son más críticos o cruciales, que ameritan una solución más rápida, pues involucran aún más la usabilidad del sistema, comparados con otros. 
+
+2. **Principios Heurísticos** 
+
+   A  continuación,  se  mencionan  los  principios  Heurísticos  de Nielsen: 
+
+1. **Visibilidad del estado del sistema:** ¿El usuario sabe qué está  pasando?  El  sistema  SIEMPRE  debe  informar  al usuario de lo que está haciendo, es decir, proveer feedback en un tiempo razonable. 
+1. **Conexión entre el sistema y mundo real:** El sistema y el usuario tienen que hablar en el mismo idioma, siguiendo las convenciones del entorno del usuario. 
+1. **Uso y control de usuario:** Tener sensación de control y no  tener  miedo  de  efectuar  acciones  y  probar  cosas nuevas,  es  de  vital  importancia  para  que  la  persona interactúe y aprenda por sí misma. 
+1. **Consistencia  y  estándares:**  Es  muy  importante  tener consistencia a lo largo de todo el sistema y no ir variando los elementos y su funcionamiento en cada pantalla.  
+1. **Prevención  de  errores:**  Lo  ideal  es  que  nunca  haya errores, con instrucciones claras de que se debe hacer en cada pantalla, sistemas de ayuda. Si se pueden validar los errores antes de enviar la acción, como la validación en línea de un formulario mucho mejor. 
+6. **Reconocer mejor que recordar:** El usuario dispone de poca memoria a corto plazo, por lo que minimiza el uso de su memoria colocando las opciones a la vista o de fácil acceso. Es mucho más fácil que reconozca algo a que lo recuerde estando muy ligado al punto 4 de Consistencia y estándares. 
+6. **Uso eficiente y flexibilidad:** El diseño debe servir tanto para usuarios inexpertos como expertos.
+6. **Diseño práctico y minimalista:**  No todas las acciones pueden estar a la vista, ya que cada unidad de información reduce  la  visibilidad  de  la  información  que  de  verdad importa. Manejar correctamente las jerarquías visuales y el espacio en blanco.
+6. **Ayuda, diagnóstico y recuperación de errores:** En el caso de que haya una situación de error, el sistema debe indicar al usuario que ha pasado y cómo resolverlo.
+6. **Ayuda  y  documentación:**  Aunque  el  sistema  es suficientemente  usable  y  no  es  necesario  ninguna documentación,  siempre  habrá  usuarios  que  puedan necesitarla. Por ello es importante verificar que el sistema ofrezca ayuda relevante al contexto del usuario, cajas de búsqueda, etc.
+6. **Habilidades:** El sistema debería anticipar las habilidades y conocimientos  del  usuario  para  ofrecer  información adaptada al usuario.
+6. **Interacción con el usuario placentera y respetuosa:** Las interacciones  de  los  usuarios  con  el  sistema  deben favorecer la calidad de su vida.
+6. **Privacidad:**  El  sistema  debe  ayudar  a  proteger  la privacidad del usuario
+2. **Preparación** 
+
+   En esta sección se delimitará el sector y los principios heurísticos que soportará la aplicación, además se seleccionará a los evaluadores por último se presentará la herramienta de recolección, selección y clasificación con respecto a las interfaces de la aplicación. 
+
+1. **Sector** 
+
+   La aplicación está enfocada en el sector Salud y Estilos de Vida, se debe a tener en cuenta la privacidad del dato de salud  que  se comparte con  la aplicación. 
+
+   La aplicación está dirigida a hombres y mujeres de edades entre 45 - 60 años de edad, por lo que se requiere de colores descansables a la vista, interfaces limpias y no muy saturadas ni recargadas con elementos innecesarios, se requiere de textos medianamente grandes y del uso de la negrita, para poder identificar texto o información relevante. 
+
+2. **Elección de principios heurísticos** 
+
+   Dentro de los principios heurísticos establecidos anteriormente, se procede a la  selección  de  los  principios  que  se  adaptan  a  esta  evaluación  de  las interfaces de la aplicación móvil inHealth. 
+
+- Visibilidad del estado del sistema. 
+- Uso y control de usuario. 
+- Consistencia y estándares. 
+- Prevención de errores. 
+- Reconocer mejor que recordar. 
+- Uso eficiente y flexibilidad. 
+- Diseño práctico y minimalista. 
+- Interacción con el usuario placentera y respetuosa. 
+- Privacidad. 
+3. **Herramienta de evaluación:** 
+
+   Se presenta la siguiente tabla de evaluación donde se contempla lo siguiente: 
+
+- **Interfaz:** Nombre de la interfaz a evaluar. 
+- **Frecuencia:** El problema es común o raras veces ocurre, descripción de la frecuencia del problema encontrado. 
+- **Impacto:** Nivel de impacto del problema relacionado a los usuarios. 
+- **Persistencia:**  El  problema  se  resuelve  con  una  serie  de  pasos  o reiteradamente aparece. 
+4. **Herramienta de recolección, selección y clasificación** Se presenta el siguiente Excel, donde tenemos lo siguiente: 
+- **Pantalla:** El nombre de la interfaz a evaluar. 
+- **Problema:**  Problema  encontrado,  especificado  y  explicado detalladamente. 
+- **Recomendación:** Recomendaciones que el evaluador enfatiza para las correcciones necesarias. 
+- **Prioridad:** Escala de prioridades, según Nielsen, explicadas en la tabla de Frecuencia y Severidad. 
+5. **Herramienta de contrastación entre las heurísticas seleccionadas y las interfaces de la aplicación** 
+- **Interfaz:** Nombre de la interfaz de la aplicación a evaluar.
+- **Heurística Seleccionada:** Heurística seleccionada que será el indicador a evaluar con respecto a la interfaz.
+- **Comentario:** Comentario del experto que evaluó la interfaz. 
+6. **Selección de evaluadores**  
+
+   Para las evaluaciones dadas, se llamará a un grupo de expertos, los cuales se le  dará  la  herramienta  detallada  anteriormente  para  la  evaluación  de  las interfaces dadas. 
+
+3. **Ejecución** 
+1. **Distribución de datos en tabla de evaluación:** 
+
+   Se  procede  a  tabular  los  datos  en  la  tabla  de  evaluación,  descrita anteriormente. 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.014.jpeg)
+
+2. **Distribución de datos en herramienta seleccionada:** 
+
+   Se  procede  a  distribuir  los  datos  en  la  herramienta  establecida,  descrita anteriormente: 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.015.jpeg)
+
+3. **Distribución de datos con las heurísticas seleccionadas:** 
+
+   Se procede a hacer una contrastación entre las interfaces con respecto a las heurísticas seleccionadas  
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.016.jpeg)
+
+4. **Conclusiones** 
+
+   Se  han  encontrado  los  problemas  señalados  anteriormente,  en  su  mayoría problemas de validación y diseño que ya han sido identificados, localizados y priorizados. 
+
+   Los  problemas  han  sido  solucionados  por  el  equipo  de  trabajo,  pero  este documento nos sirve para visualizar pequeños problemas que se han mostrado durante el funcionamiento de la aplicación por paciente con Infarto Agudo de Miocardio. 
+
+   Esta prueba heurística ha permitido encontrar problemas específicos, en detalle un problema que era error técnico en la interfaz de Citas, por lo que tomando en cuenta el impacto que tendría en el proyecto se ha solucionado. 
+
+5. **Gráficos** 
+1. **Anexo 1:**  
+
+Ilustración: Ventana de Registro del Paciente (datos erróneos) 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.017.png)
+
+Fuente: inHealth 
+
+2. **Anexo 2:**  
+
+   Ilustración: Mensaje de error en Inicio de Sesión del paciente 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.018.png)
+
+Fuente: inHealth 
+
+3. **Anexo 3:** 
+
+Ilustración: Ventana de perfil del paciente
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.019.png)
+
+Fuente: inHealth
+
+4. **Anexo 4:** 
+
+   Ilustración: Ventana de datos médicos del paciente
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.020.png)
+
+Fuente: inHealth 
+
+5. **Anexo 5:** 
+
+Ilustración: Ventana de detalle de cada dato médico 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.021.png)
+
+Fuente: inHealth 
+
+6. **Anexo 6:** 
+
+Ilustración: Ventana de agregar médico por código QR 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.022.png)
+
+Fuente: inHealth 
+
+225 
+7. **Anexo 7:** 
+
+Ilustración: Ventana de editar perfil 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.023.png)
+
+Fuente: inHealth 
+
+**5.8  Anexo 8:** 
+
+Ilustración: Ventana de agendar cita médica 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.024.png)
+
+Fuente: inHealth 
+
+226 
+9. **Anexo 9:** 
+
+Ilustración: Ventana de desafíos 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.025.png)
+
+Fuente: inHealth 
+
+1. **Estado final de las variables:** 
+
+   Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de permiso a datos para la aplicación inHealth 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.026.jpeg)
+
+Fuente: inHealth 
+
+227 
+
+2. **Estado final de las variables:** 
+
+   ` `Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de detalle de cada dato médico 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.027.png)![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.028.png)![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.029.png)
+
+228 
+
+Fuente: inHealth 
+
+3. **Estado final de las variables:** 
+
+   Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de cámara y código QR para la aplicación inHealth 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.030.jpeg)
+
+Fuente: inHealth 
+
+4. **Estado final de las variables:** 
+
+   Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana para editar perfil del paciente 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.031.png) ![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.032.jpeg)
+
+Fuente: inHealth 
+
+5. **Estado final de las variables:** 
+
+   Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de Citas Médicas para la aplicación inHealth 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.033.png) ![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.034.png)
+
+Fuente: inHealth 
+
+6. **Estado final de las variables:** 
+
+   Se adjunta screens de las pruebas: 
+
+Ilustración: Ventana de Desafíos para la aplicación inHealth 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.035.png)
+
+`       `Fuente: inHealth 
+
+**Anexo 11: Encuesta realizada a pacientes post InHealth** 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.036.png)
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.037.png)
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.038.jpeg)
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.039.png)
+
+**Anexo 12: Entrevista realizada a pacientes después del uso de InHealth** 
+
+1. **Entrevista a pacientes:** https://www.youtube.com/watch?v=2ePACfPq3Xo 
+1. **Fotos de la entrevista realizada:** 
+
+![ref1] ![ref2]
+
+**Anexo 13: Correo de validación del médico** 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.042.jpeg)
+
+**Anexo 14: Correo de Aprobación de Test Flight** 
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.043.jpeg)
+
+2. **Evidencias de la ejecución de la propuesta (diseños de sesiones, talleres, fotos, etc.)**  
+
+![ref1] ![ref2]
+
+Gráfico 34: Entrevista post a paciente         Gráfico 35: Entrevista post a paciente 
+
+3. **R.D. que aprueba el proyecto de investigación**  
+4. **Constancia de la Institución y/o organización donde se ha desarrollado la propuesta de investigación.**  
+
+![](Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.044.png)
+236 
+
+[ref1]: Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.040.png
+[ref2]: Aspose.Words.1d252dad-3823-4cb2-92a9-8c62202893c2.041.png

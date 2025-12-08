@@ -6,7 +6,7 @@
  */
 
 class SupabaseOperations {
-    
+
     /**
      * Obtiene el cliente de Supabase inicializado
      */
@@ -28,17 +28,17 @@ class SupabaseOperations {
     static async getCurrentUser() {
         try {
             const { data: { user }, error } = await this.getClient().auth.getUser();
-            
+
             if (error) {
                 console.warn('⚠️ Error obteniendo usuario de Auth:', error.message);
                 return null;
             }
-            
+
             if (!user) {
                 console.warn('⚠️ No hay usuario autenticado. Redirige a login si es necesario.');
                 return null;
             }
-            
+
             console.log('✅ Usuario autenticado:', user.email);
             return user;
         } catch (error) {
@@ -54,13 +54,13 @@ class SupabaseOperations {
      */
     static async requireAuth(redirectUrl = 'login.html') {
         const user = await this.getCurrentUser();
-        
+
         if (!user) {
             console.warn('🔒 Sesión no encontrada, redirigiendo a login...');
             window.location.href = redirectUrl;
             return null;
         }
-        
+
         return user;
     }
 
@@ -71,15 +71,15 @@ class SupabaseOperations {
     static async logout() {
         try {
             const { error } = await this.getClient().auth.signOut();
-            
+
             if (error) throw error;
-            
+
             console.log('✅ Sesión cerrada exitosamente');
-            
+
             // Limpiar localStorage
             localStorage.removeItem('recuiva_user_email');
             localStorage.removeItem('recuiva_user_id');
-            
+
             // Redirigir al login
             window.location.href = 'login.html';
         } catch (error) {
@@ -402,7 +402,7 @@ class SupabaseOperations {
                 console.error('❌ Error query:', error);
                 throw error;
             }
-            
+
             console.log(`❓ ${data?.length || 0} preguntas obtenidas para material ${materialId}`);
             if (data && data.length > 0) {
                 console.log('📋 Preguntas encontradas:', data.map(q => ({
@@ -489,7 +489,7 @@ class SupabaseOperations {
                 is_correct: validationData.is_correct || score >= 55,
                 classification: validationData.classification || this.classifyScore(score),
                 feedback: validationData.feedback || null,
-                best_match_chunk: validationData.best_match_chunk ? 
+                best_match_chunk: validationData.best_match_chunk ?
                     JSON.stringify(validationData.best_match_chunk) : null,
                 relevant_chunks: validationData.relevant_chunks || null
             };
@@ -563,23 +563,23 @@ class SupabaseOperations {
             const reviewData = {
                 user_id: user.id,
                 question_id: questionId,
-                next_review: nextReview instanceof Date ? 
+                next_review: nextReview instanceof Date ?
                     nextReview.toISOString().split('T')[0] : nextReview,
                 interval_days: intervalDays,
                 ease_factor: parseFloat(easeFactor),
                 repetitions: options.repetitions || 0,
                 last_score: options.lastScore || null,
-                last_review: options.lastReview ? 
-                    (options.lastReview instanceof Date ? 
-                        options.lastReview.toISOString().split('T')[0] : options.lastReview) 
+                last_review: options.lastReview ?
+                    (options.lastReview instanceof Date ?
+                        options.lastReview.toISOString().split('T')[0] : options.lastReview)
                     : null
             };
 
             const { data, error } = await this.getClient()
                 .from('spaced_repetition')
-                .upsert([reviewData], { 
+                .upsert([reviewData], {
                     onConflict: 'user_id,question_id',
-                    ignoreDuplicates: false 
+                    ignoreDuplicates: false
                 })
                 .select()
                 .single();
@@ -627,6 +627,41 @@ class SupabaseOperations {
             return data || [];
         } catch (error) {
             console.error('❌ Error obteniendo repasos:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Obtiene TODOS los repasos programados (incluyendo futuros)
+     * @returns {Promise<Array>} Lista de todos los repasos
+     */
+    static async getAllScheduledReviews() {
+        try {
+            const user = await this.getCurrentUser();
+            if (!user) return [];
+
+            const { data, error } = await this.getClient()
+                .from('spaced_repetition')
+                .select(`
+                    *,
+                    questions (
+                        id,
+                        question_text,
+                        material_id,
+                        materials (
+                            id,
+                            title
+                        )
+                    )
+                `)
+                .eq('user_id', user.id)
+                .order('next_review', { ascending: true });
+
+            if (error) throw error;
+            console.log(`📚 ${data?.length || 0} repasos programados en total`);
+            return data || [];
+        } catch (error) {
+            console.error('❌ Error obteniendo todos los repasos:', error);
             return [];
         }
     }

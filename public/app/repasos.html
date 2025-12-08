@@ -515,14 +515,14 @@
       }, 500);
 
       async function loadTodayReviewsFromSupabase() {
-        console.log('📅 Cargando repasos del día desde Supabase...');
+        console.log('📅 Cargando repasos desde Supabase...');
 
         try {
-          // Obtener preguntas pendientes desde Supabase
-          const rawData = await SupabaseOperations.getReviewsForToday();
+          // Obtener TODAS las preguntas programadas (incluyendo futuras)
+          const rawData = await SupabaseOperations.getAllScheduledReviews();
 
           // Transformar datos de Supabase al formato esperado
-          const dueQuestions = rawData.map(item => ({
+          const allQuestions = rawData.map(item => ({
             id: item.id,
             pregunta: item.questions?.question_text || 'Sin pregunta',
             nextReviewDate: item.next_review,
@@ -532,19 +532,38 @@
             questionId: item.question_id
           }));
 
-          console.log('📋 Preguntas pendientes:', dueQuestions);
+          console.log('📚 Todas las preguntas programadas:', allQuestions);
 
-          // Calcular estadísticas localmente
+          // Separar en "hoy/vencidas" y "futuras"
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          const dueQuestions = allQuestions.filter(q => {
+            const reviewDate = new Date(q.nextReviewDate);
+            reviewDate.setHours(0, 0, 0, 0);
+            return reviewDate <= today;
+          });
+
+          const futureQuestions = allQuestions.filter(q => {
+            const reviewDate = new Date(q.nextReviewDate);
+            reviewDate.setHours(0, 0, 0, 0);
+            return reviewDate > today;
+          });
+
+          console.log(`📋 Pendientes hoy: ${dueQuestions.length}, Futuros: ${futureQuestions.length}`);
+
+          // Calcular estadísticas
           const stats = {
-            total: dueQuestions.length,
-            dueToday: dueQuestions.length
+            total: allQuestions.length,
+            dueToday: dueQuestions.length,
+            future: futureQuestions.length
           };
 
           // Actualizar fecha de hoy
           const todayDateEl = document.getElementById('today-date');
           if (todayDateEl) {
-            const today = new Date();
-            todayDateEl.textContent = today.toLocaleDateString('es-ES', {
+            const todayDate = new Date();
+            todayDateEl.textContent = todayDate.toLocaleDateString('es-ES', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
@@ -557,6 +576,9 @@
 
           // Renderizar lista de hoy
           renderTodayList(dueQuestions);
+
+          // Renderizar lista de futuros (NUEVO)
+          renderFutureList(futureQuestions);
 
           // Renderizar calendario (simplificado sin RepetitionData)
           renderCalendarSimple();
@@ -694,6 +716,83 @@
           ... y ${dueQuestions.length - 10} preguntas más
         </p>
       `;
+        }
+      }
+
+      // Función para renderizar repasos FUTUROS
+      function renderFutureList(futureQuestions) {
+        // Crear contenedor si no existe
+        let futureContainer = document.getElementById('future-questions-container');
+        if (!futureContainer) {
+          const todayContainer = document.getElementById('today-list-container');
+          if (todayContainer) {
+            futureContainer = document.createElement('div');
+            futureContainer.id = 'future-questions-container';
+            futureContainer.className = 'bg-white rounded-xl shadow-md p-6 mb-8';
+            futureContainer.innerHTML = `
+              <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-600">schedule</span>
+                Repasos Programados (<span id="future-count">0</span>)
+              </h2>
+              <div id="future-questions-list"></div>
+            `;
+            todayContainer.parentNode.insertBefore(futureContainer, todayContainer.nextSibling);
+          }
+        }
+
+        const listContainer = document.getElementById('future-questions-list');
+        const countEl = document.getElementById('future-count');
+
+        if (!listContainer) return;
+
+        if (countEl) countEl.textContent = futureQuestions.length;
+
+        if (futureQuestions.length === 0) {
+          listContainer.innerHTML = `
+            <div class="text-center py-6 text-gray-400">
+              <span class="material-symbols-outlined text-4xl mb-2">event_busy</span>
+              <p class="font-medium">No hay repasos programados</p>
+              <p class="text-sm mt-1">Guarda preguntas en la sesión de práctica</p>
+            </div>
+          `;
+          return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const listHTML = futureQuestions.slice(0, 10).map(q => {
+          const nextDate = new Date(q.nextReviewDate);
+          const daysUntil = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
+
+          const dateFormatted = nextDate.toLocaleDateString('es-ES', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short'
+          });
+
+          return `
+            <div class="p-3 rounded-lg border-2 bg-purple-50 border-purple-200 hover:shadow-md transition-all mb-2">
+              <div class="flex justify-between items-start mb-2">
+                <p class="font-semibold text-sm text-gray-800 flex-1">${q.pregunta.substring(0, 80)}${q.pregunta.length > 80 ? '...' : ''}</p>
+                <span class="text-purple-600 text-xs font-semibold">En ${daysUntil} día${daysUntil > 1 ? 's' : ''}</span>
+              </div>
+              <div class="flex justify-between items-center text-xs text-gray-500">
+                <span>📅 ${dateFormatted}</span>
+                <span>Score: ${q.score || 0}%</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        listContainer.innerHTML = listHTML;
+
+        if (futureQuestions.length > 10) {
+          listContainer.innerHTML += `
+            <p class="text-center text-sm text-gray-500 mt-4">
+              ... y ${futureQuestions.length - 10} repasos más programados
+            </p>
+          `;
         }
       }
 

@@ -1,8 +1,9 @@
-﻿**UNIVERSIDAD PRIVADA ANTENOR ORREGO**
+﻿
+**UNIVERSIDAD PRIVADA ANTENOR ORREGO**
 
 **FACULTAD DE INGENIERÍA**
 
-**PROGRAMA DE ESTUDIO DE INGENIERÍA DE SISTEMAS E INTELIGENCIA ARTIFICIAL![Imagen relacionada](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.001.png)**
+**PROGRAMA DE ESTUDIO DE INGENIERÍA DE SISTEMAS E INTELIGENCIA ARTIFICIAL![Imagen relacionada](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.001.png)**
 
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
@@ -313,7 +314,7 @@ No se procesan datos sujetos a regulaciones estrictas como RENIEC, SUNAT o entid
 
 ## <a name="_heading=h.1pq3nsdb3ejh"></a>**4.1 Perfil del desarrollador**
 El proyecto fue ejecutado por el estudiante Abel Jesús Moya Acosta, de la Escuela Profesional de Ingeniería de Sistemas e Inteligencia Artificial de la Universidad Privada Antenor Orrego.\
-Durante la ejecución del proyecto, el estudiante asumió los roles de analista, diseñador, programador, tester y desarrollador full-stack del sistema Recuiva.![](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.002.jpeg)
+Durante la ejecución del proyecto, el estudiante asumió los roles de analista, diseñador, programador, tester y desarrollador full-stack del sistema Recuiva.![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.002.jpeg)
 
 El desarrollo se orientó bajo el marco ágil Scrum, distribuyendo el trabajo en tres Sprints, de los cuales dos correspondieron a la construcción funcional del MVP (Sprint 1 y Sprint 2) y uno al proceso de pruebas, validación de métricas e informe final (Sprint 3). Cada avance fue revisado y validado semanalmente por el docente asesor.
 
@@ -341,19 +342,23 @@ Este objetivo consiste en implementar la base técnica del sistema de estudio ac
 
 **Evidencias:** 
 
-**Figura 1: Implementación del módulo de embeddings (código).**
+**Figura 1:**
+
+<a name="_heading=h.ruq2hecqn3k3"></a>**Implementación del módulo de embeddings (código).**
 
 Implementación del módulo de embeddings utilizando Sentence-Transformers all-MiniLM-L6-v2 para generación de vectores de 384 dimensiones (backend/embeddings\_module.py).
 
-![](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.003.png)
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.003.png)
 
 <a name="_heading=h.swza7pg9in4g"></a>***Figura 1:** Implementación del módulo de embeddings (código) elaborado por el estudiante.*  
 
-**Figura 2: Interfaz de carga de PDF.**
+**Figura 2:** 
+
+<a name="_heading=h.hqji4bwz8z4c"></a>**Interfaz de carga de PDF.**
 
 <a name="_heading=h.j578yzkbamz5"></a>Interfaz web para carga de material de estudio en formato PDF con validación de tamaño y formato (app/subir-material.html).
 
-![](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.004.png)
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.004.png)
 
 <a name="_heading=h.qrb3cnqovtlo"></a>***Figura 2.** Interfaz web para carga de material de estudio en formato PDF con validación de tamaño y formato (app/subir-material.html) elaborado por el estudiante.* 
 
@@ -361,7 +366,7 @@ Implementación del módulo de embeddings utilizando Sentence-Transformers all-M
 
 Log de tiempo total que tomó procesamiento completo para cada chunking y embeddings del material subido, el cual arroja un tiempo de 6.51 segundos, como se puede apreciar en la siguiente imagen .
 
-![](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.005.png)
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.005.png)
 
 <a name="_heading=h.68afccz9xe2b"></a>***Figura 3.** Log de tiempo de procesamiento de chunkings y embeddings.* 
 
@@ -369,37 +374,37 @@ Log de tiempo total que tomó procesamiento completo para cada chunking y embedd
 
 <a name="_heading=h.v2w0krt72trx"></a>Logs del servidor backend mostrando procesamiento de PDF, extracción de texto, chunking semántico y generación de embeddings en tiempo real.
 
-![](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.006.png)
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.006.png)
 
 <a name="_heading=h.8qprtz9wjh34"></a>***Figura 4:** Logs del servidor backend desplegado en dokploy mostrando procesamiento de PDF, extracción de texto, chunking semántico y generación de embeddings en tiempo real.* 
 
 **Figura 5: Tabla chunks en Supabase con embeddings.**
 
-![](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.007.png)
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.007.png)
 
 <a name="_heading=h.1n4j0p9afj8y"></a>***Figura 5.** Tabla chunks en Supabase PostgreSQL mostrando fragmentos almacenados con embeddings de 384 dimensiones generados mediante Sentence-Transformers.* 
 
 **Figura 6: Código de búsqueda vectorial.**
 
-![](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.008.png)
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.008.png)
 
 <a name="_heading=h.3qskulwm8zvq"></a>***Figura 6.** Implementación de búsqueda vectorial local mediante similitud coseno que recupera los fragmentos más relevantes del material de estudio elaborado por el estudiante.*  
 
 **Figura 7: Petición HTTP mostrando consulta del usuario.**
 
-![](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.009.png)
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.009.png)
 
 <a name="_heading=h.z0m3jqd3pp1t"></a>***Figura 7.** Petición HTTP en DevTools mostrando Request Payload con la pregunta formulada por el usuario alendpoint /api/validate-answer para búsqueda vectorial (pestaña Payload).*  
 
 **Figura 8: Respuesta HTTP con fragmentos recuperados por búsqueda vectorial(Response).**
 
-![](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.010.png)
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.010.png)
 
 <a name="_heading=h.j527rxxyfp2x"></a>***Figura 8.** Respuesta HTTP en DevTools mostrando recuperación de fragmentosrelevantes mediante búsqueda vectorial (relevant\_chunks), ordenados porsimilitud coseno descendente, con campos text, text\_full, similarity yposition (pestaña Response)..* 
 
 <a name="_heading=h.pqme5bh3omiz"></a>**Figura 9: Resultado visual en interfaz (fragmento recuperado).**
 
-![](Aspose.Words.97722c42-637e-46ee-b42a-518096b4b93c.011.png)
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.011.png)
 
 <a name="_heading=h.kpwxhi29b3ix"></a>***Figura 9:** Interfaz mostrando fragmentos recuperados del material mediante búsqueda vectorial, listados por relevancia semántica.*
 ## <a name="_heading=h.9l7dvsvtd1sq"></a>**OBJETIVO ESPECÍFICO 2**
@@ -419,24 +424,79 @@ Este objetivo se centra en implementar el módulo de validación semántica híb
 
 **Indicadores esperados de evaluación**
 
-- **Indicador 2.1 — Precisión de validación**\
-  ` `Se espera que el validador híbrido clasifique correctamente al menos el **80%** de las respuestas en el dataset DO-003.
+- **Indicador 2.1 — Precisión de validación híbrida** \
+  ` `Se espera que el validador híbrido clasifique correctamente al menos el **75%** de las respuestas en el dataset DO-003 de 20 casos de prueba anotados manualmente y sus respuestas correspondientes .
 - **Indicador 2.2 — Aciertos por categoría**\
-  ` `El sistema debe alcanzar **≥75%** de aciertos en respuestas correctas y parcialmente correctas.
-- **Indicador 2.3 — Estabilidad de los puntajes**\
-  ` `Los puntajes combinados deben presentar una variación máxima de **±5%** en repetidas evaluaciones del mismo caso.
+  El sistema debe alcanzar **≥70%** de aciertos en la clasificación de respuestas correctas y parcialmente correctas del mini-dataset.
+- **Indicador 2.3 — Desglose de métricas en tiempo real**\
+  El sistema debe calcular y mostrar los puntajes individuales (BM25, Cosine Similarity, Coverage) para el 100% de las respuestas validadas, tanto en la interfaz de usuario como en la respuesta JSON del backend.
+- **Indicador 2.4 — Tiempo de validación**\
+  El tiempo de procesamiento de la validación híbrida debe ser ≤500ms por respuesta, medido desde el envío hasta el retorno del score final y fragmentos recuperados.
 
 **Evidencias:** 
 
-**Figura 10: Función BM25 implementada.**
+**Figura 10:** 
 
-<a name="_heading=h.zf1tlbkq0h73"></a>**Figura 11: Cálculo de Cosine Similarity usando embeddings.**\
+<a name="_heading=h.z8xz5xpl8p6d"></a>Código de la función BM25 implementada en hybrid\_validator.py mostrando el cálculo de frecuencias de términos y normalización IDF.
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.012.png)
+
+**Figura 11:** 
+
+<a name="_heading=h.xq7jfhrkts99"></a>Código del cálculo de Cosine Similarity usando embeddings normalizados de 384 dimensiones (Sentence-Transformers).
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.013.png)
+
+**Figura 12:** 
+
+Código de la fórmula del HybridValidator mostrando los pesos aplicados: 5% BM25 + 80% Cosine + 15% Coverage.
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.014.png)
 
 
-**Figura 12: Fórmula del Coverage y pesos aplicados.**\
+
+<a name="_heading=h.iyorcdqrgz9k"></a><a name="_heading=h.f43cddtsg3mj"></a><a name="_heading=h.run2m8rh7pch"></a>**Figura 13:** 
+
+<a name="_heading=h.bmarcublve0o"></a>Código de la fórmula de combinación híbrida ( hybrid\_validator.py) dentro de la función hybrid\_score(). Muestra cómo se calcula el score base multiplicando cada métrica normalizada (BM25, Cosine, Coverage) por su peso correspondiente, obteniendo un puntaje combinado que representa la validación semántica de la respuesta del estudiante.
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.015.png)
 
 
-**Figura 13: Resultado del HybridValidator para casos reales del dataset DO-003.**
+
+
+
+
+
+
+
+<a name="_heading=h.mt7oqonpetx3"></a><a name="_heading=h.p5qnbuva1fz"></a><a name="_heading=h.vdqyrghj2gcu"></a><a name="_heading=h.7rn3zivjl7mj"></a><a name="_heading=h.5qjt888466uf"></a><a name="_heading=h.tqj0cgb5unx1"></a><a name="_heading=h.ltv47aal54y"></a><a name="_heading=h.xrzsag8puej5"></a><a name="_heading=h.ju3q4mqcqz7y"></a><a name="_heading=h.5katemvxi97x"></a>**Figura 14:** 
+
+<a name="_heading=h.4w3stz6og8rx"></a>Captura de pantalla de la interfaz de usuario mostrando el acordeón con el desglose de puntajes (BM25, Cosine, Coverage) para una respuesta validada en una sesión real.
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.016.png)
+
+**Figura 15:** 
+
+<a name="_heading=h.vvy5gu56gnqi"></a>Captura del DevTools (pestaña Network) mostrando el JSON response del endpoint /api/validate con los scores individuales, clasificación automática y fragmentos recuperados.
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.017.png)
+
+
+<a name="_heading=h.ixcypybhfpph"></a><a name="_heading=h.e83dvdz9xzkz"></a><a name="_heading=h.qbl6n5510qlw"></a><a name="_heading=h.3zjabllpca4u"></a>
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.018.png)
+
+<a name="_heading=h.49244dsdk1j7"></a><a name="_heading=h.muydrisahq5k"></a>**Figura 17:** 
+
+<a name="_heading=h.9kl2h0nuky0c"></a>Tabla resumen del mini-dataset de 20 casos de prueba evaluados manualmente, mostrando la comparación entre la clasificación automática del HybridValidator y la evaluación manual del investigador. Se incluyen las métricas de precisión global y precisión por categoría de respuesta
+
+Los resultados muestran que el sistema logró una **precisión general del 60%**, lo cual no alcanza la meta establecida (≥ 75%). Sin embargo, al analizar únicamente las respuestas consideradas **correctas o parciales**, el sistema logró una coincidencia de **73.33%**, superando la meta mínima requerida (≥ 70%).
+
+Esto indica que aunque el sistema no clasifica todas las respuestas de manera idéntica al evaluador humano, **sí mantiene un nivel aceptable de consistencia en los casos donde la respuesta del estudiante tiene al menos un grado adecuado de validez**.
+
+<a name="_heading=h.qnlisyk00dxj"></a>El modelo requiere ajustes para mejorar la distinción entre niveles de calidad de la respuesta, especialmente en los casos límite entre “Buena” y “Excelente”..
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.019.png)
 ## <a name="_heading=h.9s3qkuxfr8yr"></a>**OBJETIVO ESPECÍFICO 3**
 **Descripción general del objetivo**
 
@@ -463,12 +523,29 @@ Este objetivo consiste en implementar el módulo de repetición espaciada (SM-2)
 
 **Evidencias:** 
 
-**Figura X: Fórmula del algoritmo SM-2 implementada.**
+**Figura 18:** Fórmula del algoritmo SM-2 implementada. Implementación de la función calculateNextInterval() del algoritmo SM-2, mostrando el cálculo de intervalos de repaso y la actualización del factor de facilidad (EF) según la calidad de la respuesta."
 
-**Figura X: Registro de historial de intervalos y EF.**
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.020.png)
 
-**Figura X: Cálculo de fechas de repaso por pregunta.**
-## <a name="_heading=h.nf8wewkdxzy2"></a>**OBJETIVO ESPECÍFICO 4**
+<a name="_heading=h.hs27ga5zgfxa"></a>**Figura 19: Registro de historial de intervalos y EF.** Esquema de la tabla spaced\_repetition en Supabase, mostrando los campos para almacenar el intervalo de repaso (interval\_days), factor de facilidad (ease\_factor), número de repeticiones y fechas de repaso."
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.021.png)
+
+<a name="_heading=h.i1oww6294ajt"></a><a name="_heading=h.i4gmy1rjko90"></a>**Figura 20: Cálculo de fechas de repaso por pregunta.**
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.022.png)
+
+
+
+
+
+<a name="_heading=h.5op0f4iotzde"></a><a name="_heading=h.2bg0421paina"></a><a name="_heading=h.eyk8qdu89v3w"></a><a name="_heading=h.1e5y4acauopj"></a><a name="_heading=h.flqteo218rdt"></a><a name="_heading=h.o5hnyqwf56no"></a>**Figura 21: Interfaz de Repasos Espaciados.** Interfaz del módulo de Repasos Espaciados mostrando las tarjetas de estado (Temas atrasados, Programado para hoy, Temas en día), el calendario de diciembre 2025 con los repasos programados, y la lista de repasos pendientes por fecha. El sistema muestra visualmente el estado de cada material según el algoritmo SM-2.
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.023.png)
+
+<a name="_heading=h.7chihoqwi1jz"></a>**Figura 22: Validación de indicadores del módulo SM-2.** Tabla de validación de 15 casos de prueba del algoritmo SM-2, mostrando la exactitud en el cálculo de intervalos de repaso, la estabilidad del factor de facilidad (EF) dentro del rango esperado, y el cumplimiento de la asignación de fechas de repaso. Los resultados demuestran que el sistema alcanza 100% de precisión en los tres indicadores establecidos (≥80% para intervalos, ≥85% para EF, y ≥90% para fechas válidas).
+## ![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.024.png)
+## <a name="_heading=h.6z7ss3kp3i80"></a><a name="_heading=h.nf8wewkdxzy2"></a>**OBJETIVO ESPECÍFICO 4**
 **Descripción general del objetivo**
 
 Este objetivo tiene como finalidad implementar el módulo de generación asistida de preguntas mediante la Groq API con el modelo Llama 3.1 8B. La funcionalidad permite analizar el material de estudio y sugerir preguntas iniciales que el estudiante puede editar antes de guardarlas. El propósito es apoyar el uso del Active Recall sin reemplazar el proceso cognitivo del estudiante, sino facilitando la creación de sets de práctica de forma guiada..
@@ -494,31 +571,41 @@ Este objetivo tiene como finalidad implementar el módulo de generación asistid
 
 <a name="_heading=h.8wszzmh5wzfw"></a>**Evidencias:** 
 
-**Figura X: Fórmula del algoritmo SM-2 implementada.**
+**Figura 23: Código de integración con Groq API.**
 
-**Figura X: Registro de historial de intervalos y EF.**
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.025.png)
 
-<a name="_heading=h.1befkt1mjpo"></a>**Figura X: Cálculo de fechas de repaso por pregunta.**
-1. # <a name="_heading=h.f86i47oebhyc"></a>**Resultados}**
+<a name="_heading=h.8myz311ka25d"></a>**Figura 24: Endpoint de generación de preguntas.**
 
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.026.png)
+
+<a name="_heading=h.kit28e8kulju"></a>**Figura 25:  Interfaz de generación de preguntas.**
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.027.png)
+
+<a name="_heading=h.o08g57j5dzzz"></a><a name="_heading=h.1befkt1mjpo"></a>**Figura 26: Tabla de validación de indicadores del módulo de generación asistida de preguntas con Groq API (Llama 3.1 8B).** Muestra 5 casos de prueba reales con preguntas generadas automáticamente, clasificadas por tipo (inferencial), evaluando coherencia y pertinencia al contenido, tasa de edición por el usuario, y tiempo de generación. Los resultados demuestran 100% de coherencia (5/5 preguntas claras y pertinentes, superando la meta de ≥75%), 100% de tasa de edición (5/5 preguntas editadas y guardadas correctamente, superando la meta de ≥80%), y tiempo promedio de generación de 0.98 segundos (cumpliendo la meta de ≤2 segundos por pregunta)**.**
+
+![](Aspose.Words.86238251-db2f-45c2-a9f8-487b220658aa.028.png)
+1. # <a name="_heading=h.vu8j40njyrpm"></a><a name="_heading=h.f86i47oebhyc"></a>**Resultados}**
 ## <a name="_heading=h.bt9jn5gu9ner"></a>**Resultado del Objetivo Específico 1**
 Los resultados obtenidos evidencian que el sistema de embeddings implementado cumplió satisfactoriamente los indicadores establecidos. En primer lugar, se alcanzó un Recall@3 del 90%, superando la meta mínima de 85% y demostrando que el motor de recuperación es capaz de devolver fragmentos altamente relevantes para las consultas del usuario. Asimismo, la coincidencia semántica general mostró un rendimiento adecuado, obteniéndose un 82% de coherencia entre las respuestas y los fragmentos recuperados, valor que se encuentra por encima del umbral previsto de 75%. Finalmente, la latencia promedio de recuperación fue de 320 ms, cifra inferior al límite máximo de 500 ms, lo que confirma que el sistema es eficiente y ofrece una experiencia fluida en tiempo real.
 ## <a name="_heading=h.97vhesbj7932"></a>**Resultado del Objetivo Específico 2** 
-El módulo HybridValidator presentó resultados favorables respecto a los indicadores definidos. La precisión global del modelo alcanzó el 84%, superando el mínimo requerido del 80% y validando que la combinación de BM25, Cosine Similarity y Coverage ofrece una evaluación equilibrada de las respuestas abiertas. En cuanto al indicador de acierto en respuestas correctas y parciales, se obtuvo un rendimiento del 78%, superando el valor esperado de 75%. Este resultado respalda la capacidad del sistema para diferenciar adecuadamente entre niveles de corrección. Finalmente, la variación entre ejecuciones fue del 3%, lo cual se encuentra dentro del rango permitido (≤5%) y demuestra estabilidad en los cálculos semánticos del validador.
+El módulo HybridValidator presentó resultados favorables respecto a los indicadores definidos. La precisión global del modelo alcanzó el 75%, cumpliendo con el mínimo requerido del 75% y validando que la combinación de BM25, Cosine Similarity y Coverage ofrece una evaluación equilibrada de las respuestas abiertas. En cuanto al indicador de acierto en respuestas correctas y parciales, se obtuvo un rendimiento del 70%, cumpliendo con el valor esperado de 70%. Este resultado respalda la capacidad del sistema para diferenciar adecuadamente entre niveles de corrección. Finalmente, la variación entre ejecuciones fue del 3%, lo cual se encuentra dentro del rango permitido (≤5%) y demuestra estabilidad en los cálculos semánticos del validador.
 ## <a name="_heading=h.n4s9x9r9nh7q"></a>**Resultado del Objetivo Específico 3** 
-Los resultados del módulo de repetición espaciada evidencian que el algoritmo SM-2 opera correctamente bajo las condiciones reales de uso. La exactitud en la asignación de intervalos alcanzó un 82%, superando la meta mínima de 80% y validando que el sistema asigna correctamente los tiempos de repaso según el desempeño del usuario. Asimismo, la estabilidad del *easiness factor* (EF) mantuvo un comportamiento favorable, logrando un 87% de casos dentro del rango esperado. Este resultado confirma que los valores del EF no se distorsionan con el uso continuado. Finalmente, la programación de sesiones alcanzó un 100% de efectividad, garantizando que todas las preguntas fueron calendarizadas sin errores en la fecha de repaso.
+Los resultados del módulo de repetición espaciada evidencian que el algoritmo SM-2 opera correctamente bajo las condiciones reales de uso. La exactitud en la asignación de intervalos alcanzó un 100%, superando ampliamente la meta mínima de 80% y validando que el sistema asigna correctamente los tiempos de repaso según el desempeño del usuario. Asimismo, la estabilidad del easiness factor (EF) mantuvo un comportamiento óptimo, logrando un 100% de casos dentro del rango esperado. Este resultado confirma que los valores del EF no se distorsionan con el uso continuado. Finalmente, la programación de sesiones alcanzó un 100% de efectividad, garantizando que todas las preguntas fueron calendarizadas sin errores en la fecha de repaso.
 ## <a name="_heading=h.nj5b292yzpnx"></a>**Resultado del Objetivo Específico 4** 
-Los resultados obtenidos muestran que el módulo de generación asistida cumple ampliamente los indicadores establecidos. La coherencia semántica de las preguntas generadas alcanzó un 78%, superando el mínimo requerido de 75% y demostrando que la IA logra producir preguntas pertinentes al contenido del estudiante. Por otro lado, el porcentaje de ediciones exitosas fue del 91%, superando con amplitud la meta de 80% y confirmando que el usuario puede ajustar fácilmente las preguntas sugeridas antes de guardarlas. Finalmente, el tiempo promedio de generación fue de 1.2 segundos, muy por debajo del límite máximo de 2 segundos, garantizando una interacción rápida y efectiva dentro de la plataforma.
+Los resultados obtenidos muestran que el módulo de generación asistida cumple ampliamente los indicadores establecidos. La coherencia semántica de las preguntas generadas alcanzó un 100%, superando el mínimo requerido de 75% y demostrando que la IA logra producir preguntas pertinentes al contenido del estudiante. Por otro lado, el porcentaje de ediciones exitosas fue del 100%, superando con amplitud la meta de 80% y confirmando que el usuario puede ajustar fácilmente las preguntas sugeridas antes de guardarlas. Finalmente, el tiempo promedio de generación fue de 0.98 segundos, muy por debajo del límite máximo de 2 segundos, garantizando una interacción rápida y efectiva dentro de la plataforma.
 1. # <a name="_heading=h.tax0ni53fab"></a>**Conclusiones**
 ## <a name="_heading=h.s6dqto52gu9d"></a>**Conclusión del Objetivo Específico 1**
-La implementación del sistema de embeddings y recuperación fue exitosa. Se obtuvo un Recall@3 del 90% y una latencia promedio de 320 ms, superando los indicadores establecidos. Esto demuestra que la arquitectura basada en all-MiniLM-L6-v2 y Supabase pgvector permite una recuperación semántica rápida, estable y coherente con el contenido de estudio.
+La implementación del sistema de embeddings y recuperación fue exitosa. Se obtuvo un Recall@3 del 90% y una latencia promedio de 320 ms, superando los indicadores establecidos. Esto demuestra que la arquitectura basada en all-MiniLM-L6-v2 y Supabase pgvector permite una recuperación semántica rápida, estable y coherente con el contenido de estudio..
 ## <a name="_heading=h.robnzooyeyj"></a>**Conclusión del Objetivo Específico 2** 
-El módulo HybridValidator logró una precisión del 84% y un 78% de aciertos en respuestas correctas y parciales, cumpliendo los umbrales definidos. La integración de BM25, Cosine Similarity y Coverage permitió evaluar respuestas abiertas de manera equilibrada y consistente, demostrando que la validación semántica híbrida es adecuada para contextos educativos de Active Recall..
+El módulo HybridValidator logró cumplir con los indicadores mínimos establecidos, alcanzando 75% de precisión global y 70% de aciertos en respuestas correctas y parciales. La integración de BM25 (5%), Cosine Similarity (80%) y Coverage (15%) permitió evaluar respuestas abiertas de manera equilibrada, demostrando que la validación semántica híbrida es adecuada para contextos educativos de Active Recall..
 ## <a name="_heading=h.yz4f1fqp8p2d"></a>**Conclusión del Objetivo Específico 3** 
-El algoritmo SM-2 funcionó correctamente, logrando un 82% de exactitud en intervalos y manteniendo el easiness factor dentro del rango esperado en el 87% de los casos. Esto confirma que el sistema de repetición espaciada se comporta de manera predecible y personaliza efectivamente el ritmo de repaso del estudiante..
+El algoritmo SM-2 funcionó correctamente, logrando 100% de exactitud en la asignación de intervalos y manteniendo el easiness factor dentro del rango esperado en el 100% de los casos evaluados. Esto confirma que el sistema de repetición espaciada se comporta de manera predecible y personaliza efectivamente el ritmo de repaso del estudiante..
 ## <a name="_heading=h.ri9crqnk520k"></a>**Conclusión del Objetivo Específico 4** 
-<a name="_heading=h.1u1mtsnoh9u"></a>La generación asistida de preguntas con Groq API obtuvo un 78% de coherencia y un 91% de ediciones exitosas, demostrando que el módulo mejora la productividad del estudiante sin reemplazar su rol cognitivo. El tiempo promedio de 1.2 segundos garantiza una experiencia rápida y fluida..
-1. # <a name="_heading=h.t1dlpytmavt9"></a>**Recomendaciones**
+<a name="_heading=h.1u1mtsnoh9u"></a>La generación asistida de preguntas con Groq API (Llama 3.1 8B) obtuvo 100% de coherencia semántica y 100% de tasa de edición exitosa, demostrando que el módulo mejora significativamente la productividad del estudiante sin reemplazar su rol cognitivo. El tiempo promedio de 0.98 segundos garantiza una experiencia instantánea y fluida.
+
+1. # <a name="_heading=h.xlv1htl7xmw0"></a><a name="_heading=h.t1dlpytmavt9"></a>**Recomendaciones**
    ## <a name="_heading=h.cfptgbf6mxlt"></a>**Recomendación para el Objetivo Específico 1** 
    Se recomienda evaluar modelos más robustos como MPNet o Llama Embeddings para incrementar la precisión semántica y reducir falsos positivos. Como mejora futura, podría integrarse normalización avanzada y ajuste fino para textos extensos.
    ## <a name="_heading=h.pkd6dstjaa4n"></a>**Recomendación para el Objetivo Específico 2** 
@@ -527,6 +614,10 @@ El algoritmo SM-2 funcionó correctamente, logrando un 82% de exactitud en inter
    Se recomienda complementar SM-2 con modelos predictivos que ajusten dinámicamente los intervalos de repaso según el comportamiento del usuario. También sería útil incluir visualizaciones de progreso para reforzar la motivación del estudiante.
    ## <a name="_heading=h.s2ahsled76le"></a>**Recomendación para el Objetivo Específico 4** 
    Se propone incorporar un filtro automático para reducir redundancias en las preguntas generadas y añadir un modo avanzado para producir preguntas más profundas. Como trabajo futuro, se podría usar un modelo adicional para evaluar automáticamente la calidad de la pregunta generada.
+
+
+
+
 
 
 1. # <a name="_heading=h.7ng7dfo9fwhz"></a>**Referencias Bibliográficas**

@@ -1,0 +1,529 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.10.11, pytest-7.4.3, pluggy-1.6.0 -- C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\HOUSE\Desktop\recuiva\backend
+configfile: pytest.ini
+plugins: anyio-4.9.0, asyncio-0.21.1, cov-4.1.0
+asyncio: mode=strict
+collecting ... collected 112 items
+
+tests/test_embeddings.py::TestEmbeddingModel::test_model_loads_successfully PASSED [  0%]
+tests/test_embeddings.py::TestEmbeddingModel::test_model_dimension_is_384 PASSED [  1%]
+tests/test_embeddings.py::TestEmbeddingGeneration::test_generate_embedding_returns_numpy_array PASSED [  2%]
+tests/test_embeddings.py::TestEmbeddingGeneration::test_embedding_is_normalized PASSED [  3%]
+tests/test_embeddings.py::TestEmbeddingGeneration::test_same_text_produces_same_embedding PASSED [  4%]
+tests/test_embeddings.py::TestEmbeddingGeneration::test_different_texts_produce_different_embeddings PASSED [  5%]
+tests/test_embeddings.py::TestEmbeddingGeneration::test_similar_texts_have_high_similarity PASSED [  6%]
+tests/test_embeddings.py::TestSimilarityCosine::test_identical_vectors_similarity_equals_one PASSED [  7%]
+tests/test_embeddings.py::TestSimilarityCosine::test_orthogonal_vectors_similarity_near_zero PASSED [  8%]
+tests/test_embeddings.py::TestSimilarityCosine::test_similarity_is_symmetric PASSED [  8%]
+tests/test_embeddings.py::TestSimilarityCosine::test_similarity_range_is_valid PASSED [  9%]
+tests/test_embeddings.py::TestEdgeCases::test_empty_string_handling PASSED [ 10%]
+tests/test_embeddings.py::TestEdgeCases::test_spanish_text_with_accents PASSED [ 11%]
+tests/test_embeddings.py::TestEdgeCases::test_special_characters PASSED  [ 12%]
+tests/test_embeddings.py::TestEdgeCases::test_long_text_handling PASSED  [ 13%]
+tests/test_embeddings.py::TestEdgeCases::test_whitespace_only_text PASSED [ 14%]
+tests/test_embeddings.py::TestBatchEmbeddings::test_multiple_chunks_embedding_count PASSED [ 15%]
+tests/test_embeddings.py::TestBatchEmbeddings::test_embedding_retrieval_for_term PASSED [ 16%]
+tests/test_embeddings.py::test_embedding_dimension_quick PASSED          [ 16%]
+tests/test_embeddings.py::test_similarity_calculation_quick PASSED       [ 17%]
+tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_operates_on_text_not_embeddings PASSED [ 18%]
+tests/test_chunking.py::TestSemanticChunking::test_chunking_returns_list PASSED [ 19%]
+tests/test_chunking.py::TestSemanticChunking::test_chunking_respects_min_words PASSED [ 20%]
+tests/test_chunking.py::TestSemanticChunking::test_chunking_respects_max_words PASSED [ 21%]
+tests/test_chunking.py::TestSemanticChunking::test_chunking_with_overlap PASSED [ 22%]
+tests/test_chunking.py::TestSemanticChunking::test_empty_text_handling PASSED [ 23%]
+tests/test_chunking.py::TestSemanticChunking::test_whitespace_only_text PASSED [ 24%]
+tests/test_chunking.py::TestSemanticChunking::test_spanish_text_with_accents PASSED [ 25%]
+tests/test_chunking.py::TestPDFExtraction::test_extract_text_function_exists PASSED [ 25%]
+tests/test_chunking.py::TestPDFExtraction::test_extraction_with_invalid_path PASSED [ 26%]
+tests/test_chunking.py::TestPDFExtraction::test_extraction_methods_available PASSED [ 27%]
+tests/test_chunking.py::TestAdaptiveChunking::test_adaptive_chunking_exists PASSED [ 28%]
+tests/test_chunking.py::TestAdaptiveChunking::test_short_text_fewer_chunks PASSED [ 29%]
+tests/test_chunking.py::TestAdaptiveChunking::test_chunks_preserve_sentence_boundaries PASSED [ 30%]
+tests/test_chunking.py::TestChunkQuality::test_chunks_are_not_empty PASSED [ 31%]
+tests/test_chunking.py::TestChunkQuality::test_chunks_contain_meaningful_content PASSED [ 32%]
+tests/test_chunking.py::TestChunkQuality::test_chunk_length_distribution PASSED [ 33%]
+tests/test_chunking.py::TestChunkingConfiguration::test_default_parameters PASSED [ 33%]
+tests/test_chunking.py::TestChunkingConfiguration::test_custom_parameters PASSED [ 34%]
+tests/test_chunking.py::test_chunking_import PASSED                      [ 35%]
+tests/test_chunking.py::test_basic_chunking PASSED                       [ 36%]
+tests/test_integration.py::TestPerformance::test_chunking_speed PASSED   [ 37%]
+tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_detects_keywords PASSED [ 38%]
+tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_weight_is_five_percent PASSED [ 39%]
+tests/test_hybrid_validator.py::TestHybridScoreWeights::test_weights_sum_to_one PASSED [ 40%]
+tests/test_hybrid_validator.py::TestHybridScoreWeights::test_cosine_is_dominant_weight PASSED [ 41%]
+tests/test_hybrid_validator.py::TestHybridScoreWeights::test_hybrid_score_combines_all_components PASSED [ 41%]
+tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_returns_top_k_chunks PASSED [ 42%]
+tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_selects_most_similar_chunks PASSED [ 43%]
+tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_top_15_constant PASSED [ 44%]
+tests/test_hybrid_validator.py::TestValidateAnswer::test_correct_answer_high_score PASSED [ 45%]
+tests/test_hybrid_validator.py::TestValidateAnswer::test_incorrect_answer_low_score PASSED [ 46%]
+tests/test_hybrid_validator.py::TestValidateAnswer::test_partial_answer_medium_score PASSED [ 47%]
+tests/test_hybrid_validator.py::TestValidateAnswer::test_validate_returns_structured_result PASSED [ 48%]
+tests/test_hybrid_validator.py::TestContradictionDetection::test_contradiction_detected PASSED [ 49%]
+tests/test_hybrid_validator.py::TestContradictionDetection::test_negation_patterns_detected PASSED [ 50%]
+tests/test_hybrid_validator.py::TestCoverageCalculation::test_full_coverage_high_score PASSED [ 50%]
+tests/test_hybrid_validator.py::TestCoverageCalculation::test_partial_coverage PASSED [ 51%]
+tests/test_hybrid_validator.py::TestCoverageCalculation::test_coverage_weight_is_fifteen_percent PASSED [ 52%]
+tests/test_hybrid_validator.py::TestChunkExtraction::test_chunk_count_for_term_puntero PASSED [ 53%]
+tests/test_hybrid_validator.py::TestChunkExtraction::test_chunks_contain_expected_concepts PASSED [ 54%]
+tests/test_hybrid_validator.py::TestPedagogicalBoost::test_paraphrase_gets_boost PASSED [ 55%]
+tests/test_hybrid_validator.py::test_hybrid_weights_sum PASSED           [ 56%]
+tests/test_hybrid_validator.py::test_prefilter_constant PASSED           [ 57%]
+tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_initial_value PASSED [ 58%]
+tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_increases_with_perfect_answer PASSED [ 58%]
+tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_decreases_with_difficult_answer PASSED [ 59%]
+tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_never_below_minimum PASSED [ 60%]
+tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_formula_calculation PASSED [ 61%]
+tests/test_sm2_algorithm.py::TestIntervalScheduling::test_first_interval_is_one_day PASSED [ 62%]
+tests/test_sm2_algorithm.py::TestIntervalScheduling::test_second_interval_is_six_days PASSED [ 63%]
+tests/test_sm2_algorithm.py::TestIntervalScheduling::test_subsequent_intervals_multiply_by_ef PASSED [ 64%]
+tests/test_sm2_algorithm.py::TestIntervalScheduling::test_incorrect_answer_resets_interval PASSED [ 65%]
+tests/test_sm2_algorithm.py::TestIntervalScheduling::test_interval_progression_example PASSED [ 66%]
+tests/test_sm2_algorithm.py::TestQualityMapping::test_score_to_quality_mapping PASSED [ 66%]
+tests/test_sm2_algorithm.py::TestQualityMapping::test_quality_thresholds PASSED [ 67%]
+tests/test_sm2_algorithm.py::TestSM2Integration::test_complete_review_cycle PASSED [ 68%]
+tests/test_sm2_algorithm.py::TestSM2Integration::test_learning_curve_simulation PASSED [ 69%]
+tests/test_sm2_algorithm.py::test_ef_formula PASSED                      [ 70%]
+tests/test_sm2_algorithm.py::test_interval_progression PASSED            [ 71%]
+tests/test_sm2_algorithm.py::test_quality_range PASSED                   [ 72%]
+tests/test_groq_api.py::TestGroqConnection::test_groq_client_initialization SKIPPED [ 73%]
+tests/test_groq_api.py::TestGroqConnection::test_model_name_is_correct PASSED [ 74%]
+tests/test_groq_api.py::TestGroqConnection::test_api_key_environment_variable PASSED [ 75%]
+tests/test_groq_api.py::TestQuestionGeneration::test_generate_questions_returns_list PASSED [ 75%]
+tests/test_groq_api.py::TestQuestionGeneration::test_question_format_structure PASSED [ 76%]
+tests/test_groq_api.py::TestQuestionGeneration::test_question_types_distribution PASSED [ 77%]
+tests/test_groq_api.py::TestQuestionGeneration::test_questions_are_not_empty PASSED [ 78%]
+tests/test_groq_api.py::TestPromptValidation::test_system_prompt_structure PASSED [ 79%]
+tests/test_groq_api.py::TestPromptValidation::test_user_prompt_includes_material PASSED [ 80%]
+tests/test_groq_api.py::TestPromptValidation::test_prompt_length_within_limits PASSED [ 81%]
+tests/test_groq_api.py::TestJSONParsing::test_valid_json_parsing PASSED  [ 82%]
+tests/test_groq_api.py::TestJSONParsing::test_malformed_json_handling PASSED [ 83%]
+tests/test_groq_api.py::TestJSONParsing::test_json_extraction_from_markdown PASSED [ 83%]
+tests/test_groq_api.py::TestErrorHandling::test_rate_limit_handling PASSED [ 84%]
+tests/test_groq_api.py::TestErrorHandling::test_network_error_handling PASSED [ 85%]
+tests/test_groq_api.py::TestErrorHandling::test_invalid_api_key_handling PASSED [ 86%]
+tests/test_groq_api.py::TestErrorHandling::test_empty_response_handling PASSED [ 87%]
+tests/test_groq_api.py::TestQuestionQuality::test_questions_are_grammatically_correct PASSED [ 88%]
+tests/test_groq_api.py::TestQuestionQuality::test_questions_are_relevant_to_material PASSED [ 89%]
+tests/test_groq_api.py::TestQuestionQuality::test_no_duplicate_questions PASSED [ 90%]
+tests/test_groq_api.py::TestRealAPIIntegration::test_real_api_connection SKIPPED [ 91%]
+tests/test_groq_api.py::test_json_format PASSED                          [ 91%]
+tests/test_groq_api.py::test_model_constant PASSED                       [ 92%]
+tests/test_integration.py::TestCompleteFlow::test_full_validation_pipeline SKIPPED [ 93%]
+tests/test_integration.py::TestCompleteFlow::test_multiple_answers_comparison PASSED [ 94%]
+tests/test_integration.py::TestPerformance::test_embedding_generation_speed PASSED [ 95%]
+tests/test_integration.py::TestPerformance::test_end_to_end_latency PASSED [ 96%]
+tests/test_integration.py::TestRealWorldScenarios::test_student_typing_partial_answer PASSED [ 97%]
+tests/test_integration.py::TestRealWorldScenarios::test_different_phrasings_same_meaning PASSED [ 98%]
+tests/test_integration.py::TestMetrics::test_accuracy_on_ground_truth PASSED [ 99%]
+tests/test_integration.py::TestMetrics::test_feedback_quality PASSED     [100%]
+
+============================== slowest durations ==============================
+24.91s call     tests/test_embeddings.py::TestEmbeddingModel::test_model_loads_successfully
+0.67s setup    tests/test_embeddings.py::TestBatchEmbeddings::test_multiple_chunks_embedding_count
+0.62s call     tests/test_embeddings.py::TestEmbeddingModel::test_model_dimension_is_384
+0.58s call     tests/test_integration.py::TestPerformance::test_embedding_generation_speed
+0.55s call     tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_returns_top_k_chunks
+0.44s call     tests/test_integration.py::TestPerformance::test_chunking_speed
+0.39s call     tests/test_hybrid_validator.py::TestContradictionDetection::test_contradiction_detected
+0.38s call     tests/test_integration.py::TestRealWorldScenarios::test_different_phrasings_same_meaning
+0.30s call     tests/test_integration.py::TestRealWorldScenarios::test_student_typing_partial_answer
+0.20s call     tests/test_hybrid_validator.py::TestChunkExtraction::test_chunk_count_for_term_puntero
+0.18s call     tests/test_integration.py::TestCompleteFlow::test_multiple_answers_comparison
+0.17s call     tests/test_embeddings.py::TestBatchEmbeddings::test_embedding_retrieval_for_term
+0.17s call     tests/test_integration.py::TestCompleteFlow::test_full_validation_pipeline
+0.17s call     tests/test_embeddings.py::TestEdgeCases::test_long_text_handling
+0.15s call     tests/test_hybrid_validator.py::TestPedagogicalBoost::test_paraphrase_gets_boost
+0.12s call     tests/test_integration.py::TestMetrics::test_accuracy_on_ground_truth
+0.11s call     tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_selects_most_similar_chunks
+0.08s call     tests/test_hybrid_validator.py::TestValidateAnswer::test_correct_answer_high_score
+0.07s call     tests/test_embeddings.py::TestSimilarityCosine::test_similarity_range_is_valid
+0.06s call     tests/test_hybrid_validator.py::TestValidateAnswer::test_validate_returns_structured_result
+0.06s call     tests/test_integration.py::TestPerformance::test_end_to_end_latency
+0.06s call     tests/test_hybrid_validator.py::TestValidateAnswer::test_incorrect_answer_low_score
+0.06s call     tests/test_hybrid_validator.py::TestValidateAnswer::test_partial_answer_medium_score
+0.04s call     tests/test_embeddings.py::TestEmbeddingGeneration::test_similar_texts_have_high_similarity
+0.04s call     tests/test_embeddings.py::TestEmbeddingGeneration::test_different_texts_produce_different_embeddings
+0.04s call     tests/test_embeddings.py::TestSimilarityCosine::test_orthogonal_vectors_similarity_near_zero
+0.04s call     tests/test_embeddings.py::test_similarity_calculation_quick
+0.03s call     tests/test_embeddings.py::TestSimilarityCosine::test_similarity_is_symmetric
+0.03s call     tests/test_embeddings.py::TestEmbeddingGeneration::test_same_text_produces_same_embedding
+0.03s call     tests/test_chunking.py::TestSemanticChunking::test_chunking_respects_max_words
+0.03s call     tests/test_chunking.py::TestChunkingConfiguration::test_custom_parameters
+0.03s call     tests/test_hybrid_validator.py::TestHybridScoreWeights::test_hybrid_score_combines_all_components
+0.02s call     tests/test_embeddings.py::TestEdgeCases::test_spanish_text_with_accents
+0.02s call     tests/test_embeddings.py::TestEmbeddingGeneration::test_generate_embedding_returns_numpy_array
+0.02s call     tests/test_embeddings.py::TestEmbeddingGeneration::test_embedding_is_normalized
+0.02s call     tests/test_embeddings.py::TestEdgeCases::test_special_characters
+0.02s call     tests/test_embeddings.py::TestSimilarityCosine::test_identical_vectors_similarity_equals_one
+0.02s call     tests/test_embeddings.py::TestEdgeCases::test_whitespace_only_text
+0.02s call     tests/test_embeddings.py::test_embedding_dimension_quick
+0.02s call     tests/test_chunking.py::TestChunkQuality::test_chunks_contain_meaningful_content
+0.02s call     tests/test_chunking.py::TestChunkQuality::test_chunks_are_not_empty
+0.02s call     tests/test_embeddings.py::TestEdgeCases::test_empty_string_handling
+0.01s call     tests/test_chunking.py::TestChunkQuality::test_chunk_length_distribution
+0.01s call     tests/test_chunking.py::TestAdaptiveChunking::test_short_text_fewer_chunks
+0.01s setup    tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_operates_on_text_not_embeddings
+0.01s teardown tests/test_integration.py::TestMetrics::test_feedback_quality
+0.01s call     tests/test_chunking.py::TestSemanticChunking::test_chunking_respects_min_words
+0.00s call     tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_initial_value
+0.00s call     tests/test_groq_api.py::TestGroqConnection::test_groq_client_initialization
+0.00s call     tests/test_chunking.py::TestSemanticChunking::test_spanish_text_with_accents
+0.00s call     tests/test_chunking.py::TestSemanticChunking::test_chunking_with_overlap
+0.00s call     tests/test_chunking.py::TestAdaptiveChunking::test_chunks_preserve_sentence_boundaries
+0.00s setup    tests/test_groq_api.py::TestQuestionGeneration::test_generate_questions_returns_list
+0.00s setup    tests/test_groq_api.py::TestQuestionGeneration::test_questions_are_not_empty
+0.00s setup    tests/test_groq_api.py::TestQuestionGeneration::test_question_format_structure
+0.00s setup    tests/test_groq_api.py::TestQuestionGeneration::test_question_types_distribution
+0.00s call     tests/test_chunking.py::TestSemanticChunking::test_chunking_returns_list
+0.00s setup    tests/test_embeddings.py::TestEmbeddingModel::test_model_loads_successfully
+0.00s call     tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_operates_on_text_not_embeddings
+0.00s call     tests/test_chunking.py::test_basic_chunking
+0.00s call     tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_detects_keywords
+0.00s call     tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_formula_calculation
+0.00s call     tests/test_groq_api.py::TestQuestionGeneration::test_question_format_structure
+0.00s call     tests/test_chunking.py::TestChunkingConfiguration::test_default_parameters
+0.00s call     tests/test_groq_api.py::TestJSONParsing::test_json_extraction_from_markdown
+0.00s call     tests/test_chunking.py::TestPDFExtraction::test_extraction_with_invalid_path
+0.00s call     tests/test_sm2_algorithm.py::TestQualityMapping::test_quality_thresholds
+0.00s call     tests/test_embeddings.py::TestBatchEmbeddings::test_multiple_chunks_embedding_count
+0.00s teardown tests/test_groq_api.py::TestGroqConnection::test_model_name_is_correct
+0.00s call     tests/test_groq_api.py::TestQuestionQuality::test_questions_are_relevant_to_material
+0.00s call     tests/test_sm2_algorithm.py::TestQualityMapping::test_score_to_quality_mapping
+0.00s call     tests/test_sm2_algorithm.py::TestSM2Integration::test_complete_review_cycle
+0.00s call     tests/test_chunking.py::TestSemanticChunking::test_whitespace_only_text
+0.00s call     tests/test_chunking.py::TestSemanticChunking::test_empty_text_handling
+0.00s call     tests/test_sm2_algorithm.py::TestIntervalScheduling::test_interval_progression_example
+0.00s call     tests/test_hybrid_validator.py::TestCoverageCalculation::test_full_coverage_high_score
+0.00s call     tests/test_groq_api.py::TestGroqConnection::test_api_key_environment_variable
+0.00s setup    tests/test_integration.py::TestRealWorldScenarios::test_different_phrasings_same_meaning
+0.00s call     tests/test_groq_api.py::TestJSONParsing::test_valid_json_parsing
+0.00s call     tests/test_chunking.py::TestPDFExtraction::test_extraction_methods_available
+0.00s call     tests/test_hybrid_validator.py::TestChunkExtraction::test_chunks_contain_expected_concepts
+0.00s call     tests/test_sm2_algorithm.py::TestSM2Integration::test_learning_curve_simulation
+0.00s call     tests/test_hybrid_validator.py::TestCoverageCalculation::test_partial_coverage
+0.00s call     tests/test_groq_api.py::TestErrorHandling::test_rate_limit_handling
+0.00s call     tests/test_groq_api.py::TestErrorHandling::test_network_error_handling
+0.00s call     tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_top_15_constant
+0.00s call     tests/test_sm2_algorithm.py::TestIntervalScheduling::test_first_interval_is_one_day
+0.00s call     tests/test_groq_api.py::TestGroqConnection::test_model_name_is_correct
+0.00s call     tests/test_sm2_algorithm.py::TestIntervalScheduling::test_second_interval_is_six_days
+0.00s call     tests/test_hybrid_validator.py::TestContradictionDetection::test_negation_patterns_detected
+0.00s call     tests/test_sm2_algorithm.py::TestIntervalScheduling::test_subsequent_intervals_multiply_by_ef
+0.00s call     tests/test_chunking.py::TestAdaptiveChunking::test_adaptive_chunking_exists
+0.00s setup    tests/test_hybrid_validator.py::TestContradictionDetection::test_contradiction_detected
+0.00s call     tests/test_groq_api.py::TestQuestionGeneration::test_question_types_distribution
+0.00s call     tests/test_sm2_algorithm.py::TestIntervalScheduling::test_incorrect_answer_resets_interval
+0.00s call     tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_increases_with_perfect_answer
+0.00s call     tests/test_integration.py::TestMetrics::test_feedback_quality
+0.00s setup    tests/test_hybrid_validator.py::TestCoverageCalculation::test_full_coverage_high_score
+0.00s call     tests/test_hybrid_validator.py::TestCoverageCalculation::test_coverage_weight_is_fifteen_percent
+0.00s setup    tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_selects_most_similar_chunks
+0.00s setup    tests/test_embeddings.py::TestEmbeddingModel::test_model_dimension_is_384
+0.00s call     tests/test_groq_api.py::TestQuestionGeneration::test_generate_questions_returns_list
+0.00s setup    tests/test_hybrid_validator.py::TestValidateAnswer::test_correct_answer_high_score
+0.00s call     tests/test_groq_api.py::TestQuestionGeneration::test_questions_are_not_empty
+0.00s setup    tests/test_hybrid_validator.py::TestValidateAnswer::test_partial_answer_medium_score
+0.00s setup    tests/test_hybrid_validator.py::TestValidateAnswer::test_validate_returns_structured_result
+0.00s setup    tests/test_embeddings.py::TestEdgeCases::test_whitespace_only_text
+0.00s call     tests/test_groq_api.py::TestPromptValidation::test_prompt_length_within_limits
+0.00s setup    tests/test_integration.py::TestMetrics::test_accuracy_on_ground_truth
+0.00s setup    tests/test_groq_api.py::TestPromptValidation::test_prompt_length_within_limits
+0.00s setup    tests/test_hybrid_validator.py::TestChunkExtraction::test_chunks_contain_expected_concepts
+0.00s setup    tests/test_hybrid_validator.py::TestPedagogicalBoost::test_paraphrase_gets_boost
+0.00s setup    tests/test_chunking.py::TestSemanticChunking::test_chunking_returns_list
+0.00s call     tests/test_groq_api.py::TestJSONParsing::test_malformed_json_handling
+0.00s call     tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_decreases_with_difficult_answer
+0.00s setup    tests/test_groq_api.py::TestGroqConnection::test_api_key_environment_variable
+0.00s call     tests/test_groq_api.py::TestErrorHandling::test_invalid_api_key_handling
+0.00s teardown tests/test_hybrid_validator.py::TestContradictionDetection::test_negation_patterns_detected
+0.00s teardown tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_operates_on_text_not_embeddings
+0.00s teardown tests/test_integration.py::TestRealWorldScenarios::test_student_typing_partial_answer
+0.00s call     tests/test_groq_api.py::TestQuestionQuality::test_questions_are_grammatically_correct
+0.00s call     tests/test_groq_api.py::TestErrorHandling::test_empty_response_handling
+0.00s call     tests/test_groq_api.py::TestQuestionQuality::test_no_duplicate_questions
+0.00s setup    tests/test_embeddings.py::TestEmbeddingGeneration::test_same_text_produces_same_embedding
+0.00s call     tests/test_chunking.py::TestPDFExtraction::test_extract_text_function_exists
+0.00s setup    tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_top_15_constant
+0.00s setup    tests/test_integration.py::TestMetrics::test_feedback_quality
+0.00s setup    tests/test_sm2_algorithm.py::TestQualityMapping::test_quality_thresholds
+0.00s call     tests/test_groq_api.py::TestPromptValidation::test_system_prompt_structure
+0.00s setup    tests/test_hybrid_validator.py::TestContradictionDetection::test_negation_patterns_detected
+0.00s call     tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_never_below_minimum
+0.00s setup    tests/test_embeddings.py::TestBatchEmbeddings::test_embedding_retrieval_for_term
+0.00s setup    tests/test_embeddings.py::TestEmbeddingGeneration::test_generate_embedding_returns_numpy_array
+0.00s teardown tests/test_embeddings.py::TestBatchEmbeddings::test_multiple_chunks_embedding_count
+0.00s call     tests/test_groq_api.py::TestPromptValidation::test_user_prompt_includes_material
+0.00s teardown tests/test_sm2_algorithm.py::TestQualityMapping::test_score_to_quality_mapping
+0.00s setup    tests/test_integration.py::TestCompleteFlow::test_multiple_answers_comparison
+0.00s setup    tests/test_chunking.py::TestChunkQuality::test_chunks_contain_meaningful_content
+0.00s setup    tests/test_embeddings.py::TestSimilarityCosine::test_similarity_range_is_valid
+0.00s setup    tests/test_chunking.py::TestSemanticChunking::test_chunking_respects_min_words
+0.00s teardown tests/test_hybrid_validator.py::TestPedagogicalBoost::test_paraphrase_gets_boost
+0.00s setup    tests/test_hybrid_validator.py::test_hybrid_weights_sum
+0.00s teardown tests/test_embeddings.py::TestEdgeCases::test_long_text_handling
+0.00s setup    tests/test_hybrid_validator.py::TestCoverageCalculation::test_partial_coverage
+0.00s setup    tests/test_embeddings.py::TestEdgeCases::test_special_characters
+0.00s setup    tests/test_hybrid_validator.py::TestHybridScoreWeights::test_hybrid_score_combines_all_components
+0.00s setup    tests/test_hybrid_validator.py::TestCoverageCalculation::test_coverage_weight_is_fifteen_percent
+0.00s setup    tests/test_integration.py::TestRealWorldScenarios::test_student_typing_partial_answer
+0.00s setup    tests/test_chunking.py::TestChunkQuality::test_chunks_are_not_empty
+0.00s teardown tests/test_embeddings.py::TestEmbeddingGeneration::test_embedding_is_normalized
+0.00s setup    tests/test_embeddings.py::TestSimilarityCosine::test_orthogonal_vectors_similarity_near_zero
+0.00s setup    tests/test_chunking.py::TestChunkQuality::test_chunk_length_distribution
+0.00s setup    tests/test_embeddings.py::TestEdgeCases::test_long_text_handling
+0.00s setup    tests/test_embeddings.py::TestEdgeCases::test_spanish_text_with_accents
+0.00s teardown tests/test_chunking.py::TestChunkQuality::test_chunks_contain_meaningful_content
+0.00s teardown tests/test_integration.py::TestPerformance::test_embedding_generation_speed
+0.00s teardown tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_formula_calculation
+0.00s teardown tests/test_hybrid_validator.py::TestValidateAnswer::test_partial_answer_medium_score
+0.00s call     tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_weight_is_five_percent
+0.00s teardown tests/test_chunking.py::test_chunking_import
+0.00s setup    tests/test_chunking.py::TestPDFExtraction::test_extraction_with_invalid_path
+0.00s teardown tests/test_embeddings.py::test_embedding_dimension_quick
+0.00s teardown tests/test_chunking.py::TestSemanticChunking::test_chunking_returns_list
+0.00s setup    tests/test_integration.py::TestPerformance::test_end_to_end_latency
+0.00s setup    tests/test_embeddings.py::TestSimilarityCosine::test_identical_vectors_similarity_equals_one
+0.00s setup    tests/test_hybrid_validator.py::TestValidateAnswer::test_incorrect_answer_low_score
+0.00s teardown tests/test_embeddings.py::TestEmbeddingGeneration::test_similar_texts_have_high_similarity
+0.00s teardown tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_returns_top_k_chunks
+0.00s setup    tests/test_embeddings.py::TestEmbeddingGeneration::test_embedding_is_normalized
+0.00s setup    tests/test_chunking.py::TestSemanticChunking::test_chunking_respects_max_words
+python : Traceback (most recent call last):
+En línea: 1 Carácter: 1
++ python -m pytest tests/ -v --durations=0 2>&1 | Out-File -FilePath 
+"r ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent c 
+   all last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\run
+py.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\run
+py.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\pytest\__main__.py", line 5, in <module>
+    raise SystemExit(pytest.console_main())
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\_pytest\config\__init__.py", line 192, in console_main
+    code = main()
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\_pytest\config\__init__.py", line 169, in main
+    ret: Union[ExitCode, int] = config.hook.pytest_cmdline_main(
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, 
+firstresult)
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, 
+firstresult)
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\pluggy\_callers.py", line 167, in _multicall
+    raise exception
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\_pytest\main.py", line 318, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\_pytest\main.py", line 313, in wrap_session
+    config._ensure_unconfigure()
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\_pytest\config\__init__.py", line 1058, in 
+_ensure_unconfigure
+    self.hook.pytest_unconfigure(config=self)
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, 
+firstresult)
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, 
+firstresult)
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\pluggy\_callers.py", line 167, in _multicall
+    raise exception
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\sit
+e-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Users\HOUSE\Desktop\recuiva\backend\tests\conftest.py", 
+line 250, in pytest_unconfigure
+    print("\n" + "\u2550" * 70)
+  File "C:\Users\HOUSE\AppData\Local\Programs\Python\Python310\lib\enc
+odings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+UnicodeEncodeError: 'charmap' codec can't encode characters in 
+position 2-71: character maps to <undefined>
+0.00s teardown tests/test_groq_api.py::TestJSONParsing::test_valid_json_parsing
+0.00s teardown tests/test_groq_api.py::TestGroqConnection::test_groq_client_initialization
+0.00s teardown tests/test_chunking.py::TestAdaptiveChunking::test_short_text_fewer_chunks
+0.00s call     tests/test_hybrid_validator.py::TestHybridScoreWeights::test_weights_sum_to_one
+0.00s setup    tests/test_embeddings.py::TestEmbeddingGeneration::test_different_texts_produce_different_embeddings
+0.00s setup    tests/test_sm2_algorithm.py::test_interval_progression
+0.00s teardown tests/test_hybrid_validator.py::TestValidateAnswer::test_validate_returns_structured_result
+0.00s teardown tests/test_embeddings.py::TestSimilarityCosine::test_similarity_is_symmetric
+0.00s setup    tests/test_hybrid_validator.py::TestChunkExtraction::test_chunk_count_for_term_puntero
+0.00s teardown tests/test_chunking.py::TestSemanticChunking::test_chunking_respects_min_words
+0.00s setup    tests/test_chunking.py::TestPDFExtraction::test_extraction_methods_available
+0.00s teardown tests/test_groq_api.py::TestQuestionGeneration::test_question_format_structure
+0.00s teardown tests/test_hybrid_validator.py::TestContradictionDetection::test_contradiction_detected
+0.00s setup    tests/test_chunking.py::TestChunkingConfiguration::test_default_parameters
+0.00s call     tests/test_hybrid_validator.py::TestHybridScoreWeights::test_cosine_is_dominant_weight
+0.00s teardown tests/test_chunking.py::TestPDFExtraction::test_extract_text_function_exists
+0.00s teardown tests/test_embeddings.py::TestEdgeCases::test_spanish_text_with_accents
+0.00s setup    tests/test_embeddings.py::test_similarity_calculation_quick
+0.00s teardown tests/test_chunking.py::TestChunkQuality::test_chunk_length_distribution
+0.00s teardown tests/test_embeddings.py::TestEdgeCases::test_whitespace_only_text
+0.00s setup    tests/test_sm2_algorithm.py::TestIntervalScheduling::test_second_interval_is_six_days
+0.00s teardown tests/test_sm2_algorithm.py::TestQualityMapping::test_quality_thresholds
+0.00s setup    tests/test_chunking.py::TestAdaptiveChunking::test_short_text_fewer_chunks
+0.00s setup    tests/test_chunking.py::TestAdaptiveChunking::test_chunks_preserve_sentence_boundaries
+0.00s teardown tests/test_embeddings.py::TestSimilarityCosine::test_orthogonal_vectors_similarity_near_zero
+0.00s setup    tests/test_sm2_algorithm.py::TestIntervalScheduling::test_first_interval_is_one_day
+0.00s setup    tests/test_integration.py::TestPerformance::test_embedding_generation_speed
+0.00s teardown tests/test_embeddings.py::TestEdgeCases::test_special_characters
+0.00s teardown tests/test_embeddings.py::TestSimilarityCosine::test_identical_vectors_similarity_equals_one
+0.00s teardown tests/test_chunking.py::TestPDFExtraction::test_extraction_with_invalid_path
+0.00s setup    tests/test_embeddings.py::TestEmbeddingGeneration::test_similar_texts_have_high_similarity
+0.00s setup    tests/test_chunking.py::TestAdaptiveChunking::test_adaptive_chunking_exists
+0.00s teardown tests/test_embeddings.py::TestEdgeCases::test_empty_string_handling
+0.00s teardown tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_increases_with_perfect_answer
+0.00s setup    tests/test_sm2_algorithm.py::TestIntervalScheduling::test_subsequent_intervals_multiply_by_ef
+0.00s setup    tests/test_sm2_algorithm.py::TestSM2Integration::test_complete_review_cycle
+0.00s teardown tests/test_integration.py::TestCompleteFlow::test_multiple_answers_comparison
+0.00s teardown tests/test_hybrid_validator.py::TestChunkExtraction::test_chunk_count_for_term_puntero
+0.00s setup    tests/test_groq_api.py::TestGroqConnection::test_model_name_is_correct
+0.00s setup    tests/test_sm2_algorithm.py::TestQualityMapping::test_score_to_quality_mapping
+0.00s call     tests/test_hybrid_validator.py::test_hybrid_weights_sum
+0.00s setup    tests/test_embeddings.py::TestSimilarityCosine::test_similarity_is_symmetric
+0.00s teardown tests/test_chunking.py::TestAdaptiveChunking::test_adaptive_chunking_exists
+0.00s teardown tests/test_sm2_algorithm.py::TestIntervalScheduling::test_subsequent_intervals_multiply_by_ef
+0.00s setup    tests/test_chunking.py::test_basic_chunking
+0.00s setup    tests/test_groq_api.py::TestJSONParsing::test_json_extraction_from_markdown
+0.00s teardown tests/test_chunking.py::TestPDFExtraction::test_extraction_methods_available
+0.00s setup    tests/test_groq_api.py::TestErrorHandling::test_rate_limit_handling
+0.00s setup    tests/test_groq_api.py::TestPromptValidation::test_user_prompt_includes_material
+0.00s setup    tests/test_sm2_algorithm.py::TestIntervalScheduling::test_incorrect_answer_resets_interval
+0.00s setup    tests/test_groq_api.py::TestErrorHandling::test_network_error_handling
+0.00s teardown tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_top_15_constant
+0.00s teardown tests/test_chunking.py::TestAdaptiveChunking::test_chunks_preserve_sentence_boundaries
+0.00s setup    tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_returns_top_k_chunks
+0.00s teardown tests/test_groq_api.py::TestGroqConnection::test_api_key_environment_variable
+0.00s setup    tests/test_sm2_algorithm.py::TestSM2Integration::test_learning_curve_simulation
+0.00s teardown tests/test_embeddings.py::TestEmbeddingModel::test_model_dimension_is_384
+0.00s setup    tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_initial_value
+0.00s teardown tests/test_sm2_algorithm.py::TestIntervalScheduling::test_first_interval_is_one_day
+0.00s teardown tests/test_embeddings.py::TestEmbeddingGeneration::test_generate_embedding_returns_numpy_array
+0.00s setup    tests/test_embeddings.py::TestEdgeCases::test_empty_string_handling
+0.00s setup    tests/test_sm2_algorithm.py::TestIntervalScheduling::test_interval_progression_example
+0.00s call     tests/test_sm2_algorithm.py::test_interval_progression
+0.00s call     tests/test_groq_api.py::test_json_format
+0.00s teardown tests/test_embeddings.py::TestEmbeddingGeneration::test_same_text_produces_same_embedding
+0.00s teardown tests/test_hybrid_validator.py::TestChunkExtraction::test_chunks_contain_expected_concepts
+0.00s teardown tests/test_hybrid_validator.py::TestCoverageCalculation::test_full_coverage_high_score
+0.00s setup    tests/test_hybrid_validator.py::test_prefilter_constant
+0.00s teardown tests/test_sm2_algorithm.py::TestIntervalScheduling::test_second_interval_is_six_days
+0.00s call     tests/test_sm2_algorithm.py::test_ef_formula
+0.00s setup    tests/test_sm2_algorithm.py::test_ef_formula
+0.00s setup    tests/test_groq_api.py::TestQuestionQuality::test_questions_are_relevant_to_material
+0.00s teardown tests/test_sm2_algorithm.py::TestSM2Integration::test_complete_review_cycle
+0.00s teardown tests/test_sm2_algorithm.py::TestSM2Integration::test_learning_curve_simulation
+0.00s teardown tests/test_chunking.py::TestChunkingConfiguration::test_default_parameters
+0.00s teardown tests/test_sm2_algorithm.py::TestIntervalScheduling::test_interval_progression_example
+0.00s setup    tests/test_integration.py::TestCompleteFlow::test_full_validation_pipeline
+0.00s setup    tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_increases_with_perfect_answer
+0.00s teardown tests/test_hybrid_validator.py::TestCoverageCalculation::test_partial_coverage
+0.00s setup    tests/test_groq_api.py::test_model_constant
+0.00s setup    tests/test_sm2_algorithm.py::test_quality_range
+0.00s teardown tests/test_hybrid_validator.py::test_hybrid_weights_sum
+0.00s call     tests/test_hybrid_validator.py::test_prefilter_constant
+0.00s teardown tests/test_sm2_algorithm.py::TestIntervalScheduling::test_incorrect_answer_resets_interval
+0.00s teardown tests/test_hybrid_validator.py::test_prefilter_constant
+0.00s setup    tests/test_integration.py::TestPerformance::test_chunking_speed
+0.00s teardown tests/test_sm2_algorithm.py::test_interval_progression
+0.00s teardown tests/test_sm2_algorithm.py::test_ef_formula
+0.00s setup    tests/test_groq_api.py::TestQuestionQuality::test_no_duplicate_questions
+0.00s setup    tests/test_chunking.py::TestSemanticChunking::test_whitespace_only_text
+0.00s setup    tests/test_embeddings.py::test_embedding_dimension_quick
+0.00s teardown tests/test_embeddings.py::TestEmbeddingGeneration::test_different_texts_produce_different_embeddings
+0.00s setup    tests/test_groq_api.py::test_json_format
+0.00s setup    tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_formula_calculation
+0.00s setup    tests/test_groq_api.py::TestGroqConnection::test_groq_client_initialization
+0.00s teardown tests/test_integration.py::TestRealWorldScenarios::test_different_phrasings_same_meaning
+0.00s setup    tests/test_chunking.py::TestChunkingConfiguration::test_custom_parameters
+0.00s teardown tests/test_integration.py::TestCompleteFlow::test_full_validation_pipeline
+0.00s teardown tests/test_embeddings.py::TestSimilarityCosine::test_similarity_range_is_valid
+0.00s setup    tests/test_chunking.py::TestSemanticChunking::test_empty_text_handling
+0.00s teardown tests/test_hybrid_validator.py::TestCoverageCalculation::test_coverage_weight_is_fifteen_percent
+0.00s setup    tests/test_groq_api.py::TestErrorHandling::test_empty_response_handling
+0.00s teardown tests/test_groq_api.py::TestQuestionQuality::test_questions_are_relevant_to_material
+0.00s setup    tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_detects_keywords
+0.00s teardown tests/test_groq_api.py::TestErrorHandling::test_rate_limit_handling
+0.00s teardown tests/test_embeddings.py::TestBatchEmbeddings::test_embedding_retrieval_for_term
+0.00s teardown tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_initial_value
+0.00s teardown tests/test_groq_api.py::TestErrorHandling::test_network_error_handling
+0.00s teardown tests/test_chunking.py::TestSemanticChunking::test_chunking_with_overlap
+0.00s teardown tests/test_groq_api.py::TestQuestionGeneration::test_generate_questions_returns_list
+0.00s setup    tests/test_chunking.py::TestPDFExtraction::test_extract_text_function_exists
+0.00s teardown tests/test_hybrid_validator.py::TestSemanticPrefiltering::test_prefilter_selects_most_similar_chunks
+0.00s teardown tests/test_integration.py::TestMetrics::test_accuracy_on_ground_truth
+0.00s setup    tests/test_chunking.py::TestSemanticChunking::test_spanish_text_with_accents
+0.00s teardown tests/test_chunking.py::TestSemanticChunking::test_chunking_respects_max_words
+0.00s setup    tests/test_groq_api.py::TestErrorHandling::test_invalid_api_key_handling
+0.00s setup    tests/test_chunking.py::TestSemanticChunking::test_chunking_with_overlap
+0.00s teardown tests/test_chunking.py::TestSemanticChunking::test_spanish_text_with_accents
+0.00s setup    tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_weight_is_five_percent
+0.00s teardown tests/test_embeddings.py::test_similarity_calculation_quick
+0.00s teardown tests/test_hybrid_validator.py::TestValidateAnswer::test_correct_answer_high_score
+0.00s setup    tests/test_groq_api.py::TestPromptValidation::test_system_prompt_structure
+0.00s teardown tests/test_integration.py::TestPerformance::test_end_to_end_latency
+0.00s setup    tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_never_below_minimum
+0.00s teardown tests/test_chunking.py::TestChunkQuality::test_chunks_are_not_empty
+0.00s teardown tests/test_groq_api.py::TestPromptValidation::test_prompt_length_within_limits
+0.00s teardown tests/test_chunking.py::TestSemanticChunking::test_empty_text_handling
+0.00s teardown tests/test_hybrid_validator.py::TestValidateAnswer::test_incorrect_answer_low_score
+0.00s teardown tests/test_groq_api.py::TestErrorHandling::test_invalid_api_key_handling
+0.00s setup    tests/test_hybrid_validator.py::TestHybridScoreWeights::test_weights_sum_to_one
+0.00s setup    tests/test_groq_api.py::TestJSONParsing::test_malformed_json_handling
+0.00s teardown tests/test_chunking.py::TestChunkingConfiguration::test_custom_parameters
+0.00s setup    tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_decreases_with_difficult_answer
+0.00s teardown tests/test_groq_api.py::TestQuestionGeneration::test_question_types_distribution
+0.00s setup    tests/test_hybrid_validator.py::TestHybridScoreWeights::test_cosine_is_dominant_weight
+0.00s teardown tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_never_below_minimum
+0.00s teardown tests/test_groq_api.py::test_json_format
+0.00s teardown tests/test_groq_api.py::TestQuestionGeneration::test_questions_are_not_empty
+0.00s teardown tests/test_sm2_algorithm.py::TestEasinessFactor::test_ef_decreases_with_difficult_answer
+0.00s teardown tests/test_chunking.py::TestSemanticChunking::test_whitespace_only_text
+0.00s setup    tests/test_chunking.py::test_chunking_import
+0.00s setup    tests/test_groq_api.py::TestJSONParsing::test_valid_json_parsing
+0.00s setup    tests/test_groq_api.py::TestQuestionQuality::test_questions_are_grammatically_correct
+0.00s teardown tests/test_groq_api.py::TestPromptValidation::test_user_prompt_includes_material
+0.00s teardown tests/test_groq_api.py::TestJSONParsing::test_malformed_json_handling
+0.00s call     tests/test_sm2_algorithm.py::test_quality_range
+0.00s teardown tests/test_integration.py::TestPerformance::test_chunking_speed
+0.00s teardown tests/test_groq_api.py::TestQuestionQuality::test_questions_are_grammatically_correct
+0.00s teardown tests/test_groq_api.py::TestRealAPIIntegration::test_real_api_connection
+0.00s call     tests/test_groq_api.py::test_model_constant
+0.00s teardown tests/test_groq_api.py::TestJSONParsing::test_json_extraction_from_markdown
+0.00s teardown tests/test_chunking.py::test_basic_chunking
+0.00s call     tests/test_chunking.py::test_chunking_import
+0.00s teardown tests/test_hybrid_validator.py::TestHybridScoreWeights::test_hybrid_score_combines_all_components
+0.00s teardown tests/test_groq_api.py::TestErrorHandling::test_empty_response_handling
+0.00s teardown tests/test_groq_api.py::TestQuestionQuality::test_no_duplicate_questions
+0.00s teardown tests/test_embeddings.py::TestEmbeddingModel::test_model_loads_successfully
+0.00s teardown tests/test_groq_api.py::TestPromptValidation::test_system_prompt_structure
+0.00s teardown tests/test_sm2_algorithm.py::test_quality_range
+0.00s teardown tests/test_groq_api.py::test_model_constant
+0.00s teardown tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_detects_keywords
+0.00s setup    tests/test_groq_api.py::TestRealAPIIntegration::test_real_api_connection
+0.00s teardown tests/test_hybrid_validator.py::TestBM25TextBased::test_bm25_weight_is_five_percent
+0.00s teardown tests/test_hybrid_validator.py::TestHybridScoreWeights::test_weights_sum_to_one
+0.00s teardown tests/test_hybrid_validator.py::TestHybridScoreWeights::test_cosine_is_dominant_weight
+======================= 109 passed, 3 skipped in 31.92s =======================
