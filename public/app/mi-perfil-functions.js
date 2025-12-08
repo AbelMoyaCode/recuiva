@@ -3,17 +3,31 @@
 // Todas las funciones guardan y leen desde Supabase, NO localStorage
 // ===================================================================
 
+// Helper para obtener supabaseClient de forma segura
+function getSupabase() {
+  return window.supabaseClient || supabaseClient;
+}
+
 // ===================================================================
 // INICIALIZACIÓN - Cargar datos del perfil al abrir la página
 // ===================================================================
 window.addEventListener('DOMContentLoaded', async () => {
   console.log('🔄 Cargando datos del perfil desde Supabase...');
+
+  // Esperar un poco para asegurar que supabaseClient esté listo
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  if (!getSupabase()) {
+    console.error('❌ Supabase no está inicializado');
+    return;
+  }
+
   await loadProfileFromSupabase();
 });
 
 async function loadProfileFromSupabase() {
   try {
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    const { data: { user } } = await getSupabase().auth.getUser();
     if (!user) {
       console.log('❌ Usuario no autenticado');
       return;
@@ -102,7 +116,7 @@ async function loadProfileFromSupabase() {
 // ===================================================================
 async function syncLocalStorageUser(updates = {}) {
   try {
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    const { data: { user } } = await getSupabase().auth.getUser();
     if (!user) return;
 
     // Cargar datos actuales de user_profiles
@@ -171,7 +185,7 @@ window.changeProfilePicture = async function () {
       reader.readAsDataURL(file);
 
       // Obtener usuario actual
-      const { data: { user } } = await supabaseClient.auth.getUser();
+      const { data: { user } } = await getSupabase().auth.getUser();
       if (!user) {
         showErrorMessage('Debes iniciar sesión primero');
         return;
@@ -185,7 +199,7 @@ window.changeProfilePicture = async function () {
       console.log('📤 Subiendo foto a Supabase Storage...');
 
       // Subir a Supabase Storage
-      const { data, error } = await supabaseClient.storage
+      const { data, error } = await getSupabase().storage
         .from('avatars')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -199,7 +213,7 @@ window.changeProfilePicture = async function () {
       }
 
       // Obtener URL pública
-      const { data: { publicUrl } } = supabaseClient.storage
+      const { data: { publicUrl } } = getSupabase().storage
         .from('avatars')
         .getPublicUrl(filePath);
 
@@ -247,14 +261,14 @@ window.editName = async function () {
   showEditModal('Editar Nombre', 'Ingresa tu nuevo nombre:', currentName, async (newName) => {
     if (newName && newName.trim() !== '' && newName !== currentName) {
       try {
-        const { data: { user } } = await supabaseClient.auth.getUser();
+        const { data: { user } } = await getSupabase().auth.getUser();
         if (!user) {
           showErrorMessage('Debes iniciar sesión');
           return;
         }
 
         // Actualizar en auth.users metadata
-        await supabaseClient.auth.updateUser({
+        await getSupabase().auth.updateUser({
           data: { full_name: newName }
         });
 
@@ -289,7 +303,7 @@ window.editName = async function () {
 // 3. EDITAR EMAIL (Supabase Auth)
 // ===================================================================
 window.editEmail = async function () {
-  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: { user } } = await getSupabase().auth.getUser();
 
   // No permitir edición para cuentas Gmail
   if (user?.app_metadata?.provider === 'google') {
@@ -309,7 +323,7 @@ window.editEmail = async function () {
       }
 
       try {
-        const { error } = await supabaseClient.auth.updateUser({
+        const { error } = await getSupabase().auth.updateUser({
           email: newEmail
         });
 
@@ -328,7 +342,7 @@ window.editEmail = async function () {
 // 4. CAMBIAR CONTRASEÑA (Supabase Auth)
 // ===================================================================
 window.changePassword = async function () {
-  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: { user } } = await getSupabase().auth.getUser();
 
   if (user?.app_metadata?.provider === 'google') {
     showGmailPasswordModal();
@@ -376,7 +390,7 @@ window.changePassword = async function () {
     }
 
     try {
-      const { error } = await supabaseClient.auth.updateUser({
+      const { error } = await getSupabase().auth.updateUser({
         password: newPassword
       });
 
@@ -421,7 +435,7 @@ function showGmailPasswordModal() {
 // 5. MODALIDAD DE ESTUDIO (Supabase)
 // ===================================================================
 window.showStudyModeModal = async function () {
-  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: { user } } = await getSupabase().auth.getUser();
   const { data: profile } = await supabaseClient
     .from('user_profiles')
     .select('study_mode')
@@ -501,7 +515,7 @@ window.showStudyModeModal = async function () {
 // 6. RITMO DE ESTUDIO (Supabase)
 // ===================================================================
 window.showStudyRhythmModal = async function () {
-  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: { user } } = await getSupabase().auth.getUser();
   const { data: profile } = await supabaseClient
     .from('user_profiles')
     .select('study_rhythm')
@@ -576,7 +590,7 @@ window.showStudyRhythmModal = async function () {
 // 7. RECORDATORIOS (Supabase)
 // ===================================================================
 window.configureReminders = async function () {
-  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: { user } } = await getSupabase().auth.getUser();
   const { data: profile } = await supabaseClient
     .from('user_profiles')
     .select('notification_settings')
@@ -677,7 +691,7 @@ window.manageNotifications = async function () {
 // 9. CAMBIAR IDIOMA (Supabase)
 // ===================================================================
 window.changeLanguage = async function () {
-  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: { user } } = await getSupabase().auth.getUser();
   const { data: profile } = await supabaseClient
     .from('user_profiles')
     .select('language')
