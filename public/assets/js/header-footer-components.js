@@ -262,24 +262,24 @@ function renderAuthenticatedHeader(currentPage = '') {
 
 function renderFooter() {
   return `
-  < footer class="text-gray-100 py-12 px-6 mt-16" style = "background-color: #004EAA;" >
-    <div class="container mx-auto text-center">
-      <div class="flex justify-center items-center gap-2 mb-6">
-        <img src="/assets/img/Icon-Recuiva.png" alt="${RECUIVA_CONFIG.logoAlt}"
-          class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;" />
-        <span class="text-2xl font-extrabold">${RECUIVA_CONFIG.brandName}</span>
+    <footer class="text-gray-100 py-12 px-6 mt-16" style="background-color: #004EAA;">
+      <div class="container mx-auto text-center">
+        <div class="flex justify-center items-center gap-2 mb-6">
+          <img src="/assets/img/Icon-Recuiva.png" alt="${RECUIVA_CONFIG.logoAlt}"
+            class="h-10 w-10 object-contain md:h-12 md:w-12" style="max-width:48px; max-height:48px;" />
+          <span class="text-2xl font-extrabold">${RECUIVA_CONFIG.brandName}</span>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+          <a class="hover:text-orange-400 transition-colors" href="/app/institucional/active-recall.html">Active Recall</a>
+          <a class="hover:text-orange-400 transition-colors" href="/app/institucional/validacion-semantica.html">Validación Semántica</a>
+          <a class="hover:text-orange-400 transition-colors" href="/app/institucional/diferencias.html">Diferencias</a>
+          <a class="hover:text-orange-400 transition-colors" href="#">Contacto</a>
+          <a class="hover:text-orange-400 transition-colors" href="#">Términos</a>
+          <a class="hover:text-orange-400 transition-colors" href="#">Privacidad</a>
+        </div>
+        <p class="text-sm opacity-75">© 2025 Recuiva. Todos los derechos reservados.</p>
       </div>
-      <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
-        <a class="hover:text-orange-400 transition-colors" href="/app/institucional/active-recall.html">Active Recall</a>
-        <a class="hover:text-orange-400 transition-colors" href="/app/institucional/validacion-semantica.html">Validación Semántica</a>
-        <a class="hover:text-orange-400 transition-colors" href="/app/institucional/diferencias.html">Diferencias</a>
-        <a class="hover:text-orange-400 transition-colors" href="#">Contacto</a>
-        <a class="hover:text-orange-400 transition-colors" href="#">Términos</a>
-        <a class="hover:text-orange-400 transition-colors" href="#">Privacidad</a>
-      </div>
-      <p class="text-sm opacity-75">© 2025 Recuiva. Todos los derechos reservados.</p>
-    </div>
-    </footer >
+    </footer>
   `;
 }
 
