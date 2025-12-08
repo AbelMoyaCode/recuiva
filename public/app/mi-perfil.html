@@ -199,13 +199,13 @@
       <div class="w-full max-w-3xl mx-auto px-2 sm:px-4">
         <div class="pb-8">
           <h1 class="text-[var(--text-primary)] tracking-tight text-3xl font-bold text-center mb-2">Perfil y
-            ConfiguraciÃ³n</h1>
+            Configuración</h1>
         </div>
         <div class="flex flex-col gap-8">
-          <!-- SecciÃ³n de InformaciÃ³n Personal -->
+          <!-- Sección de Información Personal -->
           <section class="bg-white rounded-xl shadow-md">
             <div class="p-6 border-b border-gray-200">
-              <h3 class="text-xl font-bold text-[var(--text-primary)]">InformaciÃ³n Personal</h3>
+              <h3 class="text-xl font-bold text-[var(--text-primary)]">Información Personal</h3>
             </div>
             <div class="flex flex-col sm:flex-row items-center gap-6 p-6">
               <div class="relative">
@@ -241,7 +241,7 @@
               <div class="setting-item flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer"
                 onclick="changePassword()">
                 <div>
-                  <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Cambiar contraseÃ±a</p>
+                  <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Cambiar contraseña</p>
                   <p class="text-gray-500 text-sm font-normal leading-normal">Actualiza la seguridad de tu cuenta.</p>
                 </div>
                 <span class="material-symbols-outlined text-gray-400">chevron_right</span>
@@ -249,10 +249,10 @@
             </div>
           </section>
 
-          <!-- SecciÃ³n de ConfiguraciÃ³n de Estudio -->
+          <!-- Sección de Configuración de Estudio -->
           <section class="bg-white rounded-xl shadow-md">
             <div class="p-6 border-b border-gray-200">
-              <h3 class="text-xl font-bold text-[var(--text-primary)]">ConfiguraciÃ³n de Estudio</h3>
+              <h3 class="text-xl font-bold text-[var(--text-primary)]">Configuración de Estudio</h3>
               <p class="text-gray-500 text-sm mt-1">Personaliza tu experiencia de aprendizaje</p>
             </div>
             <div class="divide-y divide-gray-200">
@@ -260,7 +260,7 @@
                 onclick="showStudyModeModal()">
                 <div>
                   <p class="text-[var(--text-primary)] text-base font-medium leading-normal">Modalidad de estudio</p>
-                  <p class="text-gray-500 text-sm font-normal leading-normal">Elige tu mÃ©todo de aprendizaje preferido.
+                  <p class="text-gray-500 text-sm font-normal leading-normal">Elige tu método de aprendizaje preferido.
                   </p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -294,7 +294,7 @@
             </div>
           </section>
 
-          <!-- SecciÃ³n de Preferencias Generales -->
+          <!-- Sección de Preferencias Generales -->
           <section class="bg-white rounded-xl shadow-md">
             <div class="p-6 border-b border-gray-200">
               <h3 class="text-xl font-bold text-[var(--text-primary)]">Preferencias Generales</h3>
@@ -307,7 +307,7 @@
                   <p class="text-gray-500 text-sm font-normal leading-normal">Selecciona tu idioma preferido.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                  <p class="text-gray-500">EspaÃ±ol</p>
+                  <p class="text-gray-500">Español</p>
                   <span class="material-symbols-outlined text-gray-400">chevron_right</span>
                 </div>
               </div>
@@ -344,16 +344,16 @@
     </main>
 
     <script>
-      // Funciones mÃ­nimas para modales y UI (las funciones de perfil estÃ¡n en mi-perfil-functions.js)
-      document.addEventListener('DOMContentLoaded', () => {
-        console.log('ðŸ“„ Mi Perfil cargado - funciones desde mi-perfil-functions.js');
+            // Funciones mÃ­nimas para modales y UI (las funciones de perfil estÃ¡n en mi-perfil-functio      ns.js)
+      document.addEventListener('DOMContentLoad        ', () => {
+        console.log('ðŸ“„ Mi Perfil cargado - funciones desde mi-per        l-functions.js');
 
-        // === MODAL GENÃ‰RICO ===
-        window.showAdvancedModal = function (icon, title, description) {
-          let modal = document.getElementById('advanced-modal');
+        // ==        MODAL GENÃ‰RICO ===
+        window. showAdvancedModal = function           n, title, description) {
+          let modal = document          ElementById('a            d-modal');
           if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'advanced-modal';
+                  modal = document.createElem            iv');
+            modal.id = 'advanced-m            
             modal.className = 'notification-modal';
             modal.innerHTML = `
         <div class="notification-modal-content">
@@ -362,20 +362,16 @@
           </div>
           <h3 id="modal-title"></h3>
           <p id="modal-description"></p>
-          <button onclick="closeAdvancedModal()" class="modal-button">Aceptar</button>
-        </div>
+          <button onclick="closeAdvancedModal(            ss="modal-button">Aceptar</button>                      /div>
       `;
-            document.body.appendChild(modal);
-          }
-          document.getElementById('modal-icon').textContent = icon;
-          document.getElementById('modal-title').textContent = title;
-          document.getElementById('modal-description').textContent = description;
+            document.body.appendChild(modal                   }
+          document.getElementById('modal-icon').t          ontent = icon;
+          document.getElementById('modal-title').textCont          = title;
+          document.g        Elem        tById('modal-description').textConte nt =           ription;
           modal.classList.add('show');
-        };
-
-        window.closeAdvancedModal = function () {
-          const modal = document.getElementById('advanced-modal');
-          if (modal) modal.classList.remove('show');
+        }                 window.closeAdvancedModal = function        ) {      
+         a      l = document.getElementById('advanced-modal');
+           if        modal) modal.classList.remove('sho      w');
         };
 
         // Cerrar sesiÃ³n
