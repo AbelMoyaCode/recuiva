@@ -16,6 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/supabase-config.js"></script>
   <script src="../assets/js/supabase-operations.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
   <script src="../assets/js/header-footer-components.js"></script>
   <!-- Sistema de Repaso Espaciado -->
   <script src="../assets/js/spaced-repetition.js"></script>
@@ -1238,7 +1239,7 @@
           if (error) throw error;
 
           console.log('✅ Configuración SM-2 guardada:', settings);
-          
+
           // Actualizar UI
           document.querySelectorAll('.font-semibold').forEach(el => {
             if (el.textContent.includes('1 día') && el.closest('div')?.textContent.includes('Primera')) {
@@ -1247,7 +1248,7 @@
           });
 
           closeAlgorithmModal();
-          
+
           // Mostrar mensaje de éxito
           if (typeof showAdvancedModal === 'function') {
             showAdvancedModal('check_circle', 'Configuración Guardada', 'Tu configuración del algoritmo SM-2 ha sido guardada correctamente.');

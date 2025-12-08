@@ -1,24 +1,28 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
-    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-    <title>Gestión de Materiales - Recuiva</title>
-    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../assets/js/api.js"></script>
-    <script src="../assets/js/supabase-config.js"></script>
-    <script src="../assets/js/supabase-operations.js"></script>
-    <script src="../assets/js/header-footer-components.js"></script>
-    <!-- MockAPI deshabilitado - usando Supabase -->
-    <!-- <script src="../assets/js/mockApi.js"></script> -->
-    <style type="text/tailwindcss">
-      :root {
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect" />
+  <link as="style"
+    href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"
+    onload="this.rel='stylesheet'" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <title>Gestión de Materiales - Recuiva</title>
+  <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/supabase-config.js"></script>
+  <script src="../assets/js/supabase-operations.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script src="../assets/js/header-footer-components.js"></script>
+  <!-- MockAPI deshabilitado - usando Supabase -->
+  <!-- <script src="../assets/js/mockApi.js"></script> -->
+  <style type="text/tailwindcss">
+    :root {
         --primary-color: #FF6600;
         --secondary-color: #004EAA;
         --accent-color: #A5CDED;
@@ -56,117 +60,121 @@
       .status-completado { background: #dbeafe; color: #1e40af; }
     </style>
 </head>
+
 <body class="bg-[var(--base-gray)] min-h-screen">
 
-<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
-<!-- Header Container - Managed by header-footer-components.js -->
-<div id="header-container"></div>
+  <div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+    <!-- Header Container - Managed by header-footer-components.js -->
+    <div id="header-container"></div>
 
-<main class="container mx-auto px-4 py-8 max-w-6xl">
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
 
-  <!-- Header Section -->
-  <div class="flex justify-between items-center mb-8">
-    <div>
-      <h1 class="text-3xl font-bold text-[var(--secondary-color)] mb-2">Gestión de Materiales</h1>
-      <p class="text-[var(--text-secondary)]">Administra tus PDFs, libros y materiales de estudio</p>
-    </div>
-    <a href="subir-material.html" 
-       class="px-6 py-3 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90 font-semibold flex items-center gap-2">
-      <span class="material-symbols-outlined">add</span>
-      Subir Material
-    </a>
-  </div>
+      <!-- Header Section -->
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-[var(--secondary-color)] mb-2">Gestión de Materiales</h1>
+          <p class="text-[var(--text-secondary)]">Administra tus PDFs, libros y materiales de estudio</p>
+        </div>
+        <a href="subir-material.html"
+          class="px-6 py-3 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90 font-semibold flex items-center gap-2">
+          <span class="material-symbols-outlined">add</span>
+          Subir Material
+        </a>
+      </div>
 
-  <!-- Filtros y búsqueda -->
-  <div class="bg-white rounded-xl p-6 mb-8">
-    <div class="flex flex-wrap gap-4 items-center">
-      
-      <div class="flex-1 min-w-64">
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)]">search</span>
-          <input type="text" placeholder="Buscar materiales..." 
-                 class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent">
+      <!-- Filtros y búsqueda -->
+      <div class="bg-white rounded-xl p-6 mb-8">
+        <div class="flex flex-wrap gap-4 items-center">
+
+          <div class="flex-1 min-w-64">
+            <div class="relative">
+              <span
+                class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)]">search</span>
+              <input type="text" placeholder="Buscar materiales..."
+                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent">
+            </div>
+          </div>
+
+          <select class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-color)]">
+            <option>Todos los materiales</option>
+            <option>PDFs</option>
+            <option>Libros físicos</option>
+            <option>Sin material</option>
+          </select>
+
+          <select class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-color)]">
+            <option>Todos los estados</option>
+            <option>Activo</option>
+            <option>Pausado</option>
+            <option>Completado</option>
+          </select>
+
+          <button
+            class="px-4 py-3 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-gray-200 flex items-center gap-2">
+            <span class="material-symbols-outlined">filter_list</span>
+            Filtros
+          </button>
+
         </div>
       </div>
 
-      <select class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-color)]">
-        <option>Todos los materiales</option>
-        <option>PDFs</option>
-        <option>Libros físicos</option>
-        <option>Sin material</option>
-      </select>
+      <!-- Estadísticas reales desde backend -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
-      <select class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-color)]">
-        <option>Todos los estados</option>
-        <option>Activo</option>
-        <option>Pausado</option>
-        <option>Completado</option>
-      </select>
+        <div class="bg-white rounded-xl p-6 text-center">
+          <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <span class="material-symbols-outlined text-blue-600">description</span>
+          </div>
+          <div id="total-materiales-count" class="text-3xl font-bold text-[var(--secondary-color)] mb-1">
+            <span class="material-symbols-outlined animate-spin">progress_activity</span>
+          </div>
+          <div class="text-sm text-[var(--text-secondary)]">Total Materiales Subidos</div>
+        </div>
 
-      <button class="px-4 py-3 bg-gray-100 text-[var(--text-secondary)] rounded-lg hover:bg-gray-200 flex items-center gap-2">
-        <span class="material-symbols-outlined">filter_list</span>
-        Filtros
-      </button>
+        <div class="bg-white rounded-xl p-6 text-center">
+          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <span class="material-symbols-outlined text-green-600">folder_open</span>
+          </div>
+          <div id="total-chunks-count" class="text-3xl font-bold text-[var(--secondary-color)] mb-1">
+            <span class="material-symbols-outlined animate-spin">progress_activity</span>
+          </div>
+          <div class="text-sm text-[var(--text-secondary)]">Total Chunks Procesados</div>
+        </div>
 
-    </div>
-  </div>
-
-  <!-- Estadísticas reales desde backend -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-    
-    <div class="bg-white rounded-xl p-6 text-center">
-      <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-        <span class="material-symbols-outlined text-blue-600">description</span>
       </div>
-      <div id="total-materiales-count" class="text-3xl font-bold text-[var(--secondary-color)] mb-1">
-        <span class="material-symbols-outlined animate-spin">progress_activity</span>
+
+      <!-- Lista de materiales -->
+      <div id="materials-container" class="space-y-4">
+        <!-- Los materiales se cargarán dinámicamente aquí -->
+        <div class="text-center py-12">
+          <span
+            class="material-symbols-outlined text-4xl text-[var(--accent-color)] animate-spin mb-4">progress_activity</span>
+          <p class="text-[var(--text-secondary)]">Cargando materiales...</p>
+        </div>
       </div>
-      <div class="text-sm text-[var(--text-secondary)]">Total Materiales Subidos</div>
-    </div>
 
-    <div class="bg-white rounded-xl p-6 text-center">
-      <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-        <span class="material-symbols-outlined text-green-600">folder_open</span>
+      <!-- Paginación (oculta inicialmente) -->
+      <div id="pagination" class="hidden flex justify-center items-center gap-4 mt-12">
       </div>
-      <div id="total-chunks-count" class="text-3xl font-bold text-[var(--secondary-color)] mb-1">
-        <span class="material-symbols-outlined animate-spin">progress_activity</span>
-      </div>
-      <div class="text-sm text-[var(--text-secondary)]">Total Chunks Procesados</div>
-    </div>
 
-  </div>
+    </main>
 
-  <!-- Lista de materiales -->
-  <div id="materials-container" class="space-y-4">
-    <!-- Los materiales se cargarán dinámicamente aquí -->
-    <div class="text-center py-12">
-      <span class="material-symbols-outlined text-4xl text-[var(--accent-color)] animate-spin mb-4">progress_activity</span>
-      <p class="text-[var(--text-secondary)]">Cargando materiales...</p>
-    </div>
-  </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // === FUNCIONES MODALES BACKEND MEJORADAS ===
+        window.showBackendModal = function (icon, title, description) {
+          showAdvancedModal(icon, title, description);
+        };
 
-  <!-- Paginación (oculta inicialmente) -->
-  <div id="pagination" class="hidden flex justify-center items-center gap-4 mt-12">
-  </div>
-
-</main>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // === FUNCIONES MODALES BACKEND MEJORADAS ===
-    window.showBackendModal = function(icon, title, description) {
-      showAdvancedModal(icon, title, description);
-    };
-    
-    // Modal avanzado con mejor UX
-    window.showAdvancedModal = function(icon, title, description) {
-      // Crear modal si no existe
-      let modal = document.getElementById('advanced-modal');
-      if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'advanced-modal';
-        modal.className = 'notification-modal';
-        modal.innerHTML = `
+        // Modal avanzado con mejor UX
+        window.showAdvancedModal = function (icon, title, description) {
+          // Crear modal si no existe
+          let modal = document.getElementById('advanced-modal');
+          if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'advanced-modal';
+            modal.className = 'notification-modal';
+            modal.innerHTML = `
           <div class="notification-modal-content">
             <div class="notification-icon-container">
               <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">notifications</span>
@@ -178,88 +186,88 @@ document.addEventListener('DOMContentLoaded', function() {
             </button>
           </div>
         `;
-        document.body.appendChild(modal);
-        
-        // Cerrar con escape
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape' && modal.classList.contains('show')) {
-            closeAdvancedModal();
-          }
-        });
-        
-        // Cerrar clickeando fuera
-        modal.addEventListener('click', function(e) {
-          if (e.target === modal) {
-            closeAdvancedModal();
-          }
-        });
-      }
-      
-      // Actualizar contenido
-      const iconMap = {
-        'notifications': '🔔',
-        'settings': '⚙️',
-        'dashboard': '📊',
-        'analytics': '📈'
-      };
-      
-      document.getElementById('modal-icon').textContent = icon;
-      document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
-      document.getElementById('modal-description').textContent = description;
-      
-      // Mostrar modal con animación
-      modal.classList.add('show');
-      document.body.style.overflow = 'hidden';
-    };
-    
-    window.closeAdvancedModal = function() {
-      const modal = document.getElementById('advanced-modal');
-      if (modal) {
-        modal.classList.remove('show');
-        document.body.style.overflow = '';
-      }
-    };
-    
-    // === FUNCIONES NAVEGACIÓN ===
-    window.logout = function() {
-      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        localStorage.removeItem('recuiva_user');
-        window.location.href = '../auth/iniciar-sesion.html';
-      }
-    };
+            document.body.appendChild(modal);
 
-    // ✅ Cargar materiales desde Supabase (NO localStorage)
-    async function cargarMateriales() {
-        try {
+            // Cerrar con escape
+            document.addEventListener('keydown', function (e) {
+              if (e.key === 'Escape' && modal.classList.contains('show')) {
+                closeAdvancedModal();
+              }
+            });
+
+            // Cerrar clickeando fuera
+            modal.addEventListener('click', function (e) {
+              if (e.target === modal) {
+                closeAdvancedModal();
+              }
+            });
+          }
+
+          // Actualizar contenido
+          const iconMap = {
+            'notifications': '🔔',
+            'settings': '⚙️',
+            'dashboard': '📊',
+            'analytics': '📈'
+          };
+
+          document.getElementById('modal-icon').textContent = icon;
+          document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
+          document.getElementById('modal-description').textContent = description;
+
+          // Mostrar modal con animación
+          modal.classList.add('show');
+          document.body.style.overflow = 'hidden';
+        };
+
+        window.closeAdvancedModal = function () {
+          const modal = document.getElementById('advanced-modal');
+          if (modal) {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+          }
+        };
+
+        // === FUNCIONES NAVEGACIÓN ===
+        window.logout = function () {
+          if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            localStorage.removeItem('recuiva_user');
+            window.location.href = '../auth/iniciar-sesion.html';
+          }
+        };
+
+        // ✅ Cargar materiales desde Supabase (NO localStorage)
+        async function cargarMateriales() {
+          try {
             const materiales = await SupabaseOperations.getMaterials();
             console.log('✅ Materiales cargados desde Supabase:', materiales);
             renderizarMateriales(materiales);
-        } catch (error) {
+          } catch (error) {
             console.error('❌ Error cargando materiales:', error);
+          }
         }
-    }
-    
-    function renderizarMateriales(materials) {
-        console.log(`📄 Total materiales: ${materials.length}`);
-        
-        const container = document.getElementById('materials-container');
-        if (!container) {
+
+        function renderizarMateriales(materials) {
+          console.log(`📄 Total materiales: ${materials.length}`);
+
+          const container = document.getElementById('materials-container');
+          if (!container) {
             console.error('❌ Contenedor de materiales no encontrado');
             return;
-        }
-        
-        // Actualizar contadores
-        const totalCount = materials.length;
-        const totalChunks = materials.reduce((sum, m) => sum + (m.total_chunks || 0), 0);
-        
-        const totalMaterialesEl = document.getElementById('total-materiales-count');
-        const totalChunksEl = document.getElementById('total-chunks-count');
-        
-        if (totalMaterialesEl) totalMaterialesEl.textContent = totalCount;
-        if (totalChunksEl) totalChunksEl.textContent = totalChunks.toLocaleString();
-        
-        // Si no hay materiales, mostrar mensaje
-        if (materials.length === 0) {
+          }
+
+          // Actualizar contadores
+          const totalCount = materials.length;
+          const totalChunks = materials.reduce((sum, m) => sum + (m.total_chunks || 0), 0);
+
+          const totalMaterialesEl = document.getElementById('total-materiales-count');
+          const totalChunksEl = document.getElementById('total-chunks-count');
+
+          if (totalMaterialesEl) totalMaterialesEl.textContent = totalCount;
+          if (totalChunksEl) totalChunksEl.textContent = totalChunks.toLocaleString();
+
+          // Si no hay materiales, mostrar mensaje
+          if (materials.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-12 bg-gray-50 rounded-lg">
                     <span class="material-symbols-outlined text-5xl text-orange-500 mb-4">inbox</span>
@@ -275,36 +283,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             return;
-        }
-        
-        // Renderizar materiales
-        let html = '';
-        materials.forEach(material => {
+          }
+
+          // Renderizar materiales
+          let html = '';
+          materials.forEach(material => {
             // Parsear fecha desde Supabase (ISO 8601 format)
             let uploadDate = 'Fecha desconocida';
             try {
-                if (material.created_at) {
-                    uploadDate = new Date(material.created_at).toLocaleDateString('es-ES', { 
-                        day: 'numeric', 
-                        month: 'long', 
-                        year: 'numeric' 
-                    });
-                }
+              if (material.created_at) {
+                uploadDate = new Date(material.created_at).toLocaleDateString('es-ES', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                });
+              }
             } catch (e) {
-                console.warn('Error parseando fecha:', e);
+              console.warn('Error parseando fecha:', e);
             }
-            
+
             // Nombre del archivo con fallbacks
             const materialFileName = material.title || material.file_name || material.filename || 'Material sin nombre';
-            
+
             const fileStatus = material.processing_status === 'completed' ? 'ACTIVO' : 'PAUSADO';
             const statusClass = material.processing_status === 'completed' ? 'status-activo' : 'status-pausado';
-            
+
             // Mostrar páginas reales si están disponibles
-            const pageCount = material.estimated_pages 
-                ? `${material.estimated_pages} páginas` 
-                : 'N/A páginas';
-            
+            const pageCount = material.estimated_pages
+              ? `${material.estimated_pages} páginas`
+              : 'N/A páginas';
+
             html += `
                 <div class="material-card p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
                     <div class="flex items-start gap-4">
@@ -339,82 +347,83 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
-        });
-        
-        container.innerHTML = html;
-    }
-    
-    // Cargar materiales al iniciar
-    cargarMateriales();
-    
-    // Función para eliminar material
-    window.eliminarMaterial = async function(materialId) {
-        if (!confirm('¿Estás seguro de eliminar este material? Esta acción no se puede deshacer.')) {
-            return;
+          });
+
+          container.innerHTML = html;
         }
-        
-        try {
+
+        // Cargar materiales al iniciar
+        cargarMateriales();
+
+        // Función para eliminar material
+        window.eliminarMaterial = async function (materialId) {
+          if (!confirm('¿Estás seguro de eliminar este material? Esta acción no se puede deshacer.')) {
+            return;
+          }
+
+          try {
             // Eliminar de Supabase
             const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials/${materialId}`, {
-                method: 'DELETE'
+              method: 'DELETE'
             });
-            
+
             if (!response.ok) {
-                throw new Error('Error eliminando material del backend');
+              throw new Error('Error eliminando material del backend');
             }
-            
+
             console.log('✅ Material eliminado');
-            
+
             // Recargar lista
             await cargarMateriales();
-        } catch (error) {
+          } catch (error) {
             console.error('❌ Error eliminando material:', error);
             alert('Error eliminando material. Verifica la consola.');
-        }
-    };
-    
-    // Funcionalidad de búsqueda
-    const searchInput = document.querySelector('input[placeholder="Buscar materiales..."]');
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
+          }
+        };
+
+        // Funcionalidad de búsqueda
+        const searchInput = document.querySelector('input[placeholder="Buscar materiales..."]');
+        if (searchInput) {
+          searchInput.addEventListener('input', function (e) {
             const query = e.target.value.toLowerCase();
             console.log('Buscando:', query);
             // Aquí iría la lógica de filtrado
-        });
-    }
-    
-    // Eventos de botones de acción
-    document.querySelectorAll('.material-card button').forEach(button => {
-        button.addEventListener('click', function(e) {
+          });
+        }
+
+        // Eventos de botones de acción
+        document.querySelectorAll('.material-card button').forEach(button => {
+          button.addEventListener('click', function (e) {
             e.preventDefault();
             console.log('Acción en material:', this.textContent.trim());
+          });
         });
-    });
-});
-</script>
+      });
+    </script>
 
-<script>
-// Backend modal function - ACTUALIZADA CON MOCKAPI
-function showBackendModal(feature, title, description) {
-  // Esta función se sobrescribe arriba en el DOMContentLoaded
-}
+    <script>
+      // Backend modal function - ACTUALIZADA CON MOCKAPI
+      function showBackendModal(feature, title, description) {
+        // Esta función se sobrescribe arriba en el DOMContentLoaded
+      }
 
-// Logout function - ACTUALIZADA CON MOCKAPI  
-function logout() {
-  // Esta función se sobrescribe arriba en el DOMContentLoaded
-}
+      // Logout function - ACTUALIZADA CON MOCKAPI  
+      function logout() {
+        // Esta función se sobrescribe arriba en el DOMContentLoaded
+      }
 
-// ==========================================
-// INICIALIZAR COMPONENTES HEADER/FOOTER
-// ==========================================
-document.addEventListener('DOMContentLoaded', function() {
-  initializeHeaderFooter('materiales');
-});
-</script>
+      // ==========================================
+      // INICIALIZAR COMPONENTES HEADER/FOOTER
+      // ==========================================
+      document.addEventListener('DOMContentLoaded', function () {
+        initializeHeaderFooter('materiales');
+      });
+    </script>
 
-<!-- Footer Container - Managed by header-footer-components.js -->
-<div id="footer-container"></div>
+    <!-- Footer Container - Managed by header-footer-components.js -->
+    <div id="footer-container"></div>
 
-</div>
+  </div>
 </body>
+
 </html>
