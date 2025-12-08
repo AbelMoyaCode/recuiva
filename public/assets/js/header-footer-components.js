@@ -124,6 +124,10 @@ function renderAuthenticatedHeader(currentPage = '') {
   const userInitials = userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   const avatarUrl = user?.avatar_url || null;
 
+  // DEBUG: Ver si llega el avatar
+  console.log('🔍 Header - Usuario:', userName);
+  console.log('🖼️ Header - Avatar URL:', avatarUrl || 'NULL (mostrando iniciales)');
+
   // Generar HTML del avatar: imagen si existe, iniciales si no
   const avatarHTML = avatarUrl
     ? `<img src="${avatarUrl}" alt="${userName}" class="w-10 h-10 rounded-full object-cover border-2 border-orange-500">`

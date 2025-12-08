@@ -56,6 +56,9 @@
             if (!profileError && profile) {
                 profileData = profile;
                 console.log('✅ Perfil cargado desde Supabase:', profile);
+                console.log('🖼️ Avatar URL en Supabase:', profile.avatar_url || 'NULL');
+            } else if (profileError) {
+                console.warn('⚠️ Error cargando perfil:', profileError);
             }
         } catch (e) {
             console.warn('⚠️ No se pudo cargar user_profiles:', e);
