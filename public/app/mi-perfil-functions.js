@@ -13,14 +13,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 async function loadProfileFromSupabase() {
   try {
-    const { data: { user } } = await _supabaseClient.auth.getUser();
+    const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
       console.log('❌ Usuario no autenticado');
       return;
     }
 
     // Obtener perfil desde user_profiles
-    const { data: profile, error } = await _supabaseClient
+    const { data: profile, error } = await supabaseClient
       .from('user_profiles')
       .select('*')
       .eq('id', user.id)
@@ -102,11 +102,11 @@ async function loadProfileFromSupabase() {
 // ===================================================================
 async function syncLocalStorageUser(updates = {}) {
   try {
-    const { data: { user } } = await _supabaseClient.auth.getUser();
+    const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
 
     // Cargar datos actuales de user_profiles
-    const { data: profile } = await _supabaseClient
+    const { data: profile } = await supabaseClient
       .from('user_profiles')
       .select('*')
       .eq('id', user.id)
@@ -171,7 +171,7 @@ window.changeProfilePicture = async function () {
       reader.readAsDataURL(file);
 
       // Obtener usuario actual
-      const { data: { user } } = await _supabaseClient.auth.getUser();
+      const { data: { user } } = await supabaseClient.auth.getUser();
       if (!user) {
         showErrorMessage('Debes iniciar sesión primero');
         return;
@@ -185,7 +185,7 @@ window.changeProfilePicture = async function () {
       console.log('📤 Subiendo foto a Supabase Storage...');
 
       // Subir a Supabase Storage
-      const { data, error } = await _supabaseClient.storage
+      const { data, error } = await supabaseClient.storage
         .from('avatars')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -199,7 +199,7 @@ window.changeProfilePicture = async function () {
       }
 
       // Obtener URL pública
-      const { data: { publicUrl } } = _supabaseClient.storage
+      const { data: { publicUrl } } = supabaseClient.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
@@ -207,7 +207,7 @@ window.changeProfilePicture = async function () {
 
       // Actualizar user_profiles
       await ensureUserProfile(user.id);
-      const { error: updateError } = await _supabaseClient
+      const { error: updateError } = await supabaseClient
         .from('user_profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
@@ -247,20 +247,20 @@ window.editName = async function () {
   showEditModal('Editar Nombre', 'Ingresa tu nuevo nombre:', currentName, async (newName) => {
     if (newName && newName.trim() !== '' && newName !== currentName) {
       try {
-        const { data: { user } } = await _supabaseClient.auth.getUser();
+        const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) {
           showErrorMessage('Debes iniciar sesión');
           return;
         }
 
         // Actualizar en auth.users metadata
-        await _supabaseClient.auth.updateUser({
+        await supabaseClient.auth.updateUser({
           data: { full_name: newName }
         });
 
         // Actualizar en user_profiles
         await ensureUserProfile(user.id);
-        const { error } = await _supabaseClient
+        const { error } = await supabaseClient
           .from('user_profiles')
           .update({ full_name: newName })
           .eq('id', user.id);
@@ -289,7 +289,7 @@ window.editName = async function () {
 // 3. EDITAR EMAIL (Supabase Auth)
 // ===================================================================
 window.editEmail = async function () {
-  const { data: { user } } = await _supabaseClient.auth.getUser();
+  const { data: { user } } = await supabaseClient.auth.getUser();
 
   // No permitir edición para cuentas Gmail
   if (user?.app_metadata?.provider === 'google') {
@@ -309,7 +309,7 @@ window.editEmail = async function () {
       }
 
       try {
-        const { error } = await _supabaseClient.auth.updateUser({
+        const { error } = await supabaseClient.auth.updateUser({
           email: newEmail
         });
 
@@ -328,7 +328,7 @@ window.editEmail = async function () {
 // 4. CAMBIAR CONTRASEÑA (Supabase Auth)
 // ===================================================================
 window.changePassword = async function () {
-  const { data: { user } } = await _supabaseClient.auth.getUser();
+  const { data: { user } } = await supabaseClient.auth.getUser();
 
   if (user?.app_metadata?.provider === 'google') {
     showGmailPasswordModal();
@@ -376,7 +376,7 @@ window.changePassword = async function () {
     }
 
     try {
-      const { error } = await _supabaseClient.auth.updateUser({
+      const { error } = await supabaseClient.auth.updateUser({
         password: newPassword
       });
 
@@ -421,8 +421,8 @@ function showGmailPasswordModal() {
 // 5. MODALIDAD DE ESTUDIO (Supabase)
 // ===================================================================
 window.showStudyModeModal = async function () {
-  const { data: { user } } = await _supabaseClient.auth.getUser();
-  const { data: profile } = await _supabaseClient
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: profile } = await supabaseClient
     .from('user_profiles')
     .select('study_mode')
     .eq('id', user?.id)
@@ -478,7 +478,7 @@ window.showStudyModeModal = async function () {
 
     try {
       await ensureUserProfile(user.id);
-      const { error } = await _supabaseClient
+      const { error } = await supabaseClient
         .from('user_profiles')
         .update({ study_mode: selectedMode })
         .eq('id', user.id);
@@ -501,8 +501,8 @@ window.showStudyModeModal = async function () {
 // 6. RITMO DE ESTUDIO (Supabase)
 // ===================================================================
 window.showStudyRhythmModal = async function () {
-  const { data: { user } } = await _supabaseClient.auth.getUser();
-  const { data: profile } = await _supabaseClient
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: profile } = await supabaseClient
     .from('user_profiles')
     .select('study_rhythm')
     .eq('id', user?.id)
@@ -549,7 +549,7 @@ window.showStudyRhythmModal = async function () {
 
     try {
       await ensureUserProfile(user.id);
-      const { error } = await _supabaseClient
+      const { error } = await supabaseClient
         .from('user_profiles')
         .update({
           study_rhythm: {
@@ -576,8 +576,8 @@ window.showStudyRhythmModal = async function () {
 // 7. RECORDATORIOS (Supabase)
 // ===================================================================
 window.configureReminders = async function () {
-  const { data: { user } } = await _supabaseClient.auth.getUser();
-  const { data: profile } = await _supabaseClient
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: profile } = await supabaseClient
     .from('user_profiles')
     .select('notification_settings')
     .eq('id', user?.id)
@@ -635,7 +635,7 @@ window.configureReminders = async function () {
 
     try {
       await ensureUserProfile(user.id);
-      const { error } = await _supabaseClient
+      const { error } = await supabaseClient
         .from('user_profiles')
         .update({
           notification_settings: {
@@ -677,8 +677,8 @@ window.manageNotifications = async function () {
 // 9. CAMBIAR IDIOMA (Supabase)
 // ===================================================================
 window.changeLanguage = async function () {
-  const { data: { user } } = await _supabaseClient.auth.getUser();
-  const { data: profile } = await _supabaseClient
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data: profile } = await supabaseClient
     .from('user_profiles')
     .select('language')
     .eq('id', user?.id)
@@ -723,7 +723,7 @@ window.changeLanguage = async function () {
 
     try {
       await ensureUserProfile(user.id);
-      const { error } = await _supabaseClient
+      const { error } = await supabaseClient
         .from('user_profiles')
         .update({ language: selectedLang })
         .eq('id', user.id);
@@ -853,7 +853,7 @@ window.exportData = async function () {
 
 // Asegurar que existe el perfil del usuario
 async function ensureUserProfile(userId) {
-  const { data, error } = await _supabaseClient
+  const { data, error } = await supabaseClient
     .from('user_profiles')
     .select('id')
     .eq('id', userId)
@@ -861,7 +861,7 @@ async function ensureUserProfile(userId) {
 
   if (error && error.code === 'PGRST116') {
     // No existe, crear
-    await _supabaseClient
+    await supabaseClient
       .from('user_profiles')
       .insert([{ id: userId }]);
   }
