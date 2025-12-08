@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
-    <link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-    <title>Subir Material - Recuiva</title>
-    <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico"/>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../assets/js/supabase-config.js"></script>
-    <script src="../assets/js/supabase-operations.js"></script>
-    <script src="../assets/js/header-footer-components.js"></script>
-    <style type="text/tailwindcss">
-      :root {
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect" />
+  <link as="style"
+    href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"
+    onload="this.rel='stylesheet'" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <title>Subir Material - Recuiva</title>
+  <link rel="icon" type="image/x-icon" href="../assets/img/Icon-Recuiva.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/supabase-config.js"></script>
+  <script src="../assets/js/supabase-operations.js"></script>
+  <script src="../assets/js/header-footer-components.js"></script>
+  <style type="text/tailwindcss">
+    :root {
         --primary-color: #FF6600;
         --secondary-color: #004EAA;
         --accent-color: #A5CDED;
@@ -184,156 +187,169 @@
       }
     </style>
 </head>
+
 <body class="bg-[var(--base-gray)] min-h-screen">
 
-<!-- Header Container - Managed by header-footer-components.js -->
-<div id="header-container"></div>
+  <!-- Header Container - Managed by header-footer-components.js -->
+  <div id="header-container"></div>
 
-<main class="container mx-auto px-4 py-8 max-w-4xl">
-  
-  <!-- Breadcrumb -->
-  <div class="mb-6">
-    <nav class="text-sm text-[var(--text-secondary)]">
-      <span id="carpeta-nombre" class="text-[var(--text-primary)] font-semibold"></span>
-      <span class="mx-2">></span>
-      <span>Subir Material</span>
-    </nav>
-  </div>
+  <main class="container mx-auto px-4 py-8 max-w-4xl">
 
-  <div class="bg-white rounded-xl shadow-lg p-8">
-    
-    <!-- Header -->
-    <div class="text-center mb-8">
-      <span class="material-symbols-outlined text-4xl text-[var(--primary-color)] mb-4">upload_file</span>
-      <h1 class="text-2xl font-bold text-[var(--secondary-color)] mb-2">
-        Subir Material de Estudio
-      </h1>
-      <p class="text-[var(--text-secondary)]">
-        Sube tu PDF o imágenes para generar el índice vectorial y habilitar la validación semántica
-      </p>
+    <!-- Breadcrumb -->
+    <div class="mb-6">
+      <nav class="text-sm text-[var(--text-secondary)]">
+        <span id="carpeta-nombre" class="text-[var(--text-primary)] font-semibold"></span>
+        <span class="mx-2">></span>
+        <span>Subir Material</span>
+      </nav>
     </div>
 
-    <!-- Sección de Materiales Existentes -->
-    <div id="existing-materials-section" class="mb-8">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-[var(--secondary-color)]">
-          📚 Materiales Disponibles
-        </h2>
-        <button onclick="refreshMaterials()" class="text-sm text-[var(--primary-color)] hover:underline flex items-center gap-1">
-          <span class="material-symbols-outlined text-lg">refresh</span>
-          Actualizar
-        </button>
-      </div>
-      
-      <!-- Tabla de materiales -->
-      <div id="materials-list" class="bg-[var(--base-gray)] rounded-lg p-4 mb-6">
-        <p class="text-center text-[var(--text-secondary)]">
-          <span class="material-symbols-outlined animate-spin">progress_activity</span>
-          Cargando materiales...
+    <div class="bg-white rounded-xl shadow-lg p-8">
+
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <span class="material-symbols-outlined text-4xl text-[var(--primary-color)] mb-4">upload_file</span>
+        <h1 class="text-2xl font-bold text-[var(--secondary-color)] mb-2">
+          Subir Material de Estudio
+        </h1>
+        <p class="text-[var(--text-secondary)]">
+          Sube tu PDF o imágenes para generar el índice vectorial y habilitar la validación semántica
         </p>
       </div>
-    </div>
 
-    <!-- Zona de Upload -->
-    <div id="upload-zone" class="upload-zone rounded-xl p-12 text-center mb-6">
-      <span class="material-symbols-outlined text-6xl text-[var(--accent-color)] mb-4">cloud_upload</span>
-      <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-2">
-        Arrastra y suelta tu archivo aquí
-      </h3>
-      <p class="text-[var(--text-secondary)] mb-4">
-        o haz clic para seleccionar
-      </p>
-      <p class="text-sm text-[var(--text-secondary)]">
-        Formatos soportados: PDF, JPG, PNG (max 50MB)
-      </p>
-      <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" class="hidden" />
-      <button onclick="document.getElementById('file-input').click()" 
-              class="mt-4 px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90">
-        Seleccionar Archivo
-      </button>
-    </div>
+      <!-- Sección de Materiales Existentes -->
+      <div id="existing-materials-section" class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-[var(--secondary-color)]">
+            📚 Materiales Disponibles
+          </h2>
+          <button onclick="refreshMaterials()"
+            class="text-sm text-[var(--primary-color)] hover:underline flex items-center gap-1">
+            <span class="material-symbols-outlined text-lg">refresh</span>
+            Actualizar
+          </button>
+        </div>
 
-    <!-- Progress -->
-    <div id="progress-section" class="hidden mb-6">
-      <div class="bg-[var(--base-gray)] rounded-lg p-4">
-        <div class="flex items-center gap-3 mb-3">
-          <span class="material-symbols-outlined text-[var(--primary-color)] processing">settings</span>
-          <span class="font-semibold text-[var(--text-primary)]">Procesando material...</span>
-          <span id="progress-percentage" class="ml-auto font-bold text-[var(--primary-color)]">0%</span>
-        </div>
-        
-        <!-- Barra de progreso con animación suave -->
-        <div class="w-full bg-gray-200 rounded-full h-3 mb-3 overflow-hidden">
-          <div id="progress-bar" 
-               class="bg-gradient-to-r from-[var(--primary-color)] to-orange-500 h-3 rounded-full transition-all ease-out"
-               style="width: 0%; transition-duration: 1.2s;"></div>
-        </div>
-        
-        <!-- Descripción detallada con borde lateral -->
-        <div class="border-l-4 border-[var(--secondary-color)] bg-blue-50 rounded-r-lg p-3">
-          <p id="progress-text" class="text-sm text-[var(--secondary-color)] font-medium leading-relaxed">
-            🚀 Iniciando procesamiento...
+        <!-- Tabla de materiales -->
+        <div id="materials-list" class="bg-[var(--base-gray)] rounded-lg p-4 mb-6">
+          <p class="text-center text-[var(--text-secondary)]">
+            <span class="material-symbols-outlined animate-spin">progress_activity</span>
+            Cargando materiales...
           </p>
         </div>
       </div>
-    </div>
 
-    <!-- File Info -->
-    <div id="file-info" class="hidden mb-6">
-      <div class="bg-[var(--base-gray)] rounded-lg p-4">
-        <div class="flex items-center gap-3">
-          <span id="file-icon" class="material-symbols-outlined text-2xl text-[var(--primary-color)]"></span>
-          <div class="flex-1">
-            <div id="file-name" class="font-semibold text-[var(--text-primary)]"></div>
-            <div id="file-size" class="text-sm text-[var(--text-secondary)]"></div>
+      <!-- Mensaje de error inline para archivos -->
+      <div id="upload-error" class="hidden mb-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+        <span class="material-symbols-outlined text-red-500 text-2xl">error</span>
+        <div class="flex-1">
+          <h4 id="upload-error-title" class="font-semibold text-red-700 mb-1">Formato no soportado</h4>
+          <p id="upload-error-text" class="text-sm text-red-600"></p>
+        </div>
+        <button onclick="hideUploadError()" class="text-red-400 hover:text-red-600">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Zona de Upload -->
+      <div id="upload-zone" class="upload-zone rounded-xl p-12 text-center mb-6">
+        <span class="material-symbols-outlined text-6xl text-[var(--accent-color)] mb-4">cloud_upload</span>
+        <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-2">
+          Arrastra y suelta tu archivo aquí
+        </h3>
+        <p class="text-[var(--text-secondary)] mb-4">
+          o haz clic para seleccionar
+        </p>
+        <p class="text-sm text-[var(--text-secondary)]">
+          Formatos soportados: PDF, JPG, PNG (max 50MB)
+        </p>
+        <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" class="hidden" />
+        <button onclick="document.getElementById('file-input').click()"
+          class="mt-4 px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90">
+          Seleccionar Archivo
+        </button>
+      </div>
+
+      <!-- Progress -->
+      <div id="progress-section" class="hidden mb-6">
+        <div class="bg-[var(--base-gray)] rounded-lg p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="material-symbols-outlined text-[var(--primary-color)] processing">settings</span>
+            <span class="font-semibold text-[var(--text-primary)]">Procesando material...</span>
+            <span id="progress-percentage" class="ml-auto font-bold text-[var(--primary-color)]">0%</span>
           </div>
-          <button onclick="removerArchivo()" class="text-red-500 hover:text-red-700">
-            <span class="material-symbols-outlined">close</span>
+
+          <!-- Barra de progreso con animación suave -->
+          <div class="w-full bg-gray-200 rounded-full h-3 mb-3 overflow-hidden">
+            <div id="progress-bar"
+              class="bg-gradient-to-r from-[var(--primary-color)] to-orange-500 h-3 rounded-full transition-all ease-out"
+              style="width: 0%; transition-duration: 1.2s;"></div>
+          </div>
+
+          <!-- Descripción detallada con borde lateral -->
+          <div class="border-l-4 border-[var(--secondary-color)] bg-blue-50 rounded-r-lg p-3">
+            <p id="progress-text" class="text-sm text-[var(--secondary-color)] font-medium leading-relaxed">
+              🚀 Iniciando procesamiento...
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Info -->
+      <div id="file-info" class="hidden mb-6">
+        <div class="bg-[var(--base-gray)] rounded-lg p-4">
+          <div class="flex items-center gap-3">
+            <span id="file-icon" class="material-symbols-outlined text-2xl text-[var(--primary-color)]"></span>
+            <div class="flex-1">
+              <div id="file-name" class="font-semibold text-[var(--text-primary)]"></div>
+              <div id="file-size" class="text-sm text-[var(--text-secondary)]"></div>
+            </div>
+            <button onclick="removerArchivo()" class="text-red-500 hover:text-red-700">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div id="success-section" class="hidden text-center">
+        <span class="material-symbols-outlined text-4xl text-green-500 mb-4">check_circle</span>
+        <h3 class="text-lg font-bold text-[var(--secondary-color)] mb-2">
+          ¡Material procesado exitosamente!
+        </h3>
+        <p class="text-[var(--text-secondary)] mb-6">
+          Se ha generado el índice vectorial. Ahora puedes crear tu primera pregunta.
+        </p>
+        <div class="flex gap-4 justify-center">
+          <button onclick="volverDashboard()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            Volver al Dashboard
+          </button>
+          <button onclick="crearPrimeraPregunta()"
+            class="px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90">
+            Crear Primera Pregunta
           </button>
         </div>
       </div>
+
     </div>
+  </main>
 
-    <!-- Success -->
-    <div id="success-section" class="hidden text-center">
-      <span class="material-symbols-outlined text-4xl text-green-500 mb-4">check_circle</span>
-      <h3 class="text-lg font-bold text-[var(--secondary-color)] mb-2">
-        ¡Material procesado exitosamente!
-      </h3>
-      <p class="text-[var(--text-secondary)] mb-6">
-        Se ha generado el índice vectorial. Ahora puedes crear tu primera pregunta.
-      </p>
-      <div class="flex gap-4 justify-center">
-        <button onclick="volverDashboard()" 
-                class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-          Volver al Dashboard
-        </button>
-        <button onclick="crearPrimeraPregunta()" 
-                class="px-6 py-2 bg-[var(--primary-color)] text-white rounded-lg hover:bg-opacity-90">
-          Crear Primera Pregunta
-        </button>
-      </div>
-    </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // === FUNCIONES MODALES BACKEND MEJORADAS ===
+      window.showBackendModal = function (icon, title, description) {
+        showAdvancedModal(icon, title, description);
+      };
 
-  </div>
-</main>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // === FUNCIONES MODALES BACKEND MEJORADAS ===
-  window.showBackendModal = function(icon, title, description) {
-    showAdvancedModal(icon, title, description);
-  };
-  
-  // Modal avanzado con mejor UX
-  window.showAdvancedModal = function(icon, title, description) {
-    // Crear modal si no existe
-    let modal = document.getElementById('advanced-modal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'advanced-modal';
-      modal.className = 'notification-modal';
-      modal.innerHTML = `
+      // Modal avanzado con mejor UX
+      window.showAdvancedModal = function (icon, title, description) {
+        // Crear modal si no existe
+        let modal = document.getElementById('advanced-modal');
+        if (!modal) {
+          modal = document.createElement('div');
+          modal.id = 'advanced-modal';
+          modal.className = 'notification-modal';
+          modal.innerHTML = `
         <div class="notification-modal-content">
           <div class="notification-icon-container">
             <span class="material-symbols-outlined text-2xl text-white" id="modal-icon">notifications</span>
@@ -345,424 +361,454 @@ document.addEventListener('DOMContentLoaded', function() {
           </button>
         </div>
       `;
-      document.body.appendChild(modal);
-      
-      // Cerrar con escape
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal.classList.contains('show')) {
-          closeAdvancedModal();
-        }
-      });
-      
-      // Cerrar clickeando fuera
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          closeAdvancedModal();
-        }
-      });
-    }
-    
-    // Actualizar contenido
-    const iconMap = {
-      'notifications': '🔔',
-      'settings': '⚙️',
-      'dashboard': '📊',
-      'analytics': '📈'
-    };
-    
-    document.getElementById('modal-icon').textContent = icon;
-    document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
-    document.getElementById('modal-description').textContent = description;
-    
-    // Mostrar modal con animación
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-  };
-  
-  window.closeAdvancedModal = function() {
-    const modal = document.getElementById('advanced-modal');
-    if (modal) {
-      modal.classList.remove('show');
-      document.body.style.overflow = '';
-    }
-  };
-  
-  // === FUNCIONES NAVEGACIÓN ===
-  window.logout = function() {
-    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-      localStorage.removeItem('recuiva_user');
-      window.location.href = '../auth/iniciar-sesion.html';
-    }
-  };
+          document.body.appendChild(modal);
 
-  // Menú móvil animación
-  const menuBtn = document.getElementById('menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
-  const menuIcon = menuBtn?.querySelector('.material-symbols-outlined');
-  let isMenuOpen = false;
-
-  function toggleMenu() {
-    isMenuOpen = !isMenuOpen;
-    mobileMenu.classList.toggle('active');
-    document.body.classList.toggle('overflow-hidden');
-    if (!menuIcon) return;
-    menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
-    menuIcon.style.transform = 'rotate(90deg)';
-    menuIcon.style.opacity = '0';
-    setTimeout(() => {
-      menuIcon.textContent = isMenuOpen ? 'close' : 'menu';
-      menuIcon.style.transform = 'rotate(0deg)';
-      menuIcon.style.opacity = '1';
-    }, 150);
-  }
-
-  menuBtn?.addEventListener('click', toggleMenu);
-  mobileMenu?.querySelectorAll('a, button').forEach(el => {
-    el.addEventListener('click', () => { if (isMenuOpen) toggleMenu(); });
-  });
-  window.addEventListener('keydown', (e) => { if (isMenuOpen && e.key === 'Escape') toggleMenu(); });
-
-  // Menú de perfil
-  const profileBtn = document.getElementById('profile-btn');
-  const profileDropdown = document.getElementById('profile-dropdown');
-  function toggleProfileMenu(e) {
-    e.stopPropagation();
-    profileDropdown.classList.toggle('active');
-  }
-  if (profileBtn && profileDropdown) {
-    profileBtn.addEventListener('click', toggleProfileMenu);
-    document.addEventListener('click', (e) => {
-      if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
-        profileDropdown.classList.remove('active');
-      }
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        profileDropdown.classList.remove('active');
-      }
-    });
-  }
-
-  // Obtener parámetros URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const carpetaId = urlParams.get('carpeta');
-  const carpetaNombre = urlParams.get('nombre');
-  
-  // 🔥 SINCRONIZAR CON LA RUTA ACTIVA GUARDADA EN HOME.HTML
-  const rutaActiva = JSON.parse(localStorage.getItem('recuiva_active_path') || '{}');
-  
-  if (rutaActiva.carpetas && rutaActiva.carpetas.length > 0) {
-    // Mostrar la ruta completa (ejemplo: "El collar de la reina › Capítulo I")
-    document.getElementById('carpeta-nombre').innerHTML = rutaActiva.carpetas.join(' <span class="mx-2">›</span> ');
-  } else if (carpetaNombre) {
-    // Fallback: usar solo el nombre del parámetro URL
-    document.getElementById('carpeta-nombre').textContent = decodeURIComponent(carpetaNombre);
-  } else {
-    // Fallback final
-    document.getElementById('carpeta-nombre').textContent = 'Material';
-  }
-
-  const uploadZone = document.getElementById('upload-zone');
-  const fileInput = document.getElementById('file-input');
-  const progressSection = document.getElementById('progress-section');
-  const fileInfo = document.getElementById('file-info');
-  const successSection = document.getElementById('success-section');
-
-  // Drag and drop
-  uploadZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadZone.classList.add('dragover');
-  });
-
-  uploadZone.addEventListener('dragleave', () => {
-    uploadZone.classList.remove('dragover');
-  });
-
-  uploadZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadZone.classList.remove('dragover');
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleFile(files[0]);
-    }
-  });
-
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-      handleFile(e.target.files[0]);
-    }
-  });
-
-  function handleFile(file) {
-    // Validar tipo de archivo
-    const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-    if (!validTypes.includes(file.type)) {
-      alert('Formato no soportado. Solo PDF, JPG o PNG.');
-      return;
-    }
-
-    // Validar tamaño (50MB)
-    if (file.size > 50 * 1024 * 1024) {
-      alert('Archivo demasiado grande. Máximo 50MB.');
-      return;
-    }
-
-    mostrarInfoArchivo(file);
-    procesarArchivo(file);
-  }
-
-  function mostrarInfoArchivo(file) {
-    uploadZone.style.display = 'none';
-    fileInfo.classList.remove('hidden');
-    
-    const icon = file.type === 'application/pdf' ? 'picture_as_pdf' : 'image';
-    document.getElementById('file-icon').textContent = icon;
-    document.getElementById('file-name').textContent = file.name;
-    document.getElementById('file-size').textContent = formatFileSize(file.size);
-  }
-
-  async function procesarArchivo(file) {
-    progressSection.classList.remove('hidden');
-    
-    const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
-    const progressPercentage = document.getElementById('progress-percentage');
-    
-    try {
-      // 🔗 GENERAR SESSION ID ÚNICO PARA SSE
-      const sessionId = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-      console.log('🔗 Session ID para SSE:', sessionId);
-      
-      // 🎯 CONECTAR A SSE ANTES DE INICIAR UPLOAD
-      let eventSource = null;
-      let lastPercentage = 0; // Controlar última actualización
-      
-      try {
-        eventSource = new EventSource(`${API_CONFIG.BASE_URL}/api/upload-progress/${sessionId}`);
-        
-        eventSource.onopen = () => {
-          console.log('✅ Conexión SSE establecida');
-          // Inicializar en 0%
-          progressBar.style.width = '0%';
-          progressPercentage.textContent = '0%';
-          progressText.textContent = '🔌 Conexión establecida, esperando eventos...';
-        };
-        
-        eventSource.onmessage = (event) => {
-          const data = JSON.parse(event.data);
-          console.log('📩 Evento SSE recibido:', data);
-          
-          // ⚡ FORZAR ANIMACIÓN: Solo actualizar si el porcentaje aumentó
-          if (data.progress !== undefined && data.progress > lastPercentage) {
-            // Forzar reflow para que la animación CSS se active
-            progressBar.style.transition = 'none';
-            void progressBar.offsetWidth; // Trigger reflow
-            progressBar.style.transition = 'width 1.2s ease-out';
-            
-            // Actualizar valores
-            progressBar.style.width = `${data.progress}%`;
-            progressPercentage.textContent = `${data.progress}%`;
-            lastPercentage = data.progress;
-            
-            console.log(`🎯 Progreso actualizado: ${data.progress}%`);
-          }
-          
-          // Actualizar descripción con emoji y texto educativo
-          if (data.message) {
-            progressText.textContent = data.message;
-          }
-          
-          // Cerrar conexión si está completo
-          if (data.step === 'complete') {
-            eventSource.close();
-            console.log('✅ SSE completado al 100%');
-          }
-        };
-        
-        eventSource.onerror = (error) => {
-          console.error('❌ Error en SSE:', error);
-          eventSource.close();
-        };
-        
-      } catch (error) {
-        console.error('❌ No se pudo conectar a SSE:', error);
-      }
-      
-      // 📤 SUBIR AL BACKEND CON SESSION ID (sin inicializar progreso aquí)
-      
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Obtener user_id del usuario autenticado
-      const user = await SupabaseOperations.getCurrentUser();
-      if (!user) {
-        if (eventSource) eventSource.close();
-        throw new Error('Usuario no autenticado');
-      }
-      
-      const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials/upload`, {
-        method: 'POST',
-        headers: {
-          'X-User-ID': user.id,
-          'X-Session-ID': sessionId  // 🔑 ENVIAR SESSION ID AL BACKEND
-        },
-        body: formData
-      });
-      
-      if (!response.ok) {
-        if (eventSource) eventSource.close();
-        const errorData = await response.json().catch(() => ({ detail: 'Error desconocido' }));
-        throw new Error(errorData.detail || `Error ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // ✅ Material ya guardado en Supabase por el backend
-      const supabaseMaterialId = data.material_id;
-      console.log('✅ Material guardado en Supabase con UUID:', supabaseMaterialId);
-      
-      try {
-        // Asociar a carpeta si existe
-        const carpetaActiva = JSON.parse(localStorage.getItem('recuiva_carpeta_activa') || '{}');
-        if (carpetaActiva.id && supabaseMaterialId) {
-          await SupabaseOperations.linkMaterialToFolder(supabaseMaterialId, carpetaActiva.id);
-          console.log(`📂 Material asociado a carpeta en Supabase:`, carpetaActiva);
-          
-          // SPRINT 2: Asignar tópico automáticamente
-          const topicId = localStorage.getItem(`folder_topic_${carpetaActiva.id}`);
-          if (topicId) {
-            try {
-              const token = localStorage.getItem('sb-access-token');
-              const topicResponse = await fetch(`${API_BASE_URL}/api/materials/${supabaseMaterialId}/assign-topic?topic_id=${topicId}`, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${token}`
-                }
-              });
-              
-              if (topicResponse.ok) {
-                console.log('✅ Material asignado al tópico de la carpeta:', topicId);
-              }
-            } catch (topicError) {
-              console.warn('⚠️ Error asignando tópico (no crítico):', topicError);
+          // Cerrar con escape
+          document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+              closeAdvancedModal();
             }
-          }
+          });
+
+          // Cerrar clickeando fuera
+          modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+              closeAdvancedModal();
+            }
+          });
         }
-        
-      } catch (supabaseError) {
-        console.error('⚠️ Error guardando en Supabase:', supabaseError);
-        // No bloqueamos el flujo, el material ya está en el backend
+
+        // Actualizar contenido
+        const iconMap = {
+          'notifications': '🔔',
+          'settings': '⚙️',
+          'dashboard': '📊',
+          'analytics': '📈'
+        };
+
+        document.getElementById('modal-icon').textContent = icon;
+        document.getElementById('modal-title').textContent = `${iconMap[icon] || '📋'} ${title}`;
+        document.getElementById('modal-description').textContent = description;
+
+        // Mostrar modal con animación
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      };
+
+      window.closeAdvancedModal = function () {
+        const modal = document.getElementById('advanced-modal');
+        if (modal) {
+          modal.classList.remove('show');
+          document.body.style.overflow = '';
+        }
+      };
+
+      // === FUNCIONES NAVEGACIÓN ===
+      window.logout = function () {
+        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+          localStorage.removeItem('recuiva_user');
+          window.location.href = '../auth/iniciar-sesion.html';
+        }
+      };
+
+      // Menú móvil animación
+      const menuBtn = document.getElementById('menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const menuIcon = menuBtn?.querySelector('.material-symbols-outlined');
+      let isMenuOpen = false;
+
+      function toggleMenu() {
+        isMenuOpen = !isMenuOpen;
+        mobileMenu.classList.toggle('active');
+        document.body.classList.toggle('overflow-hidden');
+        if (!menuIcon) return;
+        menuIcon.style.transition = 'transform 0.3s ease, opacity 0.15s ease';
+        menuIcon.style.transform = 'rotate(90deg)';
+        menuIcon.style.opacity = '0';
+        setTimeout(() => {
+          menuIcon.textContent = isMenuOpen ? 'close' : 'menu';
+          menuIcon.style.transform = 'rotate(0deg)';
+          menuIcon.style.opacity = '1';
+        }, 150);
       }
-      
-      // Guardar el ID del material de Supabase para navegación
-      if (supabaseMaterialId) {
-        localStorage.setItem('recuiva_last_uploaded_material_id', supabaseMaterialId);
-      } else if (data.material_id) {
-        // Fallback al ID del backend
-        localStorage.setItem('recuiva_last_uploaded_material_id', data.material_id);
+
+      menuBtn?.addEventListener('click', toggleMenu);
+      mobileMenu?.querySelectorAll('a, button').forEach(el => {
+        el.addEventListener('click', () => { if (isMenuOpen) toggleMenu(); });
+      });
+      window.addEventListener('keydown', (e) => { if (isMenuOpen && e.key === 'Escape') toggleMenu(); });
+
+      // Menú de perfil
+      const profileBtn = document.getElementById('profile-btn');
+      const profileDropdown = document.getElementById('profile-dropdown');
+      function toggleProfileMenu(e) {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
       }
-      
-      // Cerrar conexión SSE si aún está abierta
-      if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
-        eventSource.close();
-        console.log('🔌 Conexión SSE cerrada manualmente');
+      if (profileBtn && profileDropdown) {
+        profileBtn.addEventListener('click', toggleProfileMenu);
+        document.addEventListener('click', (e) => {
+          if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+            profileDropdown.classList.remove('active');
+          }
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            profileDropdown.classList.remove('active');
+          }
+        });
       }
-      
-      // Finalizar procesamiento
-      progressSection.classList.add('hidden');
-      fileInfo.classList.add('hidden');
-      successSection.classList.remove('hidden');
-      
-      // ✅ ACTUALIZAR LA TABLA DE MATERIALES AUTOMÁTICAMENTE
-      setTimeout(() => {
-        refreshMaterials();
-      }, 500);
-      
-      console.log('✅ Material subido:', data);
-      
-    } catch (error) {
-      console.error('❌ Error subiendo material:', error);
-      
-      // Cerrar SSE en caso de error
-      if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
-        eventSource.close();
-        console.log('🔌 Conexión SSE cerrada por error');
+
+      // Obtener parámetros URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const carpetaId = urlParams.get('carpeta');
+      const carpetaNombre = urlParams.get('nombre');
+
+      // 🔥 SINCRONIZAR CON LA RUTA ACTIVA GUARDADA EN HOME.HTML
+      const rutaActiva = JSON.parse(localStorage.getItem('recuiva_active_path') || '{}');
+
+      if (rutaActiva.carpetas && rutaActiva.carpetas.length > 0) {
+        // Mostrar la ruta completa (ejemplo: "El collar de la reina › Capítulo I")
+        document.getElementById('carpeta-nombre').innerHTML = rutaActiva.carpetas.join(' <span class="mx-2">›</span> ');
+      } else if (carpetaNombre) {
+        // Fallback: usar solo el nombre del parámetro URL
+        document.getElementById('carpeta-nombre').textContent = decodeURIComponent(carpetaNombre);
+      } else {
+        // Fallback final
+        document.getElementById('carpeta-nombre').textContent = 'Material';
       }
-      
-      progressBar.style.width = '0%';
-      progressText.textContent = '';
-      progressSection.classList.add('hidden');
-      alert(`Error al subir el archivo:\n\n${error.message}\n\nVerifica que el backend esté ejecutándose en puerto 8000.`);
-      
-      // Resetear
-      fileInfo.classList.add('hidden');
-      uploadZone.style.display = 'block';
-      fileInput.value = '';
-    }
-  }
-  
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
 
-  function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
+      const uploadZone = document.getElementById('upload-zone');
+      const fileInput = document.getElementById('file-input');
+      const progressSection = document.getElementById('progress-section');
+      const fileInfo = document.getElementById('file-info');
+      const successSection = document.getElementById('success-section');
 
-  window.removerArchivo = function() {
-    fileInfo.classList.add('hidden');
-    uploadZone.style.display = 'block';
-    fileInput.value = '';
-  };
+      // Drag and drop
+      uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+      });
 
-  window.volverDashboard = function() {
-    window.location.href = 'home.html';
-  };
+      uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+      });
 
-  window.crearPrimeraPregunta = function() {
-    // Ir a la sesión de práctica con el material recién cargado
-    // Usar el ID del último material subido desde localStorage
-    const lastMaterialId = localStorage.getItem('recuiva_last_uploaded_material_id');
-    if (lastMaterialId) {
-      window.location.href = `sesion-practica.html?material=${lastMaterialId}`;
-    } else {
-      // Fallback: ir sin parámetros
-      window.location.href = 'sesion-practica.html';
-    }
-  };
+      uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          handleFile(files[0]);
+        }
+      });
 
-  // ===== FUNCIONES PARA GESTIÓN DE MATERIALES =====
-  
-  window.refreshMaterials = async function() {
-    const materialsListDiv = document.getElementById('materials-list');
-    
-    try {
-      materialsListDiv.innerHTML = `
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleFile(e.target.files[0]);
+        }
+      });
+
+      // Funciones para errores inline de upload
+      function showUploadError(title, message) {
+        const errorDiv = document.getElementById('upload-error');
+        const errorTitle = document.getElementById('upload-error-title');
+        const errorText = document.getElementById('upload-error-text');
+
+        if (errorDiv && errorTitle && errorText) {
+          errorTitle.textContent = title;
+          errorText.textContent = message;
+          errorDiv.classList.remove('hidden');
+          errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+
+      window.hideUploadError = function () {
+        const errorDiv = document.getElementById('upload-error');
+        if (errorDiv) {
+          errorDiv.classList.add('hidden');
+        }
+      };
+
+      function handleFile(file) {
+        // Ocultar errores previos
+        hideUploadError();
+
+        // Validar tipo de archivo
+        const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+          showUploadError(
+            '❌ Formato no soportado',
+            'El archivo "' + file.name + '" no es válido. Solo se permiten archivos PDF, JPG o PNG.'
+          );
+          return;
+        }
+
+        // Validar tamaño (50MB)
+        if (file.size > 50 * 1024 * 1024) {
+          showUploadError(
+            '❌ Archivo demasiado grande',
+            'El archivo "' + file.name + '" supera el límite de 50MB. Tamaño actual: ' + formatFileSize(file.size) + '.'
+          );
+          return;
+        }
+
+        mostrarInfoArchivo(file);
+        procesarArchivo(file);
+      }
+
+      function mostrarInfoArchivo(file) {
+        uploadZone.style.display = 'none';
+        fileInfo.classList.remove('hidden');
+
+        const icon = file.type === 'application/pdf' ? 'picture_as_pdf' : 'image';
+        document.getElementById('file-icon').textContent = icon;
+        document.getElementById('file-name').textContent = file.name;
+        document.getElementById('file-size').textContent = formatFileSize(file.size);
+      }
+
+      async function procesarArchivo(file) {
+        progressSection.classList.remove('hidden');
+
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const progressPercentage = document.getElementById('progress-percentage');
+
+        try {
+          // 🔗 GENERAR SESSION ID ÚNICO PARA SSE
+          const sessionId = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+          console.log('🔗 Session ID para SSE:', sessionId);
+
+          // 🎯 CONECTAR A SSE ANTES DE INICIAR UPLOAD
+          let eventSource = null;
+          let lastPercentage = 0; // Controlar última actualización
+
+          try {
+            eventSource = new EventSource(`${API_CONFIG.BASE_URL}/api/upload-progress/${sessionId}`);
+
+            eventSource.onopen = () => {
+              console.log('✅ Conexión SSE establecida');
+              // Inicializar en 0%
+              progressBar.style.width = '0%';
+              progressPercentage.textContent = '0%';
+              progressText.textContent = '🔌 Conexión establecida, esperando eventos...';
+            };
+
+            eventSource.onmessage = (event) => {
+              const data = JSON.parse(event.data);
+              console.log('📩 Evento SSE recibido:', data);
+
+              // ⚡ FORZAR ANIMACIÓN: Solo actualizar si el porcentaje aumentó
+              if (data.progress !== undefined && data.progress > lastPercentage) {
+                // Forzar reflow para que la animación CSS se active
+                progressBar.style.transition = 'none';
+                void progressBar.offsetWidth; // Trigger reflow
+                progressBar.style.transition = 'width 1.2s ease-out';
+
+                // Actualizar valores
+                progressBar.style.width = `${data.progress}%`;
+                progressPercentage.textContent = `${data.progress}%`;
+                lastPercentage = data.progress;
+
+                console.log(`🎯 Progreso actualizado: ${data.progress}%`);
+              }
+
+              // Actualizar descripción con emoji y texto educativo
+              if (data.message) {
+                progressText.textContent = data.message;
+              }
+
+              // Cerrar conexión si está completo
+              if (data.step === 'complete') {
+                eventSource.close();
+                console.log('✅ SSE completado al 100%');
+              }
+            };
+
+            eventSource.onerror = (error) => {
+              console.error('❌ Error en SSE:', error);
+              eventSource.close();
+            };
+
+          } catch (error) {
+            console.error('❌ No se pudo conectar a SSE:', error);
+          }
+
+          // 📤 SUBIR AL BACKEND CON SESSION ID (sin inicializar progreso aquí)
+
+          const formData = new FormData();
+          formData.append('file', file);
+
+          // Obtener user_id del usuario autenticado
+          const user = await SupabaseOperations.getCurrentUser();
+          if (!user) {
+            if (eventSource) eventSource.close();
+            throw new Error('Usuario no autenticado');
+          }
+
+          const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials/upload`, {
+            method: 'POST',
+            headers: {
+              'X-User-ID': user.id,
+              'X-Session-ID': sessionId  // 🔑 ENVIAR SESSION ID AL BACKEND
+            },
+            body: formData
+          });
+
+          if (!response.ok) {
+            if (eventSource) eventSource.close();
+            const errorData = await response.json().catch(() => ({ detail: 'Error desconocido' }));
+            throw new Error(errorData.detail || `Error ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          // ✅ Material ya guardado en Supabase por el backend
+          const supabaseMaterialId = data.material_id;
+          console.log('✅ Material guardado en Supabase con UUID:', supabaseMaterialId);
+
+          try {
+            // Asociar a carpeta si existe
+            const carpetaActiva = JSON.parse(localStorage.getItem('recuiva_carpeta_activa') || '{}');
+            if (carpetaActiva.id && supabaseMaterialId) {
+              await SupabaseOperations.linkMaterialToFolder(supabaseMaterialId, carpetaActiva.id);
+              console.log(`📂 Material asociado a carpeta en Supabase:`, carpetaActiva);
+
+              // SPRINT 2: Asignar tópico automáticamente
+              const topicId = localStorage.getItem(`folder_topic_${carpetaActiva.id}`);
+              if (topicId) {
+                try {
+                  const token = localStorage.getItem('sb-access-token');
+                  const topicResponse = await fetch(`${API_BASE_URL}/api/materials/${supabaseMaterialId}/assign-topic?topic_id=${topicId}`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token}`
+                    }
+                  });
+
+                  if (topicResponse.ok) {
+                    console.log('✅ Material asignado al tópico de la carpeta:', topicId);
+                  }
+                } catch (topicError) {
+                  console.warn('⚠️ Error asignando tópico (no crítico):', topicError);
+                }
+              }
+            }
+
+          } catch (supabaseError) {
+            console.error('⚠️ Error guardando en Supabase:', supabaseError);
+            // No bloqueamos el flujo, el material ya está en el backend
+          }
+
+          // Guardar el ID del material de Supabase para navegación
+          if (supabaseMaterialId) {
+            localStorage.setItem('recuiva_last_uploaded_material_id', supabaseMaterialId);
+          } else if (data.material_id) {
+            // Fallback al ID del backend
+            localStorage.setItem('recuiva_last_uploaded_material_id', data.material_id);
+          }
+
+          // Cerrar conexión SSE si aún está abierta
+          if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
+            eventSource.close();
+            console.log('🔌 Conexión SSE cerrada manualmente');
+          }
+
+          // Finalizar procesamiento
+          progressSection.classList.add('hidden');
+          fileInfo.classList.add('hidden');
+          successSection.classList.remove('hidden');
+
+          // ✅ ACTUALIZAR LA TABLA DE MATERIALES AUTOMÁTICAMENTE
+          setTimeout(() => {
+            refreshMaterials();
+          }, 500);
+
+          console.log('✅ Material subido:', data);
+
+        } catch (error) {
+          console.error('❌ Error subiendo material:', error);
+
+          // Cerrar SSE en caso de error
+          if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
+            eventSource.close();
+            console.log('🔌 Conexión SSE cerrada por error');
+          }
+
+          progressBar.style.width = '0%';
+          progressText.textContent = '';
+          progressSection.classList.add('hidden');
+          alert(`Error al subir el archivo:\n\n${error.message}\n\nVerifica que el backend esté ejecutándose en puerto 8000.`);
+
+          // Resetear
+          fileInfo.classList.add('hidden');
+          uploadZone.style.display = 'block';
+          fileInput.value = '';
+        }
+      }
+
+      function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      window.removerArchivo = function () {
+        fileInfo.classList.add('hidden');
+        uploadZone.style.display = 'block';
+        fileInput.value = '';
+      };
+
+      window.volverDashboard = function () {
+        window.location.href = 'home.html';
+      };
+
+      window.crearPrimeraPregunta = function () {
+        // Ir a la sesión de práctica con el material recién cargado
+        // Usar el ID del último material subido desde localStorage
+        const lastMaterialId = localStorage.getItem('recuiva_last_uploaded_material_id');
+        if (lastMaterialId) {
+          window.location.href = `sesion-practica.html?material=${lastMaterialId}`;
+        } else {
+          // Fallback: ir sin parámetros
+          window.location.href = 'sesion-practica.html';
+        }
+      };
+
+      // ===== FUNCIONES PARA GESTIÓN DE MATERIALES =====
+
+      window.refreshMaterials = async function () {
+        const materialsListDiv = document.getElementById('materials-list');
+
+        try {
+          materialsListDiv.innerHTML = `
         <p class="text-center text-[var(--text-secondary)]">
           <span class="material-symbols-outlined animate-spin">progress_activity</span>
           Cargando materiales...
         </p>
       `;
-      
-      // ✅ CORRECCIÓN PROFESOR: Enviar token de autenticación para filtrar por usuario
-      const user = await SupabaseOperations.getCurrentUser();
-      const session = await supabaseClient.auth.getSession();
-      const token = session?.data?.session?.access_token;
-      
-      const headers = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials`, { headers });
-      const data = await response.json();
-      
-      if (!data.success || data.materials.length === 0) {
-        materialsListDiv.innerHTML = `
+
+          // ✅ CORRECCIÓN PROFESOR: Enviar token de autenticación para filtrar por usuario
+          const user = await SupabaseOperations.getCurrentUser();
+          const session = await supabaseClient.auth.getSession();
+          const token = session?.data?.session?.access_token;
+
+          const headers = {};
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          }
+
+          const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials`, { headers });
+          const data = await response.json();
+
+          if (!data.success || data.materials.length === 0) {
+            materialsListDiv.innerHTML = `
           <div class="text-center py-6">
             <span class="material-symbols-outlined text-4xl text-[var(--accent-color)] mb-2">folder_open</span>
             <p class="text-[var(--text-secondary)]">
@@ -771,11 +817,11 @@ document.addEventListener('DOMContentLoaded', function() {
             </p>
           </div>
         `;
-        return;
-      }
-      
-      // Crear tabla de materiales
-      let tableHTML = `
+            return;
+          }
+
+          // Crear tabla de materiales
+          let tableHTML = `
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
@@ -791,31 +837,31 @@ document.addEventListener('DOMContentLoaded', function() {
             </thead>
             <tbody>
       `;
-      
-      data.materials.forEach(material => {
-        // Formatear fecha desde Supabase (ISO 8601)
-        let uploadDate = 'N/A';
-        try {
-          if (material.created_at) {
-            uploadDate = new Date(material.created_at).toLocaleDateString('es-ES');
-          } else if (material.uploaded_at) {
-            // Fallback para formato antiguo YYYYMMDD
-            uploadDate = new Date(
-              material.uploaded_at.slice(0,4), 
-              parseInt(material.uploaded_at.slice(4,6))-1, 
-              material.uploaded_at.slice(6,8)
-            ).toLocaleDateString('es-ES');
-          }
-        } catch (e) {
-          console.warn('Error parseando fecha:', e);
-          uploadDate = 'N/A';
-        }
-        
-        const fileStatus = material.processing_status === 'completed' ? 
-          '<span class="text-green-600">✓ Procesado</span>' :
-          '<span class="text-yellow-600">⚠ Procesando</span>';
-        
-        tableHTML += `
+
+          data.materials.forEach(material => {
+            // Formatear fecha desde Supabase (ISO 8601)
+            let uploadDate = 'N/A';
+            try {
+              if (material.created_at) {
+                uploadDate = new Date(material.created_at).toLocaleDateString('es-ES');
+              } else if (material.uploaded_at) {
+                // Fallback para formato antiguo YYYYMMDD
+                uploadDate = new Date(
+                  material.uploaded_at.slice(0, 4),
+                  parseInt(material.uploaded_at.slice(4, 6)) - 1,
+                  material.uploaded_at.slice(6, 8)
+                ).toLocaleDateString('es-ES');
+              }
+            } catch (e) {
+              console.warn('Error parseando fecha:', e);
+              uploadDate = 'N/A';
+            }
+
+            const fileStatus = material.processing_status === 'completed' ?
+              '<span class="text-green-600">✓ Procesado</span>' :
+              '<span class="text-yellow-600">⚠ Procesando</span>';
+
+            tableHTML += `
           <tr class="border-b border-gray-200 hover:bg-white transition-colors">
             <td class="py-2 px-3 font-mono text-xs">${material.id.substring(0, 8)}...</td>
             <td class="py-2 px-3">
@@ -846,19 +892,19 @@ document.addEventListener('DOMContentLoaded', function() {
             </td>
           </tr>
         `;
-      });
-      
-      tableHTML += `
+          });
+
+          tableHTML += `
             </tbody>
           </table>
         </div>
       `;
-      
-      materialsListDiv.innerHTML = tableHTML;
-      
-    } catch (error) {
-      console.error('Error cargando materiales:', error);
-      materialsListDiv.innerHTML = `
+
+          materialsListDiv.innerHTML = tableHTML;
+
+        } catch (error) {
+          console.error('Error cargando materiales:', error);
+          materialsListDiv.innerHTML = `
         <div class="text-center py-4">
           <span class="material-symbols-outlined text-3xl text-red-500 mb-2">error</span>
           <p class="text-red-600 font-semibold">Error al cargar materiales</p>
@@ -872,62 +918,63 @@ document.addEventListener('DOMContentLoaded', function() {
           </button>
         </div>
       `;
-    }
-  };
-  
-  window.useMaterial = function(materialId) {
-    // Redirigir a sesión de práctica con este material
-    window.location.href = `sesion-practica.html?material_id=${materialId}`;
-  };
-  
-  // ✅ FUNCIÓN PARA ELIMINAR MATERIAL
-  window.eliminarMaterial = async function(materialId, filename) {
-    if (!confirm(`¿Estás seguro de eliminar "${filename}"?\n\nEsto eliminará:\n- El material del backend\n- Todos los embeddings asociados\n- El archivo PDF si existe`)) {
-      return;
-    }
-    
-    try {
-  const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials/${materialId}`, {
-        method: 'DELETE'
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Error al eliminar material');
-      }
-      
-      const result = await response.json();
-      console.log('Material eliminado:', result);
-      
-      // Mostrar confirmación
-      alert(`✅ Material "${filename}" eliminado exitosamente\n\n${result.message || 'Eliminación completada'}`);
-      
-      // Refrescar la lista de materiales
+        }
+      };
+
+      window.useMaterial = function (materialId) {
+        // Redirigir a sesión de práctica con este material
+        window.location.href = `sesion-practica.html?material_id=${materialId}`;
+      };
+
+      // ✅ FUNCIÓN PARA ELIMINAR MATERIAL
+      window.eliminarMaterial = async function (materialId, filename) {
+        if (!confirm(`¿Estás seguro de eliminar "${filename}"?\n\nEsto eliminará:\n- El material del backend\n- Todos los embeddings asociados\n- El archivo PDF si existe`)) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_CONFIG.BASE_URL}/api/materials/${materialId}`, {
+            method: 'DELETE'
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Error al eliminar material');
+          }
+
+          const result = await response.json();
+          console.log('Material eliminado:', result);
+
+          // Mostrar confirmación
+          alert(`✅ Material "${filename}" eliminado exitosamente\n\n${result.message || 'Eliminación completada'}`);
+
+          // Refrescar la lista de materiales
+          refreshMaterials();
+
+        } catch (error) {
+          console.error('Error eliminando material:', error);
+          alert(`❌ Error al eliminar material:\n\n${error.message}`);
+        }
+      };
+
+      // Cargar materiales al iniciar la página
       refreshMaterials();
-      
-    } catch (error) {
-      console.error('Error eliminando material:', error);
-      alert(`❌ Error al eliminar material:\n\n${error.message}`);
-    }
-  };
-  
-  // Cargar materiales al iniciar la página
-  refreshMaterials();
-});
-</script>
+    });
+  </script>
 
-<!-- Scripts del Backend API -->
-<script src="../assets/js/api.js"></script>
-<script src="../assets/js/upload-material.js"></script>
+  <!-- Scripts del Backend API -->
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/upload-material.js"></script>
 
-<!-- Footer Container - Managed by header-footer-components.js -->
-<div id="footer-container"></div>
+  <!-- Footer Container - Managed by header-footer-components.js -->
+  <div id="footer-container"></div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  initializeHeaderFooter('materiales');
-});
-</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      initializeHeaderFooter('materiales');
+    });
+  </script>
 
 </body>
+
 </html>
