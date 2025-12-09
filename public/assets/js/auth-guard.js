@@ -112,10 +112,10 @@
 
         if (appIndex !== -1) {
             // Estamos en alguna página dentro de /app/
-            window.location.replace('../auth/iniciar-sesion.html');
+            window.location.replace('/app/auth/iniciar-sesion.html');
         } else {
             // Fallback
-            window.location.replace('/public/app/auth/iniciar-sesion.html');
+            window.location.replace('/app/auth/iniciar-sesion.html');
         }
     }
 })();

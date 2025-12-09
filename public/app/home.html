@@ -592,7 +592,7 @@
 
       if (tipo === 'pdf') {
         // Usuario tiene PDF/imágenes → ir a subir material
-        window.location.href = `app/subir-material.html?carpeta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre)}&tipo=pdf`;
+        window.location.href = `/app/subir-material.html?carpeta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre)}&tipo=pdf`;
       } else if (tipo === 'fisico') {
         // Usuario solo tiene libro físico → modal explicativo y luego a crear pregunta
         mostrarModalLibroFisico(carpetaId, carpetaNombre);
@@ -840,7 +840,7 @@
     }
 
     function irAPractica() {
-      window.location.href = 'app/sesion-practica.html';
+      window.location.href = '/app/sesion-practica.html';
     }
 
     function mostrarModalBienvenida(carpetaId, carpetaNombre) {
@@ -876,12 +876,12 @@
 
     function iniciarSesionPractica(carpetaId, carpetaNombre) {
       cerrarModalBienvenida();
-      window.location.href = `app/sesion-practica.html?carpeta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre)}&inicio=true`;
+      window.location.href = `/app/sesion-practica.html?carpeta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre)}&inicio=true`;
     }
 
     function verMateriales(carpetaId) {
       cerrarModalBienvenida();
-      window.location.href = `app/materiales.html?carpeta=${carpetaId}&vista=carpeta`;
+      window.location.href = `/app/materiales.html?carpeta=${carpetaId}&vista=carpeta`;
     }
 
     function cerrarModalBienvenida() {
@@ -1055,7 +1055,7 @@
         return false;
       }
 
-      window.location.href = 'app/sesion-practica.html';
+      window.location.href = '/app/sesion-practica.html';
       return true;
     };
 
@@ -1446,7 +1446,7 @@
           console.log('📍 Ruta activa guardada:', rutaCompleta.join(' › '));
 
           // 🚀 REDIRECCIÓN DIRECTA A SUBIR MATERIAL (sin modal)
-          window.location.href = `subir-material.html?carpeta=${encodeURIComponent(carpeta.id)}&nombre=${encodeURIComponent(carpeta.nombre)}`;
+          window.location.href = `/app/subir-material.html?carpeta=${encodeURIComponent(carpeta.id)}&nombre=${encodeURIComponent(carpeta.nombre)}`;
         };
         const add = document.createElement('button');
         add.className = 'px-3 py-2 rounded-full bg-blue-100 border border-blue-300 text-[var(--secondary-color)] font-semibold flex items-center';
@@ -1679,10 +1679,10 @@
 
         if (tipo === 'pdf') {
           // Ir a página de subir material con parámetros
-          window.location.href = `app/subir-material.html?carpeta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre)}&tipo=pdf`;
+          window.location.href = `/app/subir-material.html?carpeta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre)}&tipo=pdf`;
         } else if (tipo === 'fisico') {
           // Ir a página de subir material para libro físico
-          window.location.href = `app/subir-material.html?carpeta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre)}&tipo=fisico`;
+          window.location.href = `/app/subir-material.html?carpeta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre)}&tipo=fisico`;
         } else {
           // Mostrar modal de bienvenida y luego ir a sesión práctica
           mostrarModalBienvenida(carpetaId, carpetaNombre);
@@ -1724,13 +1724,13 @@
       function iniciarSesionPractica(carpetaId, carpetaNombre) {
         cerrarModalBienvenida();
         // Ir a página de sesión práctica con parámetros
-        window.location.href = `app/sesion-practica.html?carpeta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre)}&inicio=true`;
+        window.location.href = `/app/sesion-practica.html?carpeta=${carpetaId}&nombre=${encodeURIComponent(carpetaNombre)}&inicio=true`;
       }
 
       function verMateriales(carpetaId) {
         cerrarModalBienvenida();
         // Ir a página de materiales filtrada por carpeta
-        window.location.href = `app/materiales.html?carpeta=${carpetaId}&vista=carpeta`;
+        window.location.href = `/app/materiales.html?carpeta=${carpetaId}&vista=carpeta`;
       }
 
       function cerrarModalBienvenida() {
@@ -1865,7 +1865,7 @@
           window.mostrarModalAdvertenciaPractica(validacion);
           return;
         }
-        window.location.href = 'app/sesion-practica.html';
+        window.location.href = '/app/sesion-practica.html';
       }
 
       // --- INTEGRACIÓN CON SISTEMA EXISTENTE ---
