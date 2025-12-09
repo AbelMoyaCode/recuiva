@@ -23,6 +23,15 @@ Sistema completo que permite a estudiantes mejorar su retención de conocimiento
 | 💚 **Health Check** | [https://api-recuiva.duckdns.org/api/health](https://api-recuiva.duckdns.org/api/health) | Estado del servidor |
 | 🔗 **IP Directa** | [http://147.182.226.170](http://147.182.226.170) | Acceso sin DNS (universidades) |
 
+### 📚 **Documentación Oficial**
+
+| Documento | Descripción |
+|-----------|-------------|
+| 🛠️ **[Manual de Despliegue](MANUAL_DESPLIEGUE_EXPANDIDO.md)** | Guía técnica paso a paso (V10.0) para desplegar en DigitalOcean. |
+| 🧑‍🎓 **[Manual de Usuario](MANUAL_USUARIO_EXPANDIDO.md)** | Guía para estudiantes sobre cómo usar la plataforma. |
+| 🗺️ **[Guía de Mapeo](GUIA_MAPEO_CAPTURAS.md)** | Referencia para ubicar las capturas de pantalla en el manual. |
+
+
 ### ⚠️ **Acceso desde Redes Restrictivas**
 
 Si estás en una **red universitaria o empresarial** que bloquea DNS dinámicos (DuckDNS), usa la **IP directa**:
